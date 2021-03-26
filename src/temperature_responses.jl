@@ -1,15 +1,15 @@
 # TODO: consider exporting abstract types later
-abstract type TempResponse end
+abstract type TemperatureResponse end
 
-function get_temperature_response(ctemp::Float64, response::TempResponse)
-    return get_temperature_response(ctemp::Float64, response::TempResponse, 0.0)
+function get_temperature_response(ctemp::Float64, response::TemperatureResponse)
+    return get_temperature_response(ctemp::Float64, response::TemperatureResponse, 0.0)
 end
 
 """
     Data for model without temperature/temperature response. Applies to all species,
     all life stages.
 """
-mutable struct NoResponse <: TempResponse end
+mutable struct NoResponse <: TemperatureResponse end
 
 """
     Function for model without temperature/temperature response. Applies to all species,
@@ -18,7 +18,7 @@ mutable struct NoResponse <: TempResponse end
 get_temperature_response(::Float64, ::NoResponse, ::Float64) = 0.0
 
 """
-    mutable struct EggMortalityRossi <: TempResponse
+    mutable struct EggMortalityRossi <: TemperatureResponse
         a::Float64
         b::Float64
     end
@@ -30,7 +30,7 @@ get_temperature_response(::Float64, ::NoResponse, ::Float64) = 0.0
 - `a::Float64`: Death rate at low temperatures, validation range: `(0, nothing)`
 - `b::Float64`: Influence factor of temperature, validation range: `(0, nothing)`
 """
-mutable struct EggMortalityRossi <: TempResponse
+mutable struct EggMortalityRossi <: TemperatureResponse
     a::Float64
     b::Float64
 end
@@ -47,7 +47,7 @@ end
     Data for temperature sensitive duration. Applies to AedesAegypti, egg stage.
     Source: Rossi et al (2014).
 """
-mutable struct EggDurationRossi <: TempResponse
+mutable struct EggDurationRossi <: TemperatureResponse
     a::Float64
     b::Float64
     c::Float64
@@ -70,7 +70,7 @@ end
     Data for temperature sensitive mortality. Applies to AedesAegypti, larval stage.
     Source: Rossi et al (2014).
 """
-mutable struct LarvaMortalityRossi <: TempResponse
+mutable struct LarvaMortalityRossi <: TemperatureResponse
     a::Float64
     b::Float64
     # TODO: why temp dependent deathrate unused in source
@@ -89,7 +89,7 @@ end
     Data for temperature sensitive duration. Applies to AedesAegypti, larval stage.
     Source: Rossi et al (2014).
 """
-mutable struct LarvaDurationRossi <: TempResponse
+mutable struct LarvaDurationRossi <: TemperatureResponse
     a::Float64
     b::Float64
     c::Float64
@@ -110,7 +110,7 @@ end
     Data for temperature sensitive mortality. Applies to AedesAegypti, pupal stage.
     Source: Rossi et al (2014).
 """
-mutable struct PupaMortalityRossi <: TempResponse
+mutable struct PupaMortalityRossi <: TemperatureResponse
     a::Float64
     b::Float64
     # TODO: why temp dependent deathrate unused in source
@@ -129,7 +129,7 @@ end
     Data for temperature sensitive duration. Applies to AedesAegypti, pupal stage.
     Source: Rossi et al (2014).
 """
-mutable struct PupaDurationRossi <: TempResponse
+mutable struct PupaDurationRossi <: TemperatureResponse
     a::Float64
     b::Float64
     c::Float64
@@ -147,7 +147,7 @@ end
     Data for temperature sensitive mortality. Applies to AedesAegypti, adult stage.
     Source: Rossi et al (2014).
 """
-mutable struct AdultMortalityRossi <: TempResponse
+mutable struct AdultMortalityRossi <: TemperatureResponse
     a::Float64
     b::Float64
     c::Float64
@@ -167,7 +167,7 @@ end
     Data for temperature sensitive duration. Applies to AedesAegypti, egg stage.
     Source: El Moustaid et al (2019).
 """
-mutable struct EggDurationMoustaid <: TempResponse
+mutable struct EggDurationMoustaid <: TemperatureResponse
     a::Float64
     b::Float64
     c::Float64
@@ -186,7 +186,7 @@ end
     Data for temperature sensitive mortality. Applies to AedesAegypti, egg stage.
     Source: El Moustaid et al (2019).
 """
-mutable struct EggMortalityMoustaid <: TempResponse
+mutable struct EggMortalityMoustaid <: TemperatureResponse
     a::Float64
     b::Float64
     c::Float64
@@ -214,7 +214,7 @@ end
     Data for temperature sensitive duration. Applies to AedesAegypti, larval stage.
     Source: El Moustaid et al (2019).
 """
-mutable struct LarvaDurationMoustaid <: TempResponse
+mutable struct LarvaDurationMoustaid <: TemperatureResponse
     a::Float64
     b::Float64
     c::Float64
@@ -232,7 +232,7 @@ end
     Data for temperature sensitive mortality. Applies to AedesAegypti, larval stage.
     Source: El Moustaid et al (2019).
 """
-mutable struct LarvaMortalityMoustaid <: TempResponse
+mutable struct LarvaMortalityMoustaid <: TemperatureResponse
     a::Float64
     b::Float64
     c::Float64
@@ -260,7 +260,7 @@ end
     Data for temperature sensitive duration. Applies to AedesAegypti, pupal stage.
     Source: El Moustaid et al (2019).
 """
-mutable struct PupaDurationMoustaid <: TempResponse
+mutable struct PupaDurationMoustaid <: TemperatureResponse
     a::Float64
     b::Float64
     c::Float64
@@ -278,7 +278,7 @@ end
     Data for temperature sensitive mortality. Applies to AedesAegypti, pupal stage.
     Source: El Moustaid et al (2019).
 """
-mutable struct PupaMortalityMoustaid <: TempResponse
+mutable struct PupaMortalityMoustaid <: TemperatureResponse
     a::Float64
     b::Float64
     c::Float64 # El Moustaid personal comm, lit value incorrect
@@ -306,7 +306,7 @@ end
     Data for temperature sensitive mortality. Applies to AedesAegypti, adult stage.
     Source: El Moustaid et al (2019).
 """
-mutable struct AdultMortalityMoustaid <: TempResponse
+mutable struct AdultMortalityMoustaid <: TemperatureResponse
     a::Float64 # El Moustaid personal comm, lit value incorrect
     b::Float64 # El Moustaid personal comm, lit value incorrect
     c::Float64 # El Moustaid personal comm: use "lf" param from Mordecai 2017, Table B
@@ -341,7 +341,7 @@ end
     Data for temperature sensitive duration. Applies to AnophelesGambiae, egg stage.
     Source: Abiodun et al (2016).
 """
-mutable struct EggDurationAbiodun <: TempResponse
+mutable struct EggDurationAbiodun <: TemperatureResponse
     a::Float64
     b::Float64
     c::Float64
@@ -355,7 +355,7 @@ end
     Data for temperature sensitive mortality. Applies to AnophelesGambiae, egg stage.
     Source: Abiodun et al (2016).
 """
-mutable struct EggMortalityAbiodun <: TempResponse
+mutable struct EggMortalityAbiodun <: TemperatureResponse
     a::Float64
     b::Float64
     c::Float64
@@ -393,7 +393,7 @@ end
     Data for temperature sensitive duration. Applies to AnophelesGambiae, larva stage.
     Source: Abiodun et al (2016).
 """
-mutable struct LarvaDurationAbiodun <: TempResponse
+mutable struct LarvaDurationAbiodun <: TemperatureResponse
     a::Float64
     b::Float64
     c::Float64
@@ -409,7 +409,7 @@ end
     Data for temperature sensitive mortality. Applies to AnophelesGambiae, larva stage.
     Source: Abiodun et al (2016).
 """
-mutable struct LarvaMortalityAbiodun <: TempResponse
+mutable struct LarvaMortalityAbiodun <: TemperatureResponse
     a::Float64
     b::Float64
     c::Float64
@@ -451,7 +451,7 @@ end
     Data for temperature sensitive duration. Applies to AnophelesGambiae, pupa stage.
     Source: Abiodun et al (2016).
 """
-mutable struct PupaDurationAbiodun <: TempResponse
+mutable struct PupaDurationAbiodun <: TemperatureResponse
     a::Float64
     b::Float64
     c::Float64
@@ -469,7 +469,7 @@ end
     Data for temperature sensitive mortality. Applies to AnophelesGambiae, pupa stage.
     Source: Abiodun et al (2016).
 """
-mutable struct PupaMortalityAbiodun <: TempResponse
+mutable struct PupaMortalityAbiodun <: TemperatureResponse
     a::Float64
     b::Float64
     c::Float64
@@ -513,7 +513,7 @@ end
     Data for temperature sensitive mortality. Applies to AnophelesGambiae, pupa stage.
     Source: Abiodun et al (2016).
 """
-mutable struct AdultMortalityAbiodun <: TempResponse
+mutable struct AdultMortalityAbiodun <: TemperatureResponse
     a::Float64
     b::Float64
     c::Float64
