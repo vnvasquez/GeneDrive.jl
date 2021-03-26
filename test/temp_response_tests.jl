@@ -72,19 +72,23 @@
     response = get_temperature_response(27.0,test_eggmortalityabiodun)
     @test isapprox(response, 0.424469; atol = 1e-3)
 
-    test_larvadurationabiodun = LarvaDurationAbiodun(6.0, 8.130, 13.794, 1.0, 12.096, 4.839, 1.0)
-    response = get_temperature_response(27.0,test_larvadurationabiodun, 1.166976)
+    test_larvadurationabiodun = LarvaDurationAbiodun(6.0, 8.130, 13.794, 1.0, 12.096,
+    4.839, 1.0, 1.011, 20.212)
+    response = get_temperature_response(27.0,test_larvadurationabiodun)
     @test isapprox(response, 7.069472; atol = 1e-3)
 
-    test_larvamortalityabiodun = LarvaMortalityAbiodun(6.0, 8.130, 13.794, 1.0, 12.096, 4.839, 1.0)
+    test_larvamortalityabiodun = LarvaMortalityAbiodun(6.0, 8.130, 13.794, 1.0, 12.096,
+    4.839, 1.0, 1.011, 20.212)
     response = get_temperature_response(27.0,test_larvamortalityabiodun)
     @test isapprox(response, 0.885669; atol = 1e-3)
 
-    test_pupadurationabiodun = PupaDurationAbiodun(6.0, 8.560, 20.654, 1.0, 19.759, 6.827, 1.0)
+    test_pupadurationabiodun = PupaDurationAbiodun(6.0, 8.560, 20.654, 1.0, 19.759, 6.827,
+    1.0, 8.130, 13.794, 12.096, 4.839)
     response = get_temperature_response(27.0,test_pupadurationabiodun, 8.236448)
     @test isapprox(response, 0.928051; atol = 1e-3)
 
-    test_pupamortalityabiodun = PupaMortalityAbiodun(6.0, 8.560, 20.654, 1.0, 19.759, 6.827, 1.0)
+    test_pupamortalityabiodun = PupaMortalityAbiodun(6.0, 8.560, 20.654, 1.0, 19.759, 6.827,
+    1.0, 8.130, 13.794, 12.096, 4.839)
     response = get_temperature_response(27.0,test_pupamortalityabiodun)
     @test isapprox(response, 0.896625; atol = 1e-3)
 

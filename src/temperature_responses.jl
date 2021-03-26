@@ -401,6 +401,8 @@ mutable struct LarvaDurationAbiodun <: TempResponse
     e::Float64
     f::Float64
     g::Float64
+    h::Float64
+    i::Float64
 end
 
 """
@@ -415,22 +417,25 @@ mutable struct LarvaMortalityAbiodun <: TempResponse
     e::Float64
     f::Float64
     g::Float64
+    h::Float64
+    i::Float64
 end
 
 # Mortality and duration use the same coefficients
 function _get_coefficients(ctemp::Float64, response::Union{LarvaDurationAbiodun, LarvaMortalityAbiodun})
     ctemp += response.a
-    q = response.b + response.c * (response.d + (ctemp/response.e)^response.f)^(-response.g)
-    return q
+    qE = response.h + response.i * (response.d + (ctemp/response.e)^response.f)^(-response.g)
+    qL = response.b + response.c * (response.d + (ctemp/response.e)^response.f)^(-response.g)
+    return qE, qL
 end
 
 """
     Function for temperature sensitive duration. Applies to AnophelesGambiae, larva stage.
     Source: Abiodun et al (2016).
 """
-function get_temperature_response(ctemp::Float64, response::LarvaDurationAbiodun, egg_duration::Float64)
-    q = _get_coefficients(ctemp, response)
-    return q - egg_duration
+function get_temperature_response(ctemp::Float64, response::LarvaDurationAbiodun, ::Float64)
+    qE, qL = _get_coefficients(ctemp, response)
+    return qL - qE
 end
 
 """
@@ -438,8 +443,8 @@ end
     Source: Abiodun et al (2016).
 """
 function get_temperature_response(ctemp::Float64, response::LarvaMortalityAbiodun, ::Float64)
-    q = _get_coefficients(ctemp, response)
-    return exp(-1/q)
+    _, qL = _get_coefficients(ctemp, response)
+    return exp(-1/qL)
 end
 
 """
@@ -454,6 +459,10 @@ mutable struct PupaDurationAbiodun <: TempResponse
     e::Float64
     f::Float64
     g::Float64
+    h::Float64
+    i::Float64
+    j::Float64
+    k::Float64
 end
 
 """
@@ -468,22 +477,27 @@ mutable struct PupaMortalityAbiodun <: TempResponse
     e::Float64
     f::Float64
     g::Float64
+    h::Float64
+    i::Float64
+    j::Float64
+    k::Float64
 end
 
 # Mortality and duration use the same coefficients
 function _get_coefficients(ctemp::Float64, response::Union{PupaDurationAbiodun, PupaMortalityAbiodun})
     ctemp += response.a
-    q = response.b + response.c * (response.d + (ctemp/response.e)^response.f)^(-response.g)
-    return q
+    qL = response.h + response.i * (response.d + (ctemp/response.j)^response.k)^(-response.g)
+    qP = response.b + response.c * (response.d + (ctemp/response.e)^response.f)^(-response.g)
+    return qL, qP
 end
 
 """
     Function for temperature sensitive duration. Applies to AnophelesGambiae, pupa stage.
     Source: Abiodun et al (2016).
 """
-function get_temperature_response(ctemp::Float64, response::PupaDurationAbiodun, larva_duration::Float64)
-    q = _get_coefficients(ctemp, response)
-    return q - larva_duration
+function get_temperature_response(ctemp::Float64, response::PupaDurationAbiodun, ::Float64)
+    qL, qP = _get_coefficients(ctemp, response)
+    return qP - qL
 end
 
 """
@@ -491,8 +505,8 @@ end
     Source: Abiodun et al (2016).
 """
 function get_temperature_response(ctemp::Float64, response::PupaMortalityAbiodun, ::Float64)
-    q = _get_coefficients(ctemp, response)
-    return exp(-1/q)
+    _, qP = _get_coefficients(ctemp, response)
+    return exp(-1/qP)
 end
 
 """
@@ -513,29 +527,3 @@ function get_temperature_response(ctemp::Float64, response::AdultMortalityAbiodu
     # TODO: Update M & F to calculate lower mort rate/longer life for F
     return 1 / (-response.a + response.b * ctemp - response.c * ctemp^2)
 end
-
-
-#=
-function _get_coefficients(ctemp::Float64, input::Union{EggMortalityAbiodun, EggDurationAbiodun})
-    # Tw = Ta + 2celsius (source: Table 3)
-    ctemp += 6
-
-    # mortality relies on duration; calc this first
-    q_calc2 = 8.130 + 13.794 * (1 + (ctemp/12.096)^4.839)^(-1)
-
-    # need duration from previous without altering arguments
-    q_calc3 = 8.560 + 20.654 * (1 + (ctemp/19.759)^6.827)^(-1)
-
-    return q_calc2, q_calc3
-end
-
-function get_temperature_response(ctemp::Float64, response::FakeResponseMortality, ::Float64)
-    _, q_calc3 = _get_coefficients(ctemp, response)
-    return exp(-1/q_calc3)
-end
-
-function get_temperature_response(ctemp::Float64, response::FakeResponseDuration, ::Float64)
-    q_calc2, q_calc3 = _get_coefficients(ctemp, response)
-    return q_calc3 - q_calc2
-end
-=#
