@@ -67,7 +67,6 @@ function initialize_temperature_model(data::ConstantTemperature)
     return data.value
 end
 
-
 ########################################
 #        SinusoidalTemperature         #
 ########################################
@@ -147,31 +146,3 @@ function initialize_temperature_model(data::TimeSeriesTemperature)
     # value[1] = time[0]
     return data.values[1]
 end
-
-
-
-########################################
-# TODO: check if temperature_model() functions still needed
-########################################
-function temperature_model(data::NoTemperature, t)
-    return NaN
-end
-
-function temperature_model(data::ConstantTemperature, t)
-    return data.value
-end
-
-function temperature_model(data::SinusoidalTemperature, t)
-    return data.a * cos((data.b*π/data.c)*t) + data.d
-end
-
-function temperature_model(data::TimeSeriesTemperature, t)
-    return data.values[Int(t)]
-end
-
-#= commented out until struct exported in intervention file
-function temperature_model(data::TemperatureSeriesData, t)
-    Int(t)
-    return data.values[Int(t)]
-end
-=#

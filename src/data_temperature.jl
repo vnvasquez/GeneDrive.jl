@@ -5,7 +5,7 @@ temperature_constant = ConstantTemperature(27.0)
 
 temperature_sinusoidal = SinusoidalTemperature(7.5, 2, 365, 21.5)
 
-#TODO: Better way of including Cairns, Australia data series? How to properly cite this and other default data?
+#TODO: Include proper citation for this and other data.
 temperature_series = TimeSeriesTemperature([27.0, 27.5, 28.05, 28.05, 28.3, 27.8, 27.9, 28.5,
 27.75, 26.8, 27.15, 27.95, 27.75, 27.85, 28.35, 28.75, 29.0, 28.1, 27.95, 26.5, 27.9, 25.4,
 27.7, 26.9, 27.15, 26.95, 27.7, 27.75, 26.1, 26.7, 29.75, 28.9, 29.85, 30.1, 30.75, 30.4,

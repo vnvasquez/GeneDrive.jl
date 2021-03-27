@@ -1,3 +1,7 @@
+################################################################################
+#             Species and Stage-Specific Temperature Responses                 #
+################################################################################
+
 # TODO: consider exporting abstract types later
 abstract type TemperatureResponse end
 
@@ -17,6 +21,10 @@ mutable struct NoResponse <: TemperatureResponse end
 """
 get_temperature_response(::Float64, ::NoResponse, ::Float64) = 0.0
 
+
+########################################
+#                Rossi                 #
+########################################
 """
     mutable struct EggMortalityRossi <: TemperatureResponse
         a::Float64
@@ -163,6 +171,9 @@ function get_temperature_response(ctemp::Float64, response::AdultMortalityRossi,
         (ctemp - response.c)^2) + response.d * (ctemp - response.c)^2
 end
 
+########################################
+#             El Moustaid              #
+########################################
 """
     Data for temperature sensitive duration. Applies to AedesAegypti, egg stage.
     Source: El Moustaid et al (2019).
@@ -336,7 +347,9 @@ function get_temperature_response(ctemp::Float64, response::AdultMortalityMousta
     return μ
 end
 
-
+########################################
+#               Abiodun                #
+########################################
 """
     Data for temperature sensitive duration. Applies to AnophelesGambiae, egg stage.
     Source: Abiodun et al (2016).

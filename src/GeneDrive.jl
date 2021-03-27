@@ -1,6 +1,7 @@
 module GeneDrive
 
 include("life_stages.jl")
+include("genetics.jl")
 include("temperature_responses.jl")
 include("temperature.jl")
 
@@ -14,6 +15,7 @@ export AdultMortalityRossi
 export ConstantTemperature
 
 export Density
+export Drive
 
 export Egg
 export EggDurationAbiodun
@@ -25,6 +27,8 @@ export EggMortalityMoustaid
 export EggMortalityRossi
 
 export Female
+
+export Genetics
 
 export Larva
 export LarvaDurationAbiodun
