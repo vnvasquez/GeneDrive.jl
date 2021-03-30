@@ -2,7 +2,6 @@
 #             Species and Stage-Specific Temperature Responses                 #
 ################################################################################
 
-# TODO: consider exporting abstract types later
 abstract type TemperatureResponse end
 
 function get_temperature_response(ctemp::Float64, response::TemperatureResponse)
@@ -25,6 +24,7 @@ get_temperature_response(::Float64, ::NoResponse, ::Float64) = 0.0
 ########################################
 #                Rossi                 #
 ########################################
+
 """
     mutable struct EggMortalityRossi <: TemperatureResponse
         a::Float64

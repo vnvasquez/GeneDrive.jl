@@ -1,13 +1,28 @@
 module GeneDrive
 
+# Dependencies
+import DataStructures
+
+# Files
 include("life_stages.jl")
 include("genetics.jl")
-include("temperature_responses.jl")
+include("organisms.jl")
+
+#include("definitions.jl")
 include("temperature.jl")
+include("spatial_structure.jl")
+
+include("temperature_responses.jl")
 
 include("data_temperature.jl")
+include("data_migration.jl")
 
 # Structs
+export AedesAegypti
+export AedesAlbopictus
+export AnophelesGambiae
+export AnophelesArabiensis
+
 export AdultMortalityAbiodun
 export AdultMortalityMoustaid
 export AdultMortalityRossi
@@ -51,6 +66,8 @@ export NoDensity
 export NoResponse
 export NoTemperature
 
+export Organism
+
 export Pupa
 export PupaDurationAbiodun
 export PupaDurationMoustaid
@@ -63,6 +80,7 @@ export PupaMortalityRossi
 export SinusoidalTemperature
 export Stage
 
+export Temperature
 export TimeSeriesTemperature
 
 # Functions
@@ -74,6 +92,5 @@ export get_temperature_response
 export get_temperature_value
 
 export Network
-
 
 end
