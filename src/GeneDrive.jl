@@ -44,6 +44,9 @@ export LinearDensity
 
 export Male
 
+export Network
+export Node
+
 export NoDensity
 export NoResponse
 export NoTemperature
@@ -63,11 +66,14 @@ export Stage
 export TimeSeriesTemperature
 
 # Functions
+export assign_migration!
+
 export compute_density
 
 export get_temperature_response
 export get_temperature_value
 
+export Network
 
 
 end
