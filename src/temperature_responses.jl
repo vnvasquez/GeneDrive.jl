@@ -12,14 +12,28 @@ end
     Data for model without temperature/temperature response. Applies to all species,
     all life stages.
 """
-mutable struct NoResponse <: TemperatureResponse end
+mutable struct NoResponse <: TemperatureResponse
+    baseline_value::Float64
+end
 
 """
     Function for model without temperature/temperature response. Applies to all species,
     all life stages.
 """
-get_temperature_response(::Float64, ::NoResponse, ::Float64) = 0.0
+get_temperature_response(::Float64, response::NoResponse, ::Float64) = response.baseline_value
 
+"""
+        function temperature_effect(ctemp::Float64, stage)
+
+    Returns effect of temperature on organism vital rates.
+"""
+function temperature_effect(ctemp::Float64, stage)
+    μ_temperature_response = stage.μ_temperature_response
+    q_temperature_response = stage.q_temperature_response
+    duration = get_temperature_response(ctemp, q_temperature_response)
+    mortality = get_temperature_response(ctemp, μ_temperature_response, duration)
+    return mortality, duration
+end
 
 ########################################
 #                Rossi                 #

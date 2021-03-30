@@ -95,20 +95,27 @@ Data for life stages. Applies to any organism represented by stage-structured po
 
 # Arguments
 - `q::Union{Nothing, Float64}`: Rate of change (1/duration). Duration: total time (days) in each substage.
-- `n::Union{Nothing, Int64}`: Number of substages (shape parameter, Erlang distribution).
+- `n::Union{Nothing, Int64}`: Number of substages (parameter, Erlang distribution).
 - `μ::Float64`: Mortality rate
 - `density::Density`: Specify density dependence model. Default: `LogisticDensity` in `Larva` life stage, `NoDensity` in all other life stages.
 - `N0::Int64`: Initial stage-specific population count per node. Specify "0" for all stages except `Female` life stage.
 - `dependency::LifeStage`: Organism internal reference, do not modify.
 """
 mutable struct Stage{L <: LifeStage}
-    q::Union{Nothing, Float64}
-    n::Union{Nothing, Int64} #TODO: Define Erlang aspect more thoroughly in docstring.
-    μ::Float64
-    density::Density
-    N0::Int64
+    μ_temperature_response::TemperatureResponse
+    q_temperature_response::TemperatureResponse
+    n::Union{Nothing, Int64} #TODO: Define Erlang more thoroughly in docstring.
+    density::Density{<: DensityDependence}
     dependency::Union{Nothing, Type{<:LifeStage}}
+    N0::Int64
 end
+
+
+function Stage{L}(μ::Float64, q::Float64, n::Int64,
+    density, dependency, N0::Int64) where {L <: LifeStage}
+    return Stage{L}(NoResponse(μ), NoResponse(q), n, density, dependency, N0)
+end
+
 
 """
         struct Egg <: LifeStage end
@@ -139,8 +146,29 @@ struct Pupa <: LifeStage end
 struct Male <: LifeStage end
 
 """
+        function Stage{Male}(μ::Float64, n::Int64, density, dependency, N0::Int64) where {L <: LifeStage}
+
+    Returns male life stage populated with input data. Applicable to holometabolous (complete) or hemimetabolous (partial) metamorphosing insect species.
+"""
+function Stage{Male}(μ::Float64, n::Int64,
+    density, dependency, N0::Int64) where {L <: LifeStage}
+    return Stage{L}(NoResponse(μ), NoResponse(0.0), n, density, dependency, N0)
+end
+
+
+"""
         struct Female <: LifeStage end
 
     Female life stage. Applicable to holometabolous (complete) or hemimetabolous (partial) metamorphosing insect species.
 """
 struct Female <: LifeStage end
+
+"""
+        function Stage{Female}(μ::Float64, n::Int64, density, dependency, N0::Int64) where {L <: LifeStage}
+
+    Returns female life stage populated with input data. Applicable to holometabolous (complete) or hemimetabolous (partial) metamorphosing insect species.
+"""
+function Stage{Female}(μ::Float64, n::Int64,
+    density, dependency, N0::Int64) where {L <: LifeStage}
+    return Stage{L}(NoResponse(μ), NoResponse(0.0), n, density, dependency, N0)
+end

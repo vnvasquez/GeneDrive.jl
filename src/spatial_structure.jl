@@ -13,7 +13,7 @@
     Data for a single spatial node.
 
 # Arguments
-- `name::Symbol`: Name of node, usually location-specific.
+- `name::Symbol`: Name of node, usually location-relevant.
 - `organisms::DataStructures.OrderedDict{Type{<:Species}, Organism} `: Dictionary containing data for all species inhabiting node.
 - `temperature::Temperature`: Climatic specification for temperature.
 - `location::Tuple{Float64,Float64}`: Geographic location denoted by coordinates.
@@ -39,9 +39,9 @@ end
     Data for multiple interconnected spatial nodes.
 
 # Arguments
-- `name::Symbol`: Name of node, usually location-relevant.
+- `name::Symbol`: Name of network, usually location-relevant.
 - `nodes::DataStructures.OrderedDict{Symbol,Node}`: Dictionary of data for nodes included in network (metapopulation).
-- `migration::DataStructures.OrderedDict{DataType}, Array{Matrix{Float64},2}}`: Data defining species, genotype, and stage-specific transition rates.
+- `migration::DataStructures.OrderedDict{DataType}, Array{Matrix{Float64},2}}`: Data defining species, genotype, and stage-specific transition rates. Entries default to zero.
 - `locations_key_map`: Mapping of node location information. Used to assign transition rates.
 """
 struct Network
@@ -115,10 +115,10 @@ end
 """
         assign_migration!(network::Network, migration_data::Dict, species::Type{<:Species})
 
-    Returns `Network` instance with migration field populated by user-specified transition rates.
-    Input data must be formatted as a nested dictionary. First level denotes relevant life stage and gene, second level includes to/from nodes and transition rate.
-    Stage and gene combinations not specified by input data retain default transition rate of zero.
-    See `data_migration.jl` file for example.
+- Returns `Network` instance with `migration` field populated by user-specified transition rates.
+- Input data must be formatted as a nested dictionary. First level denotes relevant life stage and gene, second level includes to/from nodes and transition rate.
+- Stage and gene combinations not specified by input data retain default transition rate of zero.
+- See `data_migration.jl` file for example.
 """
 function assign_migration!(network::Network, migration_data::Dict, species::Type{<:Species})
 
