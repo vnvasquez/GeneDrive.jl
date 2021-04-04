@@ -144,7 +144,7 @@ mutable struct Release <: Intervention
     stage::Type{<:LifeStage}
     gene_index::Int64 #TODO: consider updating to string or type rather than number.
     times::Vector{Float64}
-    values::Vector{Float64}
+    values::Vector{Int64}
     set::diffeq.CallbackSet
 end
 
@@ -153,7 +153,7 @@ end
 
     Returns `Release` object specifying details of biological control intervention where release size is variable over time.
 """
-function Release(node::Node, organism, stage::Type{T}, gene, times::Vector, variable_release::Vector{Float64}) where T <: LifeStage
+function Release(node::Node, organism, stage::Type{T}, gene, times::Vector, variable_release::Vector{Int64}) where T <: LifeStage
     @assert length(times) == length(variable_release)
     callbacks = Vector()
     for (index, time) in enumerate(times)
@@ -173,7 +173,7 @@ end
 
     Returns `Release` object specifying details of biological control intervention where release size is fixed over time.
 """
-function Release(node::Node, organism, stage, gene, times::Vector, fixed_release::Float64)
+function Release(node::Node, organism, stage::Type{T}, gene, times::Vector, fixed_release::Int64) where T <: LifeStage
     release_values = fill(fixed_release, length(times))
     return Release(node, organism, stage, gene, times, release_values)
 end
