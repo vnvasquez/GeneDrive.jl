@@ -130,12 +130,6 @@ export count_nodes
 
 export count_organisms
 export count_substages
-export create_egg!
-export create_female!
-export create_larva!
-export create_male!
-export create_pupa!
-
 
 export get_density
 export get_duration
@@ -165,15 +159,8 @@ export get_temperature_value
 
 export get_wildtype
 
-export init_density_dependence!
-export init_egg!
-export init_female!
-export init_larva!
-export init_male!
-
 export init_node!
 export init_network!
-export init_pupa!
 
 export Network
 

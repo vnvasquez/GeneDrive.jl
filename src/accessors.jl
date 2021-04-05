@@ -266,11 +266,13 @@ function get_temperature(node::Node)
 end
 
 function update_temperature(node::Node, temp_type::Type{<:ConstantTemperature}, new_temperature::Float64)
-    return node.temperature = ConstantTemperature(new_temperature)
+    node.temperature = ConstantTemperature(new_temperature)
+    return node
 end
 
 function update_temperature(node::Node, temp_type::Type{<:TimeSeriesTemperature}, new_temperature::Vector{Float64})
-    return node.temperature = TimeSeriesTemperature(new_temperature)
+    node.temperature = TimeSeriesTemperature(new_temperature)
+    return node
 end
 
 #= TODO: check the following for update temp:
