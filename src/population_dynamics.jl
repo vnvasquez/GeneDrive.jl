@@ -32,7 +32,7 @@ function create_egg!(dE, E, node::Node, species::Type{<:Species}, eggsnew, gene_
 
     curr = get_lifestage(node, species, Egg)
     curr_μ, curr_q = temperature_effect(ctemp, curr)
-    dens = compute_density(curr.density, E)
+    dens = compute_density(curr.density, E) #TODO: take curr
 
     prev = eggsnew
 
@@ -50,7 +50,7 @@ end
 
     Returns larva state.
 """
-function create_larva!(dL, L, E, node::Node, species::Type{<:Species}, gene_index::Int64, inputs, t)
+function create_larva!(dL, L, E, node::Node, species::Type{<:Species}, gene_index::Int64, inputs::ExogenousInputs, t)
 
     node_name = get_name(node)
     ctemp = get_temperature_value(node.temperature, inputs.temperature[node_name], t)
@@ -60,7 +60,7 @@ function create_larva!(dL, L, E, node::Node, species::Type{<:Species}, gene_inde
     curr_μ, curr_q = temperature_effect(ctemp, curr)
     dens = compute_density(curr.density, L)
 
-    prev = get_prev_lifestage(node, species, curr)
+    prev = get_previous_lifestage(node, species, curr)
     prev_q = temperature_effect(ctemp, prev)[2]
 
     dL[1,gene_index] = prev_q * prev.n * E[end,gene_index] - L[1,gene_index] * (curr_μ * dens + curr_q * curr.n)
@@ -69,7 +69,7 @@ function create_larva!(dL, L, E, node::Node, species::Type{<:Species}, gene_inde
         dL[i,gene_index] = curr_q * curr.n * L[i-1,gene_index] - L[i,gene_index] * (curr_μ * dens + curr_q * curr.n)
     end
 
-    # TODO: Change "dens" name to "compute_dens" or similar?
+    # TODO: Change "dens" name to "compute_dens" or similar
     return
 
 end
@@ -79,7 +79,7 @@ end
 
     Returns pupa state.
 """
-function create_pupa!(dP, P, L, node::Node, species::Type{<:Species}, gene_index::Int64, inputs, t)
+function create_pupa!(dP, P, L, node::Node, species::Type{<:Species}, gene_index::Int64, inputs::ExogenousInputs, t)
 
     node_name = get_name(node)
     ctemp = get_temperature_value(node.temperature, inputs.temperature[node_name], t)
@@ -89,7 +89,7 @@ function create_pupa!(dP, P, L, node::Node, species::Type{<:Species}, gene_index
 
     dens = compute_density(curr.density, P)
 
-    prev = get_prev_lifestage(node, species, curr)
+    prev = get_previous_lifestage(node, species, curr)
     prev_q = temperature_effect(ctemp, prev)[2]
 
     dP[1,gene_index] = prev_q * prev.n * L[end, gene_index] - P[1,gene_index] * (curr_μ * dens + curr_q * curr.n)
@@ -106,7 +106,7 @@ end
 
     Returns adult male state.
 """
-function create_male!(dM, M, P, Φ, Ξ_m, Ω, node::Node, species::Type{<:Species}, gene_index::Int64, inputs, t)
+function create_male!(dM, M, P, Φ, Ξ_m, Ω, node::Node, species::Type{<:Species}, gene_index::Int64, inputs::ExogenousInputs, t)
 
     node_name = get_name(node)
     ctemp = get_temperature_value(node.temperature, inputs.temperature[node_name], t)
@@ -117,7 +117,7 @@ function create_male!(dM, M, P, Φ, Ξ_m, Ω, node::Node, species::Type{<:Specie
 
     dens = compute_density(curr.density, M)
 
-    prev = get_prev_lifestage(node, species, curr)
+    prev = get_previous_lifestage(node, species, curr)
     prev_q = temperature_effect(ctemp, prev)[2]
 
     genetics = get_genetics(node, species)
@@ -134,7 +134,7 @@ end
 
     Mating.
 """
-function mate(P, M, Φ, Ξ_f, Η, node::Node, species::Type{<:Species}, gene_index::Int64, inputs, t)
+function mate(P, M, Φ, Ξ_f, Η, node::Node, species::Type{<:Species}, gene_index::Int64, inputs::ExogenousInputs, t)
 
     node_name = get_name(node)
     ctemp = get_temperature_value(node.temperature, inputs.temperature[node_name], t)
@@ -159,7 +159,7 @@ end
 
     Returns adult female state.
 """
-function create_female!(dF, F, Ω, Ξ_f, node::Node, species::Type{<:Species}, matematrix::Array, gene_index::Int64, inputs, t)
+function create_female!(dF, F, Ω, Ξ_f, node::Node, species::Type{<:Species}, matematrix::Array, gene_index::Int64, inputs::ExogenousInputs, t)
 
     node_name = get_name(node)
     ctemp = get_temperature_value(node.temperature, inputs.temperature[node_name], t)

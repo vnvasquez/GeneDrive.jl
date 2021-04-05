@@ -6,8 +6,8 @@ abstract type Species end
 
 """
         mutable struct Organism{S <: Species}
-            gene_data::Genetics                            # Genetic information for this creature
-            all_stages::DataStructures.OrderedDict{Type{<:LifeStage}, Stage}     # Dict of stages for this creature
+            gene_data::Genetics
+            all_stages::DataStructures.OrderedDict{Type{<:LifeStage}, Stage}
         end
 
         Generic data container for species-specific genetic and life stage information.
