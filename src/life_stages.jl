@@ -83,23 +83,23 @@ abstract type LifeStage end
 
 """
     mutable struct Stage{L <: LifeStage}
-        q::Union{Nothing, Float64}
+        μ_temperature_response::TemperatureResponse
+        q_temperature_response::TemperatureResponse
         n::Union{Nothing, Int64}
-        μ::Float64
-        density::Density
-        N0::Int64
+        density::Density{<: DensityDependence}
         dependency::Union{Nothing, Type{<:LifeStage}}
+        N0::Int64
     end
 
 Data for life stages. Applies to any organism represented by stage-structured population equations.
 
 # Arguments
-- `q::Union{Nothing, Float64}`: Rate of change (1/duration). Duration: total time (days) in each substage.
+- `μ_temperature_response::TemperatureResponse`: Mortality rate. Responsive to temperature.
+- `q_temperature_response::TemperatureResponse`: Rate of change (1/duration). Responsive to temperature. Duration: total time (days) in each substage.
 - `n::Union{Nothing, Int64}`: Number of substages (parameter, Erlang distribution).
-- `μ::Float64`: Mortality rate
 - `density::Density`: Specify density dependence model. Default: `LogisticDensity` in `Larva` life stage, `NoDensity` in all other life stages.
+- `dependency::Union{Nothing, Type{<:LifeStage}}`: Organism internal reference, do not modify.
 - `N0::Int64`: Initial stage-specific population count per node. Specify "0" for all stages except `Female` life stage.
-- `dependency::LifeStage`: Organism internal reference, do not modify.
 """
 mutable struct Stage{L <: LifeStage}
     μ_temperature_response::TemperatureResponse
@@ -110,12 +110,14 @@ mutable struct Stage{L <: LifeStage}
     N0::Int64
 end
 
+"""
+        function Stage{L}(μ::Float64, n::Int64, density, dependency, N0::Int64) where {L <: LifeStage}
 
-function Stage{L}(μ::Float64, q::Float64, n::Int64,
-    density, dependency, N0::Int64) where {L <: LifeStage}
+    Returns juvenile life stage populated with input data. Applicable to holometabolous (complete) or hemimetabolous (partial) metamorphosing insect species.
+"""
+function Stage{L}(μ::Float64, q::Float64, n::Int64, density, dependency, N0::Int64) where {L <: LifeStage}
     return Stage{L}(NoResponse(μ), NoResponse(q), n, density, dependency, N0)
 end
-
 
 """
         struct Egg <: LifeStage end
@@ -146,14 +148,18 @@ struct Pupa <: LifeStage end
 struct Male <: LifeStage end
 
 """
-        function Stage{Male}(μ::Float64, n::Int64, density, dependency, N0::Int64) where {L <: LifeStage}
+        function Stage{Male}(μ::Float64, n::Int64, density, dependency, N0::Int64)
 
     Returns male life stage populated with input data. Applicable to holometabolous (complete) or hemimetabolous (partial) metamorphosing insect species.
 """
-function Stage{Male}(μ::Float64, n::Int64,
-    density, dependency, N0::Int64) where {L <: LifeStage}
-    return Stage{L}(NoResponse(μ), NoResponse(0.0), n, density, dependency, N0)
+function Stage{Male}(μ::Float64, n::Int64, density, dependency, N0::Int64)
+    return Stage{Male}(NoResponse(μ), NoResponse(0.0), n, density, dependency, N0)
 end
+
+function Stage{Male}(μ::TemperatureResponse, n::Int64, density, dependency, N0::Int64)
+    return Stage{Male}(μ, NoResponse(0.0), n, density, dependency, N0)
+end
+
 
 
 """
@@ -164,11 +170,14 @@ end
 struct Female <: LifeStage end
 
 """
-        function Stage{Female}(μ::Float64, n::Int64, density, dependency, N0::Int64) where {L <: LifeStage}
+        function Stage{Female}(μ::Float64, n::Int64, density, dependency, N0::Int64)
 
     Returns female life stage populated with input data. Applicable to holometabolous (complete) or hemimetabolous (partial) metamorphosing insect species.
 """
-function Stage{Female}(μ::Float64, n::Int64,
-    density, dependency, N0::Int64) where {L <: LifeStage}
-    return Stage{L}(NoResponse(μ), NoResponse(0.0), n, density, dependency, N0)
+function Stage{Female}(μ::Float64, n::Int64, density, dependency, N0::Int64)
+    return Stage{Female}(NoResponse(μ), NoResponse(0.0), n, density, dependency, N0)
+end
+
+function Stage{Female}(μ::TemperatureResponse, n::Int64, density, dependency, N0::Int64)
+    return Stage{Female}(μ, NoResponse(0.0), n, density, dependency, N0)
 end

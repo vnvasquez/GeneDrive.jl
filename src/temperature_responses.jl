@@ -17,7 +17,7 @@ mutable struct NoResponse <: TemperatureResponse
 end
 
 """
-    Function for model without temperature/temperature response. Applies to all species,
+    Function for model without temperature response. Applies to all species,
     all life stages.
 """
 get_temperature_response(::Float64, response::NoResponse, ::Float64) = response.baseline_value
@@ -61,7 +61,7 @@ end
     Function for temperature sensitive mortality. Applies to AedesAegypti,
     egg stage. Source: Rossi et al (2014).
 """
-function get_temperature_response(ctemp::Float64, response::EggMortalityRossi)
+function get_temperature_response(ctemp::Float64, response::EggMortalityRossi, ::Float64)
     return response.a * exp(response.b * ctemp)
 end
 
