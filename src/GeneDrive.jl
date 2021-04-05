@@ -3,35 +3,36 @@ module GeneDrive
 # Dependencies
 #####################
 import DataStructures
-import DiffEqBase       # TODO: All?
+import DiffEqBase
 const diffeq = DiffEqBase
 import DiffEqCallbacks
 const diffeqCB = DiffEqCallbacks
-import OrdinaryDiffEq   # TODO: Solvers
-import Sundials         # TODO: Solvers
 import NLsolve
 import LinearAlgebra
+import RecursiveArrayTools
 
 # Files
 #####################
 # TODO: Random.seed!(123)
+include("temperature.jl")
 include("temperature_responses.jl")
 include("life_stages.jl")
 include("genetics.jl")
 include("organisms.jl")
 
-include("temperature.jl")
+#include("temperature.jl")
 include("spatial_structure.jl")
 include("exogenous_change.jl")
 
 include("accessors.jl")
-
-include("data_temperature.jl")
-include("data_migration.jl")
-#include("definitions.jl")
+include("definitions.jl")
 
 include("initialize.jl")
 include("population_dynamics.jl")
+
+include("dynamic_model_node.jl")
+include("dynamic_model_network.jl")
+
 
 # Structs
 #####################
@@ -74,6 +75,7 @@ export LarvaMortalityMoustaid
 export LarvaMortalityRossi
 
 export LogisticDensity
+export LifeStage
 export LinearDensity
 
 export Male
@@ -83,7 +85,6 @@ export Node
 
 export NoDensity
 export NoResponse
-export NoTemperature
 
 export Organism
 
@@ -99,9 +100,11 @@ export PupaMortalityRossi
 export Release
 
 export SinusoidalTemperature
+export Species
 export Stage
 
 export Temperature
+export TemperatureResponse
 export TemperatureSeriesData
 export TemperatureShockData
 export TimeSeriesTemperature
@@ -127,6 +130,12 @@ export count_nodes
 
 export count_organisms
 export count_substages
+export create_egg!
+export create_female!
+export create_larva!
+export create_male!
+export create_pupa!
+
 
 export get_density
 export get_duration
@@ -156,9 +165,24 @@ export get_temperature_value
 
 export get_wildtype
 
+export init_density_dependence!
+export init_egg!
+export init_female!
+export init_larva!
+export init_male!
+
+export init_node!
+export init_network!
+export init_pupa!
+
 export Network
 
+export population_model_node
+export population_model_network
+
 export Release
+
+export temperature_effect
 
 export update_density
 export update_density_model

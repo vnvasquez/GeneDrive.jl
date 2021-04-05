@@ -5,34 +5,6 @@
 abstract type Temperature end
 
 ########################################
-#            NoTemperature             #
-########################################
-"""
-        mutable struct NoTemperature <: Temperature end
-
-    Data for simulation that does not account for temperature.
-"""
-mutable struct NoTemperature <: Temperature end
-
-"""
-        get_temperature_value(temperature_model::NoTemperature, temp_value_from_inputs::Float64, t)
-
-    Returns `NaN`, the temperature effect of a simulation that does not account for temperature.
-"""
-function get_temperature_value(temperature_model::NoTemperature, temp_value_from_inputs::Float64, t)
-    return NaN
-end
-
-"""
-        initialize_temperature_model(data::NoTemperature)
-
-    Returns value of temperature in °C in first time step, for simulation initialization.
-"""
-function initialize_temperature_model(data::NoTemperature)
-    return NaN
-end
-
-########################################
 #          ConstantTemperature         #
 ########################################
 """
