@@ -156,16 +156,19 @@ end
 function Release(node::Node, organism, stage::Type{T}, gene, times::Vector, variable_release::Vector{Int64}) where T <: LifeStage
     @assert length(times) == length(variable_release)
     callbacks = Vector()
+    stop_times = Vector()
     for (index, time) in enumerate(times)
         condition_start = (u, t, integrator) -> t == time # Diffeq callbacks require all arguments
         affect_start = get_effect_intervention(node, organism, stage, gene, variable_release[index])
         push!(callbacks, diffeq.DiscreteCallback(condition_start, affect_start))
-        condition_stop = (u, t, integrator) -> t == time + integrator.dt
+        stop_time = time + 1.01 #1.01*integrator.dt
+        condition_stop = (u, t, integrator) -> t == stop_time #time + integrator.dt
+        push!(stop_times, stop_time)
         affect_stop = get_effect_intervention(node, organism, stage, gene, 0.0)
         push!(callbacks, diffeq.DiscreteCallback(condition_stop, affect_stop))
     end
     callback_set = diffeq.CallbackSet((), tuple(callbacks...))
-    return Release(get_name(node), organism, stage, gene, times, variable_release, callback_set)
+    return Release(get_name(node), organism, stage, gene, vcat(times, stop_times), variable_release, callback_set)
 end
 
 """
