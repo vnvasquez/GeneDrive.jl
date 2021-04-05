@@ -58,11 +58,13 @@ function count_organisms(network::Network, node::Symbol)
 end
 
 function update_organism(node::Node, new_species)
-    return node.organisms = new_species
+    node.organisms = new_species
+    return node
 end
 
 function update_organism(network::Network, node::Symbol, new_species)
     network.nodes[node].organisms = new_species
+    return network
 end
 
 ########################################
@@ -121,7 +123,8 @@ function get_duration(node::Node, species::Type{<:Species}, life_stage::Type{<:L
 end
 
 function update_duration(node::Node, species::Type{<:Species}, life_stage::Type{<:LifeStage}, new_q)
-    return node.organisms[species].all_stages[life_stage].q = new_q
+    node.organisms[species].all_stages[life_stage].q = new_q
+    return node
 end
 
 
@@ -135,7 +138,8 @@ function get_mortality(node::Node, species::Type{<:Species}, life_stage::Type{<:
 end
 
 function update_mortality(node::Node, species::Type{<:Species}, life_stage::Type{<:LifeStage}, new_μ)
-    return node.organisms[species].all_stages[life_stage].μ = new_μ
+    node.organisms[species].all_stages[life_stage].μ = new_μ
+    return node
 end
 
 ########################################
@@ -148,17 +152,20 @@ end
 
 function update_density_parameter(node::Node, species::Type{<:Species}, life_stage::Type{<:LifeStage}; new_param_value::Float64)
     dens = node.organisms[species].all_stages[life_stage].density
-    return dens.param = new_param_value
+    dens.param = new_param_value
+    return node
 end
 
 function update_density_model(node::Node, species::Type{<:Species}, life_stage::Type{<:LifeStage}; new_density_model::Density)
     dens = node.organisms[species].all_stages[life_stage].density
-    return dens.model = new_density_model
+    dens.model = new_density_model
+    return node
 end
 
 function update_density(node::Node, species::Type{<:Species}, stage::Type{<:LifeStage}; new_density::Density)
     new_node = deepcopy(node)
-    return new_node.organisms[species].all_stages[stage].density = new_density
+    new_node.organisms[species].all_stages[stage].density = new_density
+    return new_node
 end
 
 ########################################
@@ -207,7 +214,8 @@ function get_wildtype(network::Network, node::Node, species::Type{<:Species})
 end
 
 function update_genetics(node::Node, species::Type{<:Species}, new_genetics)
-    return node.organisms[species].gene_data = new_genetics
+    node.organisms[species].gene_data = new_genetics
+    return node
 end
 
 function update_genetics_Ω(node::Node, species::Type{<:Species}, new_omega::Array{Float64,1})
@@ -221,15 +229,18 @@ function update_genetics_Ω(gene_data, new_omega::Array{Float64,1})
 end
 
 function update_genetics_Β(node::Node, species::Type{<:Species}, new_beta::Array{Float64,1})
-    return node.organisms[species].gene_data.Β = new_beta
+    node.organisms[species].gene_data.Β = new_beta
+    return node
 end
 
 function update_genetics_Η(node::Node, species::Type{<:Species}, new_eta::Array{Float64,1})
-    return node.organisms[species].gene_data.Η = new_eta
+    node.organisms[species].gene_data.Η = new_eta
+    return node
 end
 
 function update_genetics_S(node::Node, species::Type{<:Species}, new_sigma::Array{Float64,1})
-    return node.organisms[species].gene_data.S = new_sigma
+    node.organisms[species].gene_data.S = new_sigma
+    return node
 end
 
 ########################################
@@ -240,12 +251,9 @@ function get_migration(network::Network, node::Symbol, species::Type{<:Species})
     return network.nodes[node].organisms[species].migration
 end
 
-function get_migration(node::Node, species::Type{<:Species})
-    return node.organisms[species].migration
-end
-
-function update_migration(node::Node, species::Type{<:Species}, new_migration)
-    return node.organisms[species].migration = new_migration
+function update_migration(network::Network, node::Symbol, species::Type{<:Species}, new_migration)
+    network.nodes[node].organisms[species].migration = new_migration
+    return network
 end
 
 ########################################
