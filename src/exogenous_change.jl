@@ -158,10 +158,10 @@ function Release(node::Node, organism, stage::Type{T}, gene, times::Vector, vari
     callbacks = Vector()
     stop_times = Vector()
     for (index, time) in enumerate(times)
-        condition_start = (u, t, integrator) -> t == time # Diffeq callbacks require all arguments
+        condition_start = (u, t, integrator) -> t == time
         affect_start = get_effect_intervention(node, organism, stage, gene, variable_release[index])
         push!(callbacks, diffeq.DiscreteCallback(condition_start, affect_start))
-        stop_time = time + 1.01 #1.01*integrator.dt
+        stop_time = time + 1.01 #TODO: Improve this stop_times approach: 1.01*integrator.dt
         condition_stop = (u, t, integrator) -> t == stop_time #time + integrator.dt
         push!(stop_times, stop_time)
         affect_stop = get_effect_intervention(node, organism, stage, gene, 0.0)
