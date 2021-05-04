@@ -104,6 +104,16 @@ function count_substages(node::Node, species::Type{<:Species})
     return substage_array
 end
 
+function count_substages(node::Node, species::Type{<:Species}, stage::Type{<:LifeStage})
+    substages = node.organisms[species].all_stages[stage].n
+end
+
+function count_substages(node::Node, species::Type{<:Species}, stage::Type{Female})
+    substages = node.organisms[species].all_stages[stage].n
+    gN = count_genotypes(node, species)
+    substages_total = substages*gN
+end
+
 function count_substages(stages_dict)
     substage_array = Vector{Int}()
     for (substage, stage) in stages_dict
@@ -238,9 +248,19 @@ function update_genetics_Η(node::Node, species::Type{<:Species}, new_eta::Array
     return node
 end
 
+function update_genetics_Η(gene_data, new_eta::Array{Float64,1})
+    gene_data.Η = new_eta
+    return gene_data
+end
+
 function update_genetics_S(node::Node, species::Type{<:Species}, new_sigma::Array{Float64,1})
     node.organisms[species].gene_data.S = new_sigma
     return node
+end
+
+function get_genetics_Τ(node::Node, species::Type{<:Species})
+    node.organisms[species].gene_data.Τ
+    return Τ
 end
 
 ########################################
