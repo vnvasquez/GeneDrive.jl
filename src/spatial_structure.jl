@@ -92,7 +92,7 @@ function _fill_migration_array!(initial_migration, migration_data,
 
     for (life_gene_key, migration_matrix) in migration_data
     stage, gene = life_gene_key
-    @show stage_index = stage_to_index_migration_matrix[life_stage_key_map[stage]]
+    stage_index = stage_to_index_migration_matrix[life_stage_key_map[stage]]
     gene_index = gene_to_index_migration_matrix[genetics_key_map[gene]]
 
         for ix in stage_index

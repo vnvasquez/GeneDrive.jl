@@ -9,14 +9,22 @@ function get_temperature_response(ctemp::Float64, response::TemperatureResponse)
 end
 
 """
-    Data for model without temperature/temperature response. Applies to all species,
-    all life stages.
+        mutable struct NoResponse <: TemperatureResponse
+            baseline_value::Float64
+        end
+
+    Data for model without temperature response. Applies to all species, all life stages.
+
+# Arguments:
+- `baseline_value::Float64`: Literature-sourced (rather than dynamically calculated) vital rate parameter.
 """
 mutable struct NoResponse <: TemperatureResponse
     baseline_value::Float64
 end
 
 """
+        get_temperature_response(::Float64, response::NoResponse, ::Float64) = response.baseline_value
+
     Function for model without temperature response. Applies to all species,
     all life stages.
 """
@@ -34,6 +42,9 @@ function temperature_effect(ctemp::Float64, stage)
     mortality = get_temperature_response(ctemp, μ_temperature_response, duration)
     return mortality, duration
 end
+
+#TODO: include validation range for each lit-based parameterization (validation range: `(0, nothing)`).
+# TODO: Complete docstrings with inclusion of (1) baseline struct and (2) argument description
 
 ########################################
 #                Rossi                 #
