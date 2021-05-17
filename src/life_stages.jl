@@ -160,8 +160,6 @@ function Stage{Male}(μ::TemperatureResponse, n::Int64, density, dependency, N0:
     return Stage{Male}(μ, NoResponse(0.0), n, density, dependency, N0)
 end
 
-
-
 """
         struct Female <: LifeStage end
 
