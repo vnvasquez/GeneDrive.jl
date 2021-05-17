@@ -111,14 +111,58 @@ export TimeSeriesTemperature
 
 # Genetic structs
 #####################
+export Wolbachia
 export WW
 export ww
+
+export RIDL
+export MCR
 export HH
 export Hh
 export HR
 export hh
 export hR
 export RR
+
+export SLHoming
+export WH
+export WR
+export WB
+export HB
+export RB
+export BB
+
+export SplitDrive
+export WWWW
+export WWWH
+export WWWR
+export WWWB
+export WWHH
+export WWHR
+export WWHB
+export WWRR
+export WWRB
+export WWBB
+export WCWW
+export WCWH
+export WCWR
+export WCWB
+export WCHH
+export WCHR
+export WCHB
+export WCRR
+export WCRB
+export WCBB
+export CCWW
+export CCWH
+export CCWR
+export CCWB
+export CCHH
+export CCHR
+export CCHB
+export CCRR
+export CCRB
+export CCBB
 
 # Functions
 #####################
