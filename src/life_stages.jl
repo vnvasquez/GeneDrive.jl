@@ -95,7 +95,7 @@ Data for life stages. Applies to any organism represented by stage-structured po
 
 # Arguments
 - `μ_temperature_response::TemperatureResponse`: Mortality rate. Responsive to temperature.
-- `q_temperature_response::TemperatureResponse`: Duration. 1/total time (days or portion thereof) spent in stage. Responsive to temperature.
+- `q_temperature_response::TemperatureResponse`: Developmental rate. 1/total time (days or portion thereof) spent in stage. Responsive to temperature.
 - `n::Union{Nothing, Int64}`: Number of bins allocated to stage (parameter, Erlang distribution).
 - `density::Density`: Specify density dependence model. Default: `LogisticDensity` in `Larva` life stage, `NoDensity` in all other life stages.
 - `dependency::Union{Nothing, Type{<:LifeStage}}`: Organism internal reference, do not modify.
