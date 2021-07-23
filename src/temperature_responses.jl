@@ -94,9 +94,9 @@ end
     Source: Rossi et al (2014).
 """
 function get_temperature_response(ctemp::Float64, response::EggDurationRossi, ::Float64)
-    return 1 / (response.a*(ctemp+response.b) *
+    return response.a*(ctemp+response.b) *
         (exp(response.c - (response.d/(ctemp+response.b))) /
-        1+exp(response.e - (response.f /(ctemp + response.b)))))
+        1+exp(response.e - (response.f /(ctemp + response.b))))
 end
 
 """
@@ -134,8 +134,8 @@ end
     Source: Rossi et al (2014).
 """
 function get_temperature_response(ctemp::Float64, response::LarvaDurationRossi, ::Float64)
-    return 1 / (response.a *(ctemp + response.b) *
-        exp(response.c - (response.d / (ctemp + response.b))))
+    return response.a *(ctemp + response.b) *
+        exp(response.c - (response.d / (ctemp + response.b)))
 end
 
 
@@ -170,7 +170,7 @@ end
 
 """
     Function for temperature sensitive duration. Applies to AedesAegypti, pupal stage.
-    Source: Rossi et al (2014).
+    Source: Rossi et al (2014) and Poletti et al (2011) Table 1.
 """
 function get_temperature_response(ctemp::Float64, response::PupaDurationRossi, ::Float64)
     return response.a * ctemp^2 + response.b * ctemp + response.c

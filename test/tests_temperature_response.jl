@@ -12,7 +12,7 @@
 
     test_eggdurationrossi = EggDurationRossi(0.00764, 273.0, 40.55, 13094.10, 92.501, 28169.2)
     response = get_temperature_response(27.0, test_eggdurationrossi)
-    @test isapprox(response, 1.490669; atol = 1e-3)
+    @test isapprox(response, 0.670839; atol = 1e-3)
 
     test_larvamortalityrossi = LarvaMortalityRossi(0.0143, 0.00189)
     response = get_temperature_response(27.0, test_larvamortalityrossi)
@@ -20,7 +20,7 @@
 
     test_larvadurationrossi = LarvaDurationRossi(0.00219, 273.0, 25.21, 7514.34)
     response = get_temperature_response(27.0, test_larvadurationrossi)
-    @test isapprox(response, 1.294172; atol = 1e-3)
+    @test isapprox(response, 0.772694; atol = 1e-3)
 
     test_pupamortalityrossi = PupaMortalityRossi(0.0143,0.00189)
     response = get_temperature_response(27.0, test_pupamortalityrossi)
