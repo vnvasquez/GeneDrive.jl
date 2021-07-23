@@ -107,12 +107,35 @@ function temperature_responsive_hatching(response_type::Type{T}, ctemp::Float64,
     end
 end
 
+#TODO: remove this wolbachia-specific ovipostion without temperature as soon as dispatching for temperature sensitive one is updated.
 """
         function oviposit(F, node::Node, genetics::Genetics{Wolbachia}, gene_index::Int64, inputs::ExogenousInputs, t)
 
     Returns oviposited eggs (count). Includes capacity for temperature-sensitive hatching and offspring likelihoods.
 """
 function oviposit(F, node::Node, key_species, genetics::Genetics{Wolbachia}, gene_index::Int64, inputs::ExogenousInputs, t)
+
+    cube = genetics.cube
+    Τ = genetics.Τ
+    S = genetics.S
+    Β = genetics.Β
+
+    ΒS = Matrix{Float64}(undef, length(Β), length(S))
+    for i in 1:length(Β)
+        ΒS[i,:] = Β[i].*S'
+    end
+
+    O = cube[:,:,gene_index].*Τ[:,:,gene_index].*ΒS.*F
+    return sum(O)
+end
+
+#= TODO: fix the temperature sensitive oviposition applicable to wolbachia. should dispatch ONLY when using temp-responsive functions not merely on fact of wolbachia genetics
+"""
+        function oviposit(F, node::Node, genetics::Genetics{Wolbachia}, gene_index::Int64, inputs::ExogenousInputs, t)
+
+    Returns oviposited eggs (count). Includes capacity for temperature-sensitive hatching and offspring likelihoods.
+"""
+function oviposit(F, node::Node, key_species, genetics::Genetics{C}, gene_index::Int64, inputs::ExogenousInputs, t) where C
 
     node_name = get_name(node)
     ctemp = get_temperature_value(node.temperature, inputs.temperature[node_name], t)
@@ -123,16 +146,15 @@ function oviposit(F, node::Node, key_species, genetics::Genetics{Wolbachia}, gen
     S = genetics.S
     Β = genetics.Β
 
-    # TODO: This needs updating since it allocates a matrix per iteration
     ΒS = Matrix{Float64}(undef, length(Β), length(S))
     for i in 1:length(Β)
         ΒS[i,:] = Β[i].*S'
     end
-    # TODO: add genetic parameters necessary for additional constructs
-    O = cube.*Τ.*ΒS.*F
 
+    O = cube.*Τ.*ΒS.*F
     return sum(O)
 end
+=#
 
 """
         function create_egg!(dE, E, node::Node, species::Type{<:Species}, eggsnew, gene_index::Int64, inputs::ExogenousInputs, t)
@@ -262,7 +284,8 @@ function mate(P, M, Φ, Ξ_f, Η, node::Node, species::Type{<:Species}, gene_ind
     end
 
     nowmate = LinearAlgebra.normalize(nowmate, 1)
-    @assert !all(isnan.(nowmate)) Η, M # TODO: remove post revision
+
+    @assert !all(isnan.(nowmate)) Η, M
 
     mated = nowmate * (Φ[gene_index] * prev_q * prev.n * P[end,:]')
 
@@ -286,7 +309,8 @@ function create_female!(dF, F, Ω, Ξ_f, node::Node, species::Type{<:Species}, m
 
     for eachF in 1:size(dF)[1]
         control = get_exogenous_intervention(inputs, node, species, Female, gene_index, eachF)
-        dF[eachF,gene_index] = matematrix[eachF, gene_index]*Ξ_f[eachF] - (1 + Ω[gene_index]) * curr_μ * F[eachF,gene_index] * dens + control
+        #dF[eachF,gene_index] = matematrix[eachF, gene_index]*Ξ_f[eachF] - (1 + Ω[gene_index]) * curr_μ * F[eachF,gene_index] * dens + control #TODO:original
+        dF[eachF, gene_index] = matematrix[gene_index, eachF]*Ξ_f[eachF] - (1 + Ω[eachF]) * curr_μ * F[eachF,gene_index] * dens + control # two indexing corrections
     end
 
     return
