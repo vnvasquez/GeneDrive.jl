@@ -160,21 +160,22 @@ function get_density(node::Node, species::Type{<:Species}, life_stage::Type{<:Li
     return node.organisms[species].all_stages[life_stage].density
 end
 
-function update_density_parameter(node::Node, species::Type{<:Species}, life_stage::Type{<:LifeStage}; new_param_value::Float64)
-    dens = node.organisms[species].all_stages[life_stage].density
-    dens.param = new_param_value
-    return node
+#stage::Type{Female}
+function update_density_parameter(node::Node, species::Type{<:Species}, ::Type{T}; new_param_value::Float64) where T <: LifeStage
+    @debug "changed the density parameters $T, $new_param_value"
+    node.organisms[species].all_stages[T].density.param = new_param_value
+    return
 end
 
-function update_density_model(node::Node, species::Type{<:Species}, life_stage::Type{<:LifeStage}; new_density_model::Density)
-    dens = node.organisms[species].all_stages[life_stage].density
-    dens.model = new_density_model
-    return node
+
+function update_density_model(node::Node, species::Type{<:Species}, ::Type{T}; new_density_model::Density) where T <: LifeStage
+    node.organisms[species].all_stages[T].density.model = new_density_model
+    return
 end
 
-function update_density(node::Node, species::Type{<:Species}, stage::Type{<:LifeStage}; new_density::Density)
+function update_density!(node::Node, species::Type{<:Species}, ::Type{T}; new_density::Density) where T <: LifeStage
     new_node = deepcopy(node)
-    new_node.organisms[species].all_stages[stage].density = new_density
+    new_node.organisms[species].all_stages[T].density = new_density
     return new_node
 end
 
