@@ -90,7 +90,7 @@ function get_exogenous_intervention(inputs::ExogenousInputs, node::Node, organis
 end
 
 """
-        function get_exogenous_intervention(inputs::ExogenousInputs, node::Node, organism, stage, gene)
+        function get_exogenous_intervention(inputs::ExogenousInputs, node::Node, organism, stage::Type{Female}, gene, female_index)
 
     Returns biological control intervention relevant to specified `Female` life stage.
 """
@@ -124,7 +124,7 @@ abstract type Intervention <: ExogenousChange end
             gene_index::Int64
             times::Vector{Float64}
             values::Vector{Float64}
-            set::diffeq.CallbackSet
+            callbacks::Vector
         end
 
     Data for biological control interventions predicated on releasing modified organisms. Applicable to both suppression and replacement techniques.
@@ -136,7 +136,7 @@ abstract type Intervention <: ExogenousChange end
 - `gene_index::Int64`: Genotype being released to implement the intervention.
 - `times::Vector{Float64}`: Release start/stop time points. Multiple sets of start/stop points with variable intervals permitted.
 - `values::Vector{Float64}`: Number of modified organisms released during each time period. Variably sized releases permitted.
-- `set::diffeq.CallbackSet`
+- `callbacks::Vector`
 """
 mutable struct Release <: Intervention
     node::Symbol
@@ -145,7 +145,7 @@ mutable struct Release <: Intervention
     gene_index::Int64 #TODO: consider updating to string or type rather than number.
     times::Vector{Float64}
     values::Vector{Int64}
-    set::diffeq.CallbackSet
+    callbacks::Vector #set::diffeq.CallbackSet
 end
 
 """
@@ -167,8 +167,7 @@ function Release(node::Node, organism, stage::Type{T}, gene, times::Vector, vari
         affect_stop = get_effect_intervention(node, organism, stage, gene, 0.0)
         push!(callbacks, diffeq.DiscreteCallback(condition_stop, affect_stop))
     end
-    callback_set = diffeq.CallbackSet((), tuple(callbacks...))
-    return Release(get_name(node), organism, stage, gene, vcat(times, stop_times), variable_release, callback_set)
+    return Release(get_name(node), organism, stage, gene, vcat(times, stop_times), variable_release, callbacks)
 end
 
 """
@@ -181,9 +180,11 @@ function Release(node::Node, organism, stage::Type{T}, gene, times::Vector, fixe
     return Release(node, organism, stage, gene, times, release_values)
 end
 
+
 function get_effect_intervention(node::Node, organism, stage::Type{<:LifeStage}, gene, value)
     node_name = get_name(node)
     return (integrator) -> begin
+        @show "$stage release"
         integrator.p[2].intervention[node_name][organism][stage][gene] = value
     end
 end
@@ -192,7 +193,110 @@ function get_effect_intervention(node::Node, organism, stage::Type{Female}, gene
     wild_type = get_wildtype(node, organism)
     node_name = get_name(node)
     return (integrator) -> begin
+        @show "$stage release"
         integrator.p[2].intervention[node_name][organism][stage][gene, wild_type] = value
+    end
+end
+
+"""
+        mutable struct ProportionalRelease <: Intervention
+            node::Symbol
+            organism::Type{<:Species}
+            stage::Type{<:LifeStage}
+            gene_index::Int64
+            times::Vector{Float64}
+            values::Vector{Float64}
+            callbacks::Vector
+        end
+
+    Data for biological control interventions predicated on releasing modified organisms. Applicable to both suppression and replacement techniques.
+
+# Arguments
+- `node::Symbol`: `Node` where releases occur.
+- `organism::Type{<:Species}`: Species of organism being released.
+- `stage::Type{<:LifeStage}`: `Life stage` of organism being released.
+- `gene_index::Int64`: Genotype being released to implement the intervention.
+- `times::Vector{Float64}`: Release start/stop time points. Multiple sets of start/stop points with variable intervals permitted.
+- `values::Vector{Float64}`: Number of modified organisms released during each time period. Variably sized releases permitted.
+- `callbacks::Vector`
+"""
+mutable struct ProportionalRelease <: Intervention
+    node::Symbol
+    organism::Type{<:Species}
+    stage::Type{<:LifeStage}
+    gene_index::Int64 #TODO: consider updating to string or type rather than number.
+    times::Vector{Float64}
+    proportion::Float64
+    callbacks::Vector #set::diffeq.CallbackSet
+    adults_counting::String
+end
+
+function _get_adult_map(counting_string)
+    if counting_string == "Females"
+        return (1.0, 0.0)
+    elseif counting_string == "Males"
+        return (0.0, 1.0)
+    elseif counting_string == "All"
+        return (1.0, 1.0)
+    else
+        error("$counting_string not recognized. Only Females, Males or All are accepted")
+    end
+end
+
+"""
+        ProportionalRelease(node::Node, organism, stage::Type{T}, gene, times::Vector, release::Float64, adult_counting::String) where T <: LifeStage
+
+    Returns `ProportionalRelease` object specifying details of biological control intervention where release size is predicated on real-time wild population level.
+"""
+function ProportionalRelease(node::Node, organism, stage::Type{T}, gene, times::Vector, release::Float64, adult_counting::String) where T <: LifeStage
+    callbacks = Vector()
+    stop_times = Vector()
+    for (index, time) in enumerate(times)
+        condition_start = (u, t, integrator) -> t == time
+        affect_start = get_effect_intervention_proportional(node, organism, stage, gene, release, _get_adult_map(adult_counting))
+        push!(callbacks, diffeq.DiscreteCallback(condition_start, affect_start))
+        stop_time = time + 1.01 #TODO: Improve this stop_times approach: 1.01*integrator.dt
+        condition_stop = (u, t, integrator) -> t == stop_time #time + integrator.dt
+        push!(stop_times, stop_time)
+        affect_stop = get_effect_intervention(node, organism, stage, gene, 0.0)
+        push!(callbacks, diffeq.DiscreteCallback(condition_stop, affect_stop))
+    end
+    return ProportionalRelease(get_name(node), organism, stage, gene, vcat(times, stop_times), release, callbacks, adult_counting)
+end
+
+function release_value(current_size, value)
+    return clamp(current_size*value, 10, 100000)
+end
+
+function get_effect_intervention_proportional(node::Node, organism, stage::Type{Male}, gene, value, adults_map)
+    wild_type = get_wildtype(node, organism)
+    node_name = get_name(node)
+    number_of_genes = length(get_genotypes(node, organism))
+    index_males = sum(count_substages(node, organism)[1:end-1]):sum(count_substages(node, organism)[1:end])-1
+    index_just_females = sum(count_substages(node, organism))+number_of_genes-1
+    return (integrator) -> begin
+        # Hardcoding the [1] in the x don't have node indexing yet (TODO: come back to this when focused on network)
+        @show current_size_males = sum(integrator.u.x[1][index_males, wild_type])
+        @show current_size_females = sum(integrator.u.x[1][index_just_females, :])
+        @show current_size = adults_map[1]*current_size_females + adults_map[2]*current_size_males
+        @show release_value(current_size, value)
+        integrator.p[2].intervention[node_name][organism][stage][gene] = release_value(current_size, value)
+    end
+end
+
+function get_effect_intervention_proportional(node::Node, organism, stage::Type{Female}, gene, value, adults_map)
+    wild_type = get_wildtype(node, organism)
+    node_name = get_name(node)
+    number_of_genes = length(get_genotypes(node, organism))
+    index_males = sum(count_substages(node, organism)[1:end-1]):sum(count_substages(node, organism)[1:end])-1
+    index_just_females = sum(count_substages(node, organism))+number_of_genes-1
+    return (integrator) -> begin
+    # Hardcoding the [1] in the x don't have node indexing yet (TODO: come back to this when focused on network)
+        @show current_size_males = sum(integrator.u.x[1][index_males, wild_type])
+        @show current_size_females = integrator.u.x[1][index_just_females, wild_type]
+        @show current_size = adults_map[1]*current_size_females + adults_map[2]*current_size_males
+        @show release_value(current_size, value)
+        integrator.p[2].intervention[node_name][organism][stage][gene, wild_type] = release_value(current_size, value)
     end
 end
 
