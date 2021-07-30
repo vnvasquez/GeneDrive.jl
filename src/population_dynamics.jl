@@ -88,9 +88,7 @@ function temperature_responsive_hatching(response_type::Type{T}, ctemp::Float64,
         elseif ctemp > 36.0
             hatch = 0.0
         else
-            hatch = abs(-7101.779268261002 + 1171.8672811736933*ctemp -
-                    77.06926808334678*ctemp^2 + 2.525322340656122*ctemp^3 -
-                    0.041223795916395814*ctemp^4 + 0.0002681670466830925*ctemp^5)
+            hatch = 0.91832971025 - 0.021*(ctemp - 26) - 0.0055*exp(0.485*(ctemp - 26))
         end
         updated_tau = genetics.Τ[:,:,gene_index]
         updated_tau[1,:] .= hatch
