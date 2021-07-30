@@ -207,6 +207,7 @@ end
             times::Vector{Float64}
             values::Vector{Float64}
             callbacks::Vector
+            adults_counting::String
         end
 
     Data for biological control interventions predicated on releasing modified organisms. Applicable to both suppression and replacement techniques.
@@ -219,6 +220,7 @@ end
 - `times::Vector{Float64}`: Release start/stop time points. Multiple sets of start/stop points with variable intervals permitted.
 - `values::Vector{Float64}`: Number of modified organisms released during each time period. Variably sized releases permitted.
 - `callbacks::Vector`
+- `adults_to_count::String`: The population against which to measure proportional release size. Choices include `Male`, `Female`, or `All`.
 """
 mutable struct ProportionalRelease <: Intervention
     node::Symbol
@@ -228,7 +230,7 @@ mutable struct ProportionalRelease <: Intervention
     times::Vector{Float64}
     proportion::Float64
     callbacks::Vector #set::diffeq.CallbackSet
-    adults_counting::String
+    adults_to_count::String
 end
 
 function _get_adult_map(counting_string)
@@ -239,7 +241,7 @@ function _get_adult_map(counting_string)
     elseif counting_string == "All"
         return (1.0, 1.0)
     else
-        error("$counting_string not recognized. Only Females, Males or All are accepted")
+        error("$counting_string not recognized. Only `Females`, `Males`, or `All` are accepted.")
     end
 end
 
@@ -276,10 +278,10 @@ function get_effect_intervention_proportional(node::Node, organism, stage::Type{
     index_just_females = sum(count_substages(node, organism))+number_of_genes-1
     return (integrator) -> begin
         # Hardcoding the [1] in the x don't have node indexing yet (TODO: come back to this when focused on network)
-        @show current_size_males = sum(integrator.u.x[1][index_males, wild_type])
-        @show current_size_females = sum(integrator.u.x[1][index_just_females, :])
-        @show current_size = adults_map[1]*current_size_females + adults_map[2]*current_size_males
-        @show release_value(current_size, value)
+        current_size_males = sum(integrator.u.x[1][index_males, wild_type])
+        current_size_females = sum(integrator.u.x[1][index_just_females, :])
+        current_size = adults_map[1]*current_size_females + adults_map[2]*current_size_males
+        release_value(current_size, value)
         integrator.p[2].intervention[node_name][organism][stage][gene] = release_value(current_size, value)
     end
 end
@@ -292,10 +294,10 @@ function get_effect_intervention_proportional(node::Node, organism, stage::Type{
     index_just_females = sum(count_substages(node, organism))+number_of_genes-1
     return (integrator) -> begin
     # Hardcoding the [1] in the x don't have node indexing yet (TODO: come back to this when focused on network)
-        @show current_size_males = sum(integrator.u.x[1][index_males, wild_type])
-        @show current_size_females = integrator.u.x[1][index_just_females, wild_type]
-        @show current_size = adults_map[1]*current_size_females + adults_map[2]*current_size_males
-        @show release_value(current_size, value)
+        current_size_males = sum(integrator.u.x[1][index_males, wild_type])
+        current_size_females = integrator.u.x[1][index_just_females, wild_type]
+        current_size = adults_map[1]*current_size_females + adults_map[2]*current_size_males
+        release_value(current_size, value)
         integrator.p[2].intervention[node_name][organism][stage][gene, wild_type] = release_value(current_size, value)
     end
 end
