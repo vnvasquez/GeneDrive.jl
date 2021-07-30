@@ -98,6 +98,7 @@ export PupaMortalityMoustaid
 export PupaMortalityRossi
 
 export Release
+export ProportionalRelease
 
 export SinusoidalTemperature
 export Species
@@ -215,7 +216,7 @@ export Release
 
 export temperature_effect
 
-export update_density
+export update_density!
 export update_density_model
 export update_density_parameter
 export update_duration
