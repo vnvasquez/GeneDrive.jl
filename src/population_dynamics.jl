@@ -110,7 +110,7 @@ end
 
     Returns oviposited eggs (count). Includes capacity for temperature-sensitive hatching and offspring likelihoods.
 """
-function oviposit(F, node::Node, key_species, genetics::Genetics{Wolbachia}, gene_index::Int64, inputs::ExogenousInputs, t) 
+function oviposit(F, node::Node, key_species, genetics::Genetics{Wolbachia}, gene_index::Int64, inputs::ExogenousInputs, t)
 
     node_name = get_name(node)
     ctemp = get_temperature_value(node.temperature, inputs.temperature[node_name], t)
@@ -146,10 +146,16 @@ function create_egg!(dE, E, node::Node, species::Type{<:Species}, eggsnew, gene_
 
     prev = eggsnew
 
+    #=TODO: original
     dE[1,gene_index] = prev - E[1,gene_index]*(curr_μ * dens + curr_q * curr.n)
         for i in 2:size(dE)[1]
             dE[i,gene_index] = curr_q * curr.n * E[i-1,gene_index] - E[i,gene_index] * (curr_μ * dens + curr_q * curr.n)
         end
+        =#
+    dE[1,gene_index] = prev - E[1,gene_index]*(curr_μ/(curr_q * curr.n) * dens + curr_q * curr.n)
+    for i in 2:size(dE)[1]
+        dE[i,gene_index] = curr_q * curr.n * E[i-1,gene_index] - E[i,gene_index] * (curr_μ/(curr_q * curr.n) * dens + curr_q * curr.n)
+    end
 
     return
 
@@ -173,10 +179,15 @@ function create_larva!(dL, L, E, node::Node, species::Type{<:Species}, gene_inde
     prev = get_previous_lifestage(node, species, curr)
     prev_q = temperature_effect(ctemp, prev)[2]
 
+    #= TODO: Original
     dL[1,gene_index] = prev_q * prev.n * E[end,gene_index] - L[1,gene_index] * (curr_μ * dens + curr_q * curr.n)
-
     for i in 2:size(dL)[1]
         dL[i,gene_index] = curr_q * curr.n * L[i-1,gene_index] - L[i,gene_index] * (curr_μ * dens + curr_q * curr.n)
+    end
+    =#
+    dL[1,gene_index] = prev_q * prev.n * E[end,gene_index] - L[1,gene_index] * (curr_μ/(curr_q * curr.n) * dens + curr_q * curr.n)
+    for i in 2:size(dL)[1]
+        dL[i,gene_index] = curr_q * curr.n * L[i-1,gene_index] - L[i,gene_index] * (curr_μ/(curr_q * curr.n) * dens + curr_q * curr.n)
     end
 
     # TODO: Change "dens" name to "compute_dens" or similar
@@ -202,9 +213,15 @@ function create_pupa!(dP, P, L, node::Node, species::Type{<:Species}, gene_index
     prev = get_previous_lifestage(node, species, curr)
     prev_q = temperature_effect(ctemp, prev)[2]
 
+    #= TODO: Original
     dP[1,gene_index] = prev_q * prev.n * L[end, gene_index] - P[1,gene_index] * (curr_μ * dens + curr_q * curr.n)
     for i in 2:size(dP)[1]
         dP[i,gene_index] = curr_q * curr.n * P[i-1,gene_index] - P[i,gene_index] * (curr_μ * dens + curr_q * curr.n)
+    end
+    =#
+    dP[1,gene_index] = prev_q * prev.n * L[end, gene_index] - P[1,gene_index] * (curr_μ/(curr_q * curr.n) * dens + curr_q * curr.n)
+    for i in 2:size(dP)[1]
+        dP[i,gene_index] = curr_q * curr.n * P[i-1,gene_index] - P[i,gene_index] * (curr_μ/(curr_q * curr.n) * dens + curr_q * curr.n)
     end
 
     return
