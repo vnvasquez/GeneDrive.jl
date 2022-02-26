@@ -29,6 +29,10 @@ function get_name(network::Network)
     return network.name
 end
 
+function get_names(network::Network)
+    return keys(network.nodes)
+end
+
 ########################################
 #                Location              #
 ########################################
@@ -51,6 +55,10 @@ end
 
 function count_organisms(node::Node)
     return length(node.organisms)
+end
+
+function get_organisms(network::Network, node::Symbol)
+    return collect(keys(network.nodes[node].organisms))
 end
 
 function count_organisms(network::Network, node::Symbol)
@@ -129,11 +137,11 @@ end
 
 
 function get_duration(node::Node, species::Type{<:Species}, life_stage::Type{<:LifeStage})
-    return node.organisms[species].all_stages[life_stage].q
+    return node.organisms[species].all_stages[life_stage].q_temperature_response
 end
 
 function update_duration(node::Node, species::Type{<:Species}, life_stage::Type{<:LifeStage}, new_q)
-    node.organisms[species].all_stages[life_stage].q = new_q
+    node.organisms[species].all_stages[life_stage].q_temperature_response = new_q
     return node
 end
 
@@ -144,11 +152,11 @@ end
 ########################################
 
 function get_mortality(node::Node, species::Type{<:Species}, life_stage::Type{<:LifeStage})
-    return node.organisms[species].all_stages[life_stage].μ
+    return node.organisms[species].all_stages[life_stage].μ_temperature_response
 end
 
 function update_mortality(node::Node, species::Type{<:Species}, life_stage::Type{<:LifeStage}, new_μ)
-    node.organisms[species].all_stages[life_stage].μ = new_μ
+    node.organisms[species].all_stages[life_stage].μ_temperature_response = new_μ
     return node
 end
 
@@ -268,12 +276,21 @@ end
 #              Migration               #
 ########################################
 
-function get_migration(network::Network, node::Symbol, species::Type{<:Species})
-    return network.nodes[node].organisms[species].migration
+#function get_migration(network::Network, node::Symbol, species::Type{<:Species})
+#    return network.nodes[node].organisms[species].migration
+#end
+
+#function update_migration(network::Network, node::Symbol, species::Type{<:Species}, new_migration)
+#    network.nodes[node].organisms[species].migration = new_migration
+#    return network
+#end
+
+function get_migration(network::Network, species::Type{<:Species})
+    return network.migration[species]
 end
 
-function update_migration(network::Network, node::Symbol, species::Type{<:Species}, new_migration)
-    network.nodes[node].organisms[species].migration = new_migration
+function update_migration(network::Network, species::Type{<:Species}, new_migration)
+    network.migration[species] = new_migration
     return network
 end
 
@@ -294,6 +311,12 @@ end
 function update_temperature(node::Node, temp_type::Type{<:TimeSeriesTemperature}, new_temperature::Vector{Float64})
     node.temperature = TimeSeriesTemperature(new_temperature)
     return node
+end
+
+function get_initial_temperature(node::Node)
+    ctemp = node.temperature
+    initial_ctemp = ctemp.values[1]
+    return initial_ctemp
 end
 
 #= TODO: check the following for update temp:
