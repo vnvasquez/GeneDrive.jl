@@ -18,6 +18,8 @@ const genetics_key_map = Dict("WW" => WW,
                               "HR" => HR,
                               "hh" => hh,
                               "hR" => hR,
-                              "RR" => RR
+                              "RR" => RR,
                               ## end single-locus CRISPR homing ("MCR")
+                              "WR" => WR
+                              # end RIDL (total = WW, WR, RR)
                               )

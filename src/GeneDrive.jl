@@ -192,12 +192,14 @@ export get_location
 export get_migration
 export get_mortality
 export get_name
+export get_names
 export get_nodes
 
 export get_organisms
 
 export get_previous_lifestage
 
+export get_initial_temperature
 export get_temperature
 export get_temperature_response
 export get_temperature_value

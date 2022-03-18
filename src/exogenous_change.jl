@@ -184,7 +184,7 @@ end
 function get_effect_intervention(node::Node, organism, stage::Type{<:LifeStage}, gene, value)
     node_name = get_name(node)
     return (integrator) -> begin
-        @show "$stage release"
+        #@show "$stage release"
         integrator.p[2].intervention[node_name][organism][stage][gene] = value
     end
 end
@@ -193,7 +193,9 @@ function get_effect_intervention(node::Node, organism, stage::Type{Female}, gene
     wild_type = get_wildtype(node, organism)
     node_name = get_name(node)
     return (integrator) -> begin
-        @show "$stage release"
+        #@show "$stage release"
+        #@show integrator.t
+        #@show "$value deployed"
         integrator.p[2].intervention[node_name][organism][stage][gene, wild_type] = value
     end
 end

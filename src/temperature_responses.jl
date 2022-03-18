@@ -99,6 +99,28 @@ function get_temperature_response(ctemp::Float64, response::EggDurationRossi, ::
         1+exp(response.e - (response.f /(ctemp + response.b))))
 end
 
+#= #TODO: remove Pelotti implementation once decided
+"""
+    Data for temperature sensitive duration. Applies to AedesAegypti, egg stage.
+    Source: Rossi et al (2014) and Pelotti et al (2011) Table 1.
+"""
+mutable struct EggDurationRossi <: TemperatureResponse
+    a::Float64
+    b::Float64
+    c::Float64
+    d::Float64
+end
+
+"""
+    Function for temperature sensitive development rate (1/duration). Applies to AedesAegypti, egg stage.
+    Source:  Rossi et al (2014) and Pelotti et al (2011) Table 1.
+"""
+function get_temperature_response(ctemp::Float64, response::EggDurationRossi, ::Float64)
+    return 1/(response.a - response.b * exp(-((ctemp - response.c)/response.d)^2))
+end
+
+=#
+
 """
     Data for temperature sensitive mortality. Applies to AedesAegypti, larval stage.
     Source: Rossi et al (2014).
@@ -160,7 +182,7 @@ end
 
 """
     Data for temperature sensitive duration. Applies to AedesAegypti, pupal stage.
-    Source: Rossi et al (2014).
+    Source: Rossi et al (2014) and Poletti et al (2011) Table 1.
 """
 mutable struct PupaDurationRossi <: TemperatureResponse
     a::Float64

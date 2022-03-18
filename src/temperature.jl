@@ -25,7 +25,7 @@ end
     Returns value of temperature in °C for specifed time step. Accounts for perturbations to baseline temperature model where applicable.
 """
 function get_temperature_value(temperature_model::ConstantTemperature, temp_value_from_inputs::Float64, t)
-    # TODO: sort out the addition of perturbations (occaisional error where model.value is doubled in absence of pert)
+    # TODO: sort out the addition of perturbations (occasional error where model.value is doubled in absence of pert)
     return temperature_model.value #+ temp_value_from_inputs
 end
 

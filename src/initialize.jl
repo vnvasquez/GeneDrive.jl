@@ -13,7 +13,7 @@ function init_pupa!(node::Node, species::Type{<:Species},
     node_name = get_name(node)
     ctemp = get_temperature_value(node.temperature, inputs.temperature[node_name], t)
 
-    @show ctemp
+    #@show ctemp
 
     female = get_lifestage(node, species, Female)
     NF = female.N0
@@ -31,11 +31,11 @@ function init_pupa!(node::Node, species::Type{<:Species},
     P0[end, gene_index] = (NF*μF) / (nP*qP*Φ[gene_index])
 
     for i in nP-1:-1:1
-        #P0[i, gene_index] = ((μP + qP*nP)/(qP*nP)) * P0[i+1,gene_index] #TODO: Original
-        P0[i, gene_index] = (((μP/qP*nP) + qP*nP) * P0[i+1,gene_index])/qP*nP
+        P0[i, gene_index] = ((μP + qP*nP)/(qP*nP)) * P0[i+1,gene_index] #TODO: Original
+        #P0[i, gene_index] = (((μP/qP*nP) + qP*nP) * P0[i+1,gene_index])/qP*nP
     end
 
-    @show μP, qP, nP, P0
+    #@show μP, qP, nP, P0
 
     return P0
 
@@ -63,14 +63,14 @@ function init_egg!(node::Node, species::Type{<:Species}, gene_index::Int64, inpu
     Β = genetics.Β
 
     E0 = zeros(nE, gN)
-    #E0[1,gene_index] = (Β[gene_index]*NF)/(μE + qE*nE) #TODO: Original
-    E0[1,gene_index] = (Β[gene_index]*NF)/((μE/qE*nE) + qE*nE)
+    E0[1,gene_index] = (Β[gene_index]*NF)/(μE + qE*nE) #TODO: Original
+    #E0[1,gene_index] = (Β[gene_index]*NF)/((μE/qE*nE) + qE*nE)
 
     for i in 2:size(E0)[1]
-        #E0[i, gene_index] = (qE*nE*E0[i-1, gene_index]) / (μE + qE*nE) #TODO: Original
-        E0[i, gene_index] = E0[i-1, gene_index]*qE*nE / ((μE/qE*nE) + qE*nE)
+        E0[i, gene_index] = (qE*nE*E0[i-1, gene_index]) / (μE + qE*nE) #TODO: Original
+        #E0[i, gene_index] = E0[i-1, gene_index]*qE*nE / ((μE/qE*nE) + qE*nE)
     end
-    @show μE, qE, nE, E0
+    #@show μE, qE, nE, E0
     return E0
 
 end
@@ -112,7 +112,6 @@ function init_egg_dens_dep!(node::Node, species::Type{<:Species}, gene_index::In
 end
 =#
 
-#= TODO: original
 """
         function init_larva!(node::Node, species::Type{<:Species}, gene_index::Int64, inputs, t)
 
@@ -142,8 +141,8 @@ function init_larva!(node::Node, species::Type{<:Species}, E0, P0, gene_index::I
     gN = count_genotypes(genetics)
 
     L0 = zeros(nL, gN)
-    #L0[end, gene_index] = ((μP + qP*nP)/(qL*nL)) * P0[1, gene_index] #TODO: Original
-    L0[end, gene_index] = (P0[1, gene_index]*((μP/qP*nP) + qP*nP))/(qP*nP)
+    L0[end, gene_index] = ((μP + qP*nP)/(qL*nL)) * P0[1, gene_index] #TODO: Original
+    #L0[end, gene_index] = (P0[1, gene_index]*((μP/qP*nP) + qP*nP))/(qP*nP)
 
     Lend = L0[end, gene_index]
     Eend = E0[end, gene_index]
@@ -151,12 +150,12 @@ function init_larva!(node::Node, species::Type{<:Species}, E0, P0, gene_index::I
         L0[i,gene_index] = ((Lend^(i/nL)) * (Eend^((nL-i)/nL)) * (nE^((nL-i)/nL)) * (qE^((nL-i)/nL))) / ((nL^((nL-i)/nL)) * (qL^((nL-i)/nL)))
     end
 
-    @show μL, qL, nL, L0
+    #@show μL, qL, nL, L0
     return L0
 
 end
-=#
 
+#=
 function init_larva_and_density_dep!(node::Node, species::Type{<:Species}, E0, P0, gene_index::Int64, inputs, t)
 
     # Data
@@ -214,7 +213,8 @@ function init_larva_and_density_dep!(node::Node, species::Type{<:Species}, E0, P
     return dx0
 
 end
-#=
+=#
+
 """
         function init_density_dependence!(node::Node, species::Type{<:Species}, eqpop, gene_index::Int64, inputs, t)
 
@@ -242,16 +242,16 @@ function init_density_dependence!(node::Node, species::Type{<:Species}, eqpop, g
     L0 = eqpop[nE+1:nE+nL, 1:gN]
     Eend = E0[end, gene_index]
 
-    #density_param_KL = sum(L0) / ((qE * nE * Eend) / (μL * L0[1,gene_index]) - ((qL * nL) / μL) - 1) #TODO: Original
-    density_param_KL = sum(L0) / (((qE * nE * Eend) / L0[1,gene_index]) * ((qL*nL)/μL) - ((qL*nL * qL*nL) / μL) - 1)
+    density_param_KL = sum(L0) / ((qE * nE * Eend) / (μL * L0[1,gene_index]) - ((qL * nL) / μL) - 1) #TODO: Original
+    #density_param_KL = sum(L0) / (((qE * nE * Eend) / L0[1,gene_index]) * ((qL*nL)/μL) - ((qL*nL * qL*nL) / μL) - 1)
 
-    #density_param_γL = μL / density_param_KL  #TODO: Original (it may stay the same not sure but check order of magnitude)
-    density_param_γL = (μL/(qL*nL)) / density_param_KL
+    density_param_γL = μL / density_param_KL  #TODO: Original
+    #density_param_γL = (μL/(qL*nL)) / density_param_KL
 
     return density_param_KL, density_param_γL
 
 end
-=#
+
 
 """
         function init_male!(node::Node, species::Type{<:Species}, gene_index::Int64, inputs, t)
@@ -279,6 +279,7 @@ function init_male!(node::Node, species::Type{<:Species},
 
     M0[1, gene_index] = ((1-Φ[gene_index])*qP*nP*P0[end, gene_index]) / μM
 
+    #@show μM, M0
     return M0
 
 end
@@ -304,6 +305,7 @@ function init_female!(node::Node, species::Type{<:Species},
     F0 = zeros(gN, gN)
     F0[gene_index, gene_index] = F0_begin
 
+    #@show F0
     return F0
 
 end
@@ -355,9 +357,9 @@ function init_node!(node::Node)
     u0_first_guess_collectedstages)
     eqpop = eq_pop.zero
 
-    @show u0_first_guess_collectedstages
-    @show eqpop
-    @show densitydep0
+    #@show u0_first_guess_collectedstages
+    #@show eqpop
+    #@show densitydep0
 
     return eqpop, densitydep0
 
@@ -380,7 +382,7 @@ function init_network!(network::Network)
         u0_network[index_node], densitydep0_network[index_node] = init_node!(node)
     end
 
-    u0_first_guess_collectednodes = ArrayPartition(u0_network...)
+    u0_first_guess_collectednodes = RecursiveArrayTools.ArrayPartition(u0_network...)
     inputs = ExogenousInputs(network)
     eq_pop = NLsolve.nlsolve((du,u) -> population_model_network(du, u, (network, inputs), 0), u0_first_guess_collectednodes)
     eqpop_network = eq_pop.zero
