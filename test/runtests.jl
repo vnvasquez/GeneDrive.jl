@@ -1,4 +1,8 @@
 using GeneDrive 
 using Test
 
-include("temp_response_tests.jl")
+@testset "GeneDrive" begin
+
+include("tests_temperature_response.jl")
+
+end
