@@ -32,8 +32,7 @@ function population_model_network(du, u, (network, inputs), t)
             nJuv = nE+nL+nP
             nM = n_substages[4]
             nF = n_substages[5]*gN + nM + nJuv
-
-            #Q = get_migration(network, key_nodename, key_species) TODO: check updates to matrix implementation
+    
             Q = get_migration(network, key_species)
 
             ##################
@@ -59,7 +58,7 @@ function population_model_network(du, u, (network, inputs), t)
 
             for gene_index in 1:gN
 
-                eggsnew = oviposit(F, node, key_species, genetics, gene_index, inputs, t) # (F, cube, Τ, S, Β, gene_index)
+                eggsnew = oviposit(F, node, key_species, genetics, gene_index, inputs, t) 
 
                 create_egg!(dE, E, node, key_species, eggsnew, gene_index, inputs, t)
 

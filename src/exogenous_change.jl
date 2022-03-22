@@ -35,7 +35,7 @@ function _make_intervention_space(::Type{Female}, number_of_genes::Int)
     return zeros(Float64, number_of_genes, number_of_genes)
 end
 
-function _allocate_intervention_space(node::Node) # _ for internal function
+function _allocate_intervention_space(node::Node) 
         #upper level dict
         values = Dict{Symbol, Dict}(get_name(node) => Dict())
         # second level dict
@@ -142,10 +142,10 @@ mutable struct Release <: Intervention
     node::Symbol
     organism::Type{<:Species}
     stage::Type{<:LifeStage}
-    gene_index::Int64 #TODO: consider updating to string or type rather than number.
+    gene_index::Int64 
     times::Vector{Float64}
     values::Vector{Int64}
-    callbacks::Vector #set::diffeq.CallbackSet
+    callbacks::Vector 
 end
 
 """
@@ -184,7 +184,6 @@ end
 function get_effect_intervention(node::Node, organism, stage::Type{<:LifeStage}, gene, value)
     node_name = get_name(node)
     return (integrator) -> begin
-        #@show "$stage release"
         integrator.p[2].intervention[node_name][organism][stage][gene] = value
     end
 end
@@ -193,9 +192,6 @@ function get_effect_intervention(node::Node, organism, stage::Type{Female}, gene
     wild_type = get_wildtype(node, organism)
     node_name = get_name(node)
     return (integrator) -> begin
-        #@show "$stage release"
-        #@show integrator.t
-        #@show "$value deployed"
         integrator.p[2].intervention[node_name][organism][stage][gene, wild_type] = value
     end
 end
@@ -228,10 +224,10 @@ mutable struct ProportionalRelease <: Intervention
     node::Symbol
     organism::Type{<:Species}
     stage::Type{<:LifeStage}
-    gene_index::Int64 #TODO: consider updating to string or type rather than number.
+    gene_index::Int64
     times::Vector{Float64}
     proportion::Float64
-    callbacks::Vector #set::diffeq.CallbackSet
+    callbacks::Vector
     adults_to_count::String
 end
 

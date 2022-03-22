@@ -132,9 +132,7 @@ end
 
 ########################################
 #               Duration               #
-# TODO: update q field to q_temperature_response
 ########################################
-
 
 function get_duration(node::Node, species::Type{<:Species}, life_stage::Type{<:LifeStage})
     return node.organisms[species].all_stages[life_stage].q_temperature_response
@@ -145,10 +143,8 @@ function update_duration(node::Node, species::Type{<:Species}, life_stage::Type{
     return node
 end
 
-
 ########################################
 #               Mortality              #
-# TODO: update μ field to μ_temperature_response
 ########################################
 
 function get_mortality(node::Node, species::Type{<:Species}, life_stage::Type{<:LifeStage})
@@ -168,13 +164,11 @@ function get_density(node::Node, species::Type{<:Species}, life_stage::Type{<:Li
     return node.organisms[species].all_stages[life_stage].density
 end
 
-#stage::Type{Female}
 function update_density_parameter(node::Node, species::Type{<:Species}, ::Type{T}; new_param_value::Float64) where T <: LifeStage
     @debug "changed the density parameters $T, $new_param_value"
     node.organisms[species].all_stages[T].density.param = new_param_value
     return
 end
-
 
 function update_density_model(node::Node, species::Type{<:Species}, ::Type{T}; new_density_model::Density) where T <: LifeStage
     node.organisms[species].all_stages[T].density.model = new_density_model
@@ -275,15 +269,6 @@ end
 ########################################
 #              Migration               #
 ########################################
-
-#function get_migration(network::Network, node::Symbol, species::Type{<:Species})
-#    return network.nodes[node].organisms[species].migration
-#end
-
-#function update_migration(network::Network, node::Symbol, species::Type{<:Species}, new_migration)
-#    network.nodes[node].organisms[species].migration = new_migration
-#    return network
-#end
 
 function get_migration(network::Network, species::Type{<:Species})
     return network.migration[species]
