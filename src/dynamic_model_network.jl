@@ -1,5 +1,9 @@
 
+"""
+        population_model_network(du, u, (network, inputs), t)
 
+    Solves network implementation of dynamic population model.
+"""
 function population_model_network(du, u, (network, inputs), t)
 
     ##################

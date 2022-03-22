@@ -1,4 +1,9 @@
 
+"""
+        population_model_node(du, u, (network, inputs), t)
+
+    Solves node implementation of dynamic population model.
+"""
 function population_model_node(du, u, (node, inputs), t)
 
     ##################
