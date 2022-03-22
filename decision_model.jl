@@ -1,4 +1,10 @@
 
+"""
+                create_decision_model(network::Network, tspan; node_strategy::Dict, do_binary::Bool=false)
+
+        Builds mathematical program.
+"""
+
 function create_decision_model(network::Network, 
         tspan; node_strategy::Dict, do_binary::Bool=false)
 
@@ -38,7 +44,7 @@ function create_decision_model(network::Network,
     ##################
     data = _optimization_info(network, tspan)
 
-    # TODO: Address these hacks that hardcode 1 node, 1 org, 1 species ??
+    # TODO: fix
     nE = data[1]["organism"][1]["substage_count"][Egg]
     nL = data[1]["organism"][1]["substage_count"][Larva]
     nP = data[1]["organism"][1]["substage_count"][Pupa]
@@ -49,7 +55,7 @@ function create_decision_model(network::Network,
     wildtype = data[1]["organism"][1]["wildtype"]
     species = AedesAegypti
 
-    # TODO: LAZY - FIX later
+    # TODO: fix
     densE = data[1]["organism"][1]["stage_density"][Egg]
     densL = data[1]["organism"][1]["stage_density"][Larva]
     densP = data[1]["organism"][1]["stage_density"][Pupa]
@@ -60,26 +66,26 @@ function create_decision_model(network::Network,
     ##################
     T = 1:tspan[end]
     N = 1:data["total_node_count"]
-    O = 1:data[1]["node_organism_count"] #TODO: hacky bc should be able to: #data["network_total_organism_count"]
+    O = 1:data[1]["node_organism_count"] #TODO: fix
 
-    # Stage/substage sets (hacky)
+    # Stage/substage sets TODO: fix
     SE = 1:nE
     SL = 1:nL
     SP = 1:nP
     SM = 1:nM
     SF = 1:nF
 
-    # Initial conditions mapped to stage/substage sets (hacky)
+    # Initial conditions mapped to stage/substage sets TODO: fix
     SE_map = SE
     SL_map = nE+1 : nE+nL
     SP_map = nE+nL+1 : nE+nL+nP
     SM_map = nE+nL+nP+1
     SF_map = nE+nL+nP+nM+1 : nE+nL+nP+nM+nF
 
-    # Genes (hacky)
+    # Genes TODO: fix
     G = 1:gene_count
 
-    # Add sets to model object (to call inside constraint creation)
+    # Add sets to model object TODO: fix
     model.obj_dict[:Sets]=Dict(:N=>N, :O=>O, 
         :SE=>SE, :SL=>SL, :SP=>SP, :SM=>SM, :SF=>SF, 
         :G=>G, :T=>T)
@@ -307,3 +313,24 @@ function create_decision_model(network::Network,
     return model
 
 end
+
+"""
+                solve_decision_model(model::JuMP.Model, objective_function::Nothing=nothing; kwargs...)
+
+Solves mathematical program using default objective function `@objective(model, Min, 0)`, permitting comparison to the dynamic population model implementation.
+"""
+function solve_decision_model(model::JuMP.Model, objective_function::Nothing=nothing; kwargs...)
+
+        #Re-set constraints by fixing controls to zero
+        control_M = model[:control_M]
+        fix.(control_M, 0.0; force = true)
+        control_F = model[:control_F] 
+        fix.(control_F, 0.0; force = true) 
+
+        # Permit optimizer to act as a nonlinear solver
+        @objective(model, Min, 0) 
+        optimize!(model);
+        @info("No objective function specified. Default supplied: `@objective(model, Min, 0)`")
+
+        return model 
+end 
