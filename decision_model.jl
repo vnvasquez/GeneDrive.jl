@@ -1,418 +1,309 @@
 
-# include("paper_enviro_data.jl")
-using JuMP, Ipopt
-using RecursiveArrayTools
-using NLsolve
-using DataStructures
-#using KNITRO
-include("src/GeneDrive.jl")
-# TODO: to facilitate laptop work with Pardiso, see paper_optimization_initialexploration.jl in /TestDrive
+function create_decision_model(network::Network, 
+        tspan; node_strategy::Dict, do_binary::Bool=false)
 
-##################
-#      Node      #
-##################
+    for (key_node, node) in enumerate(values(get_nodes(network)))
+        if length(collect(tspan[1]:tspan[2])) !== length(node.temperature.values)
+        @warn("Temperature timeseries in node $key_node does not match `tspan` length. Problem will fail or result will be incorrect.")
+        end
+    end
 
-organisms = OrderedDict(AedesAegypti => Organism{AedesAegypti}(
-    #genetics_wolbachia(),
-    genetics_ridl(),
-    #stages_noresponse_500())); TODO: check this
-    stages_rossi_500()));
+    ##################
+    # Initialization
+    ##################
+    initial_condition, density_net = init_network!(network);
 
-testlab = fill(27.0, 365);
-node = Node(:Cuenca, organisms, TimeSeriesTemperature(testlab), (2.9001, 79.0059));
+    ##################
+    # Solver(s) 
+    ##################
+    ipopt_def = optimizer_with_attributes(Ipopt.Optimizer, "linear_solver" => "pardiso", 
+        "print_level"=>1)
 
-initial_condition, density_parameter = init_node!(node);
-initial_condition.x[1]
-density_parameter[1][1] # for logistic use Kappa
+    i = optimizer_with_attributes(Juniper.Optimizer,"nl_solver" => ipopt_def,
+        "mip_solver"=> optimizer_with_attributes(Gurobi.Optimizer));
 
-##################
-#      Data      #
-##################
+    ##################
+    #  Model Creation
+    ##################
+    if do_binary
+        model = Model(i); 
+        @info(@info("Ensure that the solver(s) being called are installed: $(i)")        )
+    else
+        model = Model(ipopt_def);
+        @info("Ensure that the solver(s) being called are installed: $(ipopt_def)")
+    end
 
-organism_count = count_organisms(node)
-gene_count = count_genotypes(node, AedesAegypti)
-stage_count = sum(count_substages(node, AedesAegypti)[1:4]) + count_substages(node, AedesAegypti)[5]*gene_count
+    ##################
+    # Parameters
+    ##################
+    data = _optimization_info(network, tspan)
 
-wildtype = get_wildtype(node, AedesAegypti)
-homozygous_modified = get_homozygous_modified(node, AedesAegypti)
+    # TODO: Address these hacks that hardcode 1 node, 1 org, 1 species ??
+    nE = data[1]["organism"][1]["substage_count"][Egg]
+    nL = data[1]["organism"][1]["substage_count"][Larva]
+    nP = data[1]["organism"][1]["substage_count"][Pupa]
+    nM = data[1]["organism"][1]["substage_count"][Male]
+    nF = data[1]["organism"][1]["substage_count"][Female]
+    gene_count = data[1]["organism"][1]["gene_count"]
+    homozygous_modified = data[1]["organism"][1]["homozygous_modified"]
+    wildtype = data[1]["organism"][1]["wildtype"]
+    species = AedesAegypti
 
-ctemp = get_initial_temperature(node)
-species = AedesAegypti
+    # TODO: LAZY - FIX later
+    densE = data[1]["organism"][1]["stage_density"][Egg]
+    densL = data[1]["organism"][1]["stage_density"][Larva]
+    densP = data[1]["organism"][1]["stage_density"][Pupa]
+    densM = data[1]["organism"][1]["stage_density"][Male]
+    densF = data[1]["organism"][1]["stage_density"][Female]
 
-# Genetics
-cube = node.organisms[species].gene_data.cube
-Β = node.organisms[species].gene_data.Β
-Η = node.organisms[species].gene_data.Η
-Τ = node.organisms[species].gene_data.Τ
-Φ = node.organisms[species].gene_data.Φ
-S = node.organisms[species].gene_data.S
-Ω = node.organisms[species].gene_data.Ω
-Ξ_m = node.organisms[species].gene_data.Ξ_m
-Ξ_f = node.organisms[species].gene_data.Ξ_f
+    # SETS
+    ##################
+    T = 1:tspan[end]
+    N = 1:data["total_node_count"]
+    O = 1:data[1]["node_organism_count"] #TODO: hacky bc should be able to: #data["network_total_organism_count"]
 
-# Lifestages w/ Temperature
-egg = get_lifestage(node, species, Egg)
-μE, qE = temperature_effect(ctemp, egg)
-nE = egg.n
-densE = egg.density
+    # Stage/substage sets (hacky)
+    SE = 1:nE
+    SL = 1:nL
+    SP = 1:nP
+    SM = 1:nM
+    SF = 1:nF
 
-larva = get_lifestage(node, species, Larva)
-μL, qL = temperature_effect(ctemp, larva)
-nL = larva.n
-densL = larva.density
+    # Initial conditions mapped to stage/substage sets (hacky)
+    SE_map = SE
+    SL_map = nE+1 : nE+nL
+    SP_map = nE+nL+1 : nE+nL+nP
+    SM_map = nE+nL+nP+1
+    SF_map = nE+nL+nP+nM+1 : nE+nL+nP+nM+nF
 
-pupa = get_lifestage(node, species, Pupa)
-μP, qP = temperature_effect(ctemp, pupa)
-nP = pupa.n
-densP = pupa.density
+    # Genes (hacky)
+    G = 1:gene_count
 
-male = get_lifestage(node, species, Male)
-μM, _ = temperature_effect(ctemp, male)
-nM = male.n
-densM = male.density
+    # Add sets to model object (to call inside constraint creation)
+    model.obj_dict[:Sets]=Dict(:N=>N, :O=>O, 
+        :SE=>SE, :SL=>SL, :SP=>SP, :SM=>SM, :SF=>SF, 
+        :G=>G, :T=>T)
 
-female = get_lifestage(node, species, Female)
-μF, _ = temperature_effect(ctemp, female)
-nF = female.n*gene_count
-densF = female.density
+    # DECLARE VARIABLES_1: Life Stages
+    ###########################################
+    @variable(model, E[N, O, SE, G, T] >= 0)
+    @variable(model, L[N, O, SL, G, T] >= 0)
+    @variable(model, P[N, O, SP, G, T] >= 0)
+    @variable(model, M[N, O, SM, G, T] >= 0)
+    @variable(model, F[N, O, SF, G, T] >= 0)
 
-tspan = (1.0, 365.0)
-tempseries = TemperatureSeriesData(node, collect(tspan[1]:tspan[2]), testlab);
+    # DECLARE VARIABLES_2: Binary nodes 
+    ###########################################
+    if do_binary
+        @variable(model, release_location[N], Bin)
+    else
+        @variable(model, release_location[N])
+        fix.(release_location, 1.0) 
+    end
 
-##################
-#      Sets      #
-##################
+    # DECLARE VARIABLES_3: Controls
+    ###########################################
+    @variable(model, 0.0 <= control_M[N, O, SM, G, T]) 
+    @variable(model, 0.0 <= control_F[N, O, SF, G, T]) 
 
-# Time
-T = 1:2
+    # WARMSTART VARIABLES_1: Lifestages
+    ###########################################
+    stages = [Egg, Larva, Pupa, Male, Female]
+    initialcond_dict = Dict(s => Dict(n => Dict{Int, Any}(o => nothing for o in O) for n in N) for s in stages)
+    for (ix, node_name) in enumerate(N)
+        for (jx, organism) in enumerate(O)
+            initialcond_dict[Egg][node_name][organism] = initial_condition.x[ix].x[jx][SE,:]
+            initialcond_dict[Larva][node_name][organism] = initial_condition.x[ix].x[jx][nE+1:nL+nE,:]
+            initialcond_dict[Pupa][node_name][organism] = initial_condition.x[ix].x[jx][nE+nL+1:nE+nL+nP,:]
+            initialcond_dict[Male][node_name][organism] = initial_condition.x[ix].x[jx][nE+nL+nP+1,:]' 
+            initialcond_dict[Female][node_name][organism] = initial_condition.x[ix].x[jx][nE+nL+nP+2:end,:]
+        end
+    end
+    for node_name in N, organism in O, t in T
+        set_start_value.(E[node_name, organism, :,:,t].data, initialcond_dict[Egg][node_name][organism]) 
+        set_start_value.(L[node_name, organism, :,:,t].data, initialcond_dict[Larva][node_name][organism])
+        set_start_value.(P[node_name, organism, :,:,t].data, initialcond_dict[Pupa][node_name][organism] )
+        set_start_value.(M[node_name, organism, :,:,t].data, initialcond_dict[Male][node_name][organism])
+        set_start_value.(F[node_name, organism, :,:,t].data, initialcond_dict[Female][node_name][organism])
+    end
 
-# Genetics
-G = 1:gene_count
+    # EXPRESSIONS: Migration
+    ###########################################
+    A = get_migration(network, species)
+    @expression(model, migration_E[n in N, o in O, s in SE, g in G, t in T], A[SE_map[s],g][n,:]' * E[:, o, s, g, t])
+    @expression(model, migration_L[n in N, o in O, s in SL, g in G, t in T], A[SL_map[s],g][n,:]' * L[:, o, s, g, t])
+    @expression(model, migration_P[n in N, o in O, s in SP, g in G, t in T], A[SP_map[s],g][n,:]' * P[:, o, s, g, t])
+    @expression(model, migration_M[n in N, o in O, s in SM, g in G, t in T], A[SM_map[s],g][n,:]' * M[:, o, s, g, t])
 
-# Stages/substages
-SE = 1:nE
-SL = 1:nL
-SP = 1:nP
-SM = 1:nM
-SF = 1:nF
+    # CONSTRAINTS_A: Life Stages
+    ###########################################
 
-# Initial conditions mapped to stages TODO: check this
-#=
-SE_map = SE
-SL_map = nE+1 : nE+nL
-SP_map = nE+nL+1 : nE+nL+nP
-SM_map = nE+nL+nP+1
-SF_map = nE+nL+nP+nM+1 : nE+nL+nP+nM+nF
-=#
+    #### EGGS
+    @constraint(model, E_con_A0[n in N, o in O, s in [SE[1]], g in G, t in [T[1]]],
 
-# Organisms
-O = 1:organism_count
+            E[n, o, s, g, t] == initialcond_dict[Egg][n][o][SE_map[s], g] +
 
-##################
-#    Solver      # Linear_solver:  HSL/ma86 = iMac || Pardiso = laptop
-##################
+            sum((data[n]["organism"][o]["genetics"].cube[:,:,g].*data[n]["organism"][o]["genetics"].Τ[:,:,g].*data[n]["organism"][o]["genetics"].S[g]*data[n]["organism"][o]["genetics"].Β[g].*F[n,o,:,:,t].data)[:,:]) -
 
-i = optimizer_with_attributes(Ipopt.Optimizer, "linear_solver" => "Pardiso") # "linear_solver" => "Pardiso" #"linear_solver" => "ma86"
-#i = optimizer_with_attributes(KNITRO.Optimizer, "par_lsnumthreads" => 8, "honorbnds" => 1, "linsolver"=> 8, "algorithm" => 1) TODO: check this
+            E[n, o, s, g, t] * (data[n]["organism"][o]["stage_temperature_response"][Egg][n][o][g][t][1] * compute_density(densE, sum(E[n, o, :, :, t])) +
+            data[n]["organism"][o]["stage_temperature_response"][Egg][n][o][g][t][2] * nE) + migration_E[n,o,s,g,t])
 
-model = Model(i);
+    @constraint(model, E_con_A1[n in N, o in O, s in [SE[1]], g in G, t in T[2:end]],
 
-###########################################
-# DECLARE VARIABLES_1: Life Stages
-###########################################
+            E[n, o, s, g, t] ==  E[n, o, s, g, t-1] +
 
-@variable(model, E[O, SE, G, T] >= 0)
-@variable(model, L[O, SL, G, T] >= 0)
-@variable(model, P[O, SP, G, T] >= 0)
-@variable(model, M[O, SM, G, T] >= 0)
-@variable(model, F[O, SF, G, T] >= 0)
+            sum((data[n]["organism"][o]["genetics"].cube[:,:,g].*data[n]["organism"][o]["genetics"].Τ[:,:,g].*data[n]["organism"][o]["genetics"].S[g]*data[n]["organism"][o]["genetics"].Β[g].*F[n,o,:,:,t].data)[:,:]) -
 
-###########################################
-# WARMSTART VARIABLES_1
-###########################################
+            E[n, o, s, g, t] * (data[n]["organism"][o]["stage_temperature_response"][Egg][n][o][g][t][1]*compute_density(densE, sum(E[n, o, :, :, t])) +
+            data[n]["organism"][o]["stage_temperature_response"][Egg][n][o][g][t][2]*nE) + migration_E[n,o,s,g,t])
 
-# Access initial conditions
-E0 = initial_condition.x[1][SE,:]
-L0 = initial_condition.x[1][nE+1:nL+nE,:]
-P0 = initial_condition.x[1][nE+nL+1:nE+nL+nP,:]
-M0 = initial_condition.x[1][nE+nL+nP+1,:]' # NB transpose
-F0 = initial_condition.x[1][nE+nL+nP+2:end,:]
+    @constraint(model, E_con_B0[n in N, o in O, s in SE[2:end], g in G, t in [T[1]]],
 
-# Warmstart (option 2): Furnish start values for *EVERY* timestep to reduce search time
-for t in T
-    set_start_value.(E[1, :,:,t].data, E0)
-    set_start_value.(L[1, :,:,t].data, L0)
-    set_start_value.(P[1, :,:,t].data, P0)
-    set_start_value.(M[1, :,:,t].data, M0)
-    set_start_value.(F[1, :,:,t].data, F0)
+            E[n, o, s, g, t] == initial_condition.x[n].x[o][SE_map[s], g] +
+
+            data[n]["organism"][o]["stage_temperature_response"][Egg][n][o][g][t][2]*nE*E[n, o, s-1, g, t] -
+
+            E[n, o, s, g, t] * (data[n]["organism"][o]["stage_temperature_response"][Egg][n][o][g][t][1]*compute_density(densE, sum(E[n, o, :, :, t])) +
+            data[n]["organism"][o]["stage_temperature_response"][Egg][n][o][g][t][2]*nE) + migration_E[n,o,s,g,t])
+
+    @constraint(model, E_con_B1[n in N, o in O, s in SE[2:end], g in G, t in T[2:end]],
+
+            E[n, o, s, g, t] == E[n, o, s, g, t-1] +
+
+            data[n]["organism"][o]["stage_temperature_response"][Egg][n][o][g][t][2]*nE*E[n, o, s-1, g, t] -
+
+            E[n, o, s, g, t] * (data[n]["organism"][o]["stage_temperature_response"][Egg][n][o][g][t][1]*compute_density(densE, sum(E[n, o, :, :, t])) +
+            data[n]["organism"][o]["stage_temperature_response"][Egg][n][o][g][t][2]*nE) + migration_E[n,o,s,g,t])
+
+
+    #### LARVAE
+    @constraint(model, L_con_A0[n in N, o in O, s in [SL[1]], g in G, t in [T[1]]],
+
+            L[n, o, s, g, t] ==  initial_condition.x[n].x[o][SL_map[s], g] +
+
+            data[n]["organism"][o]["stage_temperature_response"][Egg][n][o][g][t][2] * nE * E[n,o,end,g,t] -
+
+            L[n, o, s, g, t] * (data[n]["organism"][o]["stage_temperature_response"][Larva][n][o][g][t][1]*compute_density(densL, sum(L[n, o, :, :, t])) +
+            data[n]["organism"][o]["stage_temperature_response"][Larva][n][o][g][t][2]*nL) + migration_L[n,o,s,g,t])
+
+    @constraint(model, L_con_A1[n in N, o in O, s in [SL[1]], g in G, t in T[2:end]],
+
+            L[n, o, s, g, t] ==  L[n, o, s, g, t-1] +
+
+            data[n]["organism"][o]["stage_temperature_response"][Egg][n][o][g][t][2] * nE * E[n,o,end,g,t] -
+
+            L[n, o, s, g, t] * (data[n]["organism"][o]["stage_temperature_response"][Larva][n][o][g][t][1]*compute_density(densL, sum(L[n, o, :, :, t])) +
+            data[n]["organism"][o]["stage_temperature_response"][Larva][n][o][g][t][2]*nL) + migration_L[n,o,s,g,t])
+
+    @constraint(model, L_con_B0[n in N, o in O, s in SL[2:end], g in G, t in [T[1]]],
+
+            L[n, o, s, g, t] == initial_condition.x[n].x[o][SL_map[s], g] +
+
+            data[n]["organism"][o]["stage_temperature_response"][Larva][n][o][g][t][2]*nL*L[n, o, s-1, g, t] -
+
+            L[n, o, s, g, t] * (data[n]["organism"][o]["stage_temperature_response"][Larva][n][o][g][t][1]*compute_density(densL, sum(L[n, o, :, :, t])) +
+            data[n]["organism"][o]["stage_temperature_response"][Larva][n][o][g][t][2]*nL) + migration_L[n,o,s,g,t])
+
+    @constraint(model, L_con_B1[n in N, o in O, s in SL[2:end], g in G, t in T[2:end]],
+
+            L[n, o, s, g, t] == L[n, o, s, g, t-1] +
+
+            data[n]["organism"][o]["stage_temperature_response"][Larva][n][o][g][t][2]*nL*L[n, o, s-1, g, t] -
+
+            L[n, o, s, g, t] * (data[n]["organism"][o]["stage_temperature_response"][Larva][n][o][g][t][1]*
+            compute_density(densL, sum(L[n, o, :, :, t])) +
+            data[n]["organism"][o]["stage_temperature_response"][Larva][n][o][g][t][2]*nL) + migration_L[n,o,s,g,t])
+
+
+    #### PUPAE
+    @constraint(model, P_con_A0[n in N, o in O, s in [SP[1]], g in G, t in [T[1]]],
+
+            P[n, o, s, g, t] ==  initial_condition.x[n].x[o][SP_map[s], g] +
+
+            data[n]["organism"][o]["stage_temperature_response"][Larva][n][o][g][t][2] * nL * L[n, o, end , g ,t] -
+
+            P[n, o, s, g, t] * (data[n]["organism"][o]["stage_temperature_response"][Pupa][n][o][g][t][1]*compute_density(densP, sum(P[n, o, :, :, t])) +
+            data[n]["organism"][o]["stage_temperature_response"][Pupa][n][o][g][t][2]*nP) + migration_P[n,o,s,g,t])
+
+    @constraint(model, P_con_A1[n in N, o in O, s in [SP[1]], g in G, t in T[2:end]],
+
+            P[n, o, s, g, t] ==  P[n, o, s, g, t-1] +
+
+            data[n]["organism"][o]["stage_temperature_response"][Larva][n][o][g][t][2] * nL * L[n, o, end , g ,t] -
+
+            P[n, o, s, g, t] * (data[n]["organism"][o]["stage_temperature_response"][Pupa][n][o][g][t][1]*compute_density(densP, sum(P[n, o, :, :, t])) +
+            data[n]["organism"][o]["stage_temperature_response"][Pupa][n][o][g][t][2]*nP) + migration_P[n,o,s,g,t])
+
+    @constraint(model, P_con_B0[n in N, o in O, s in SP[2:end], g in G, t in [T[1]]] ,
+
+            P[n, o, s, g, t] ==  initial_condition.x[n].x[o][SP_map[s], g] +
+
+            data[n]["organism"][o]["stage_temperature_response"][Pupa][n][o][g][t][2]*nP*P[n, o, s-1, g, t] -
+
+            P[n, o, s, g, t] * (data[n]["organism"][o]["stage_temperature_response"][Pupa][n][o][g][t][1]*compute_density(densP, sum(P[n, o, :, :, t])) +
+            data[n]["organism"][o]["stage_temperature_response"][Pupa][n][o][g][t][2]*nP) + migration_P[n,o,s,g,t])
+
+    @constraint(model, P_con_B1[n in N, o in O, s in SP[2:end], g in G, t in T[2:end]] ,
+
+            P[n, o, s, g, t] ==  P[n, o, s, g, t-1] +
+
+            data[n]["organism"][o]["stage_temperature_response"][Pupa][n][o][g][t][2]*nP*P[n, o, s-1, g, t] -
+
+            P[n, o, s, g, t] * (data[n]["organism"][o]["stage_temperature_response"][Pupa][n][o][g][t][1]*compute_density(densP, sum(P[n, o, :, :, t])) +
+            data[n]["organism"][o]["stage_temperature_response"][Pupa][n][o][g][t][2]*nP) + migration_P[n,o,s,g,t])
+
+
+    #### MALES
+    @constraint(model, M_con_0[n in N, o in O, s in SM, g in G, t in [T[1]]],
+
+            M[n, o, s, g, t] ==  initial_condition.x[n].x[o][SM_map[s], g] +
+
+            (1-data[n]["organism"][o]["genetics"].Φ[g]) * data[n]["organism"][o]["stage_temperature_response"][Pupa][n][o][g][t][2] * nP * P[n, o, end, g ,t] * data[n]["organism"][o]["genetics"].Ξ_m[g] -
+
+            (1 + data[n]["organism"][o]["genetics"].Ω[g]) * data[n]["organism"][o]["stage_temperature_response"][Male][n][o][g][t][1] * M[n, o, s, g, t] * compute_density(densM, sum(M[n, o, :, :, t])) +
+            migration_M[n,o,s,g,t])
+
+    @constraint(model, M_con_1[n in N, o in O, s in SM, g in G, t in T[2:end]],
+
+            M[n, o, s, g, t] ==  M[n, o, s, g, t-1] +
+
+            (1-data[n]["organism"][o]["genetics"].Φ[g]) * data[n]["organism"][o]["stage_temperature_response"][Pupa][n][o][g][t][2] * nP * P[n, o, end, g ,t] * data[n]["organism"][o]["genetics"].Ξ_m[g] -
+
+            (1 + data[n]["organism"][o]["genetics"].Ω[g]) * data[n]["organism"][o]["stage_temperature_response"][Male][n][o][g][t][1] * M[n, o, s, g, t] * compute_density(densM, sum(M[n, o, :, :, t])) +
+            control_M[n, o, s, g, t] + migration_M[n,o,s,g,t])
+
+
+    #### MATING
+    @constraint(model, mate_bound[n in N, o in O, g in G, t in T], M[n, o, 1, g, t]*data[n]["organism"][o]["genetics"].Η[g] <= (sum(M[n, o, 1, i, t] * data[n]["organism"][o]["genetics"].Η[i] for i in G)))
+
+
+    #### FEMALES: 
+    @NLconstraint(model, F_con_0[n in N, o in O, s in SF, g in G, t in [T[1]]],
+
+            F[n, o, s, g, t] == initial_condition.x[n].x[o][SF_map[s], g] +
+
+            (M[n, o, 1, g, t]*data[n]["organism"][o]["genetics"].Η[g]/(1e-6 + sum(M[n, o, 1, i, t] * data[n]["organism"][o]["genetics"].Η[i] for i in G))) *
+            (data[n]["organism"][o]["genetics"].Φ[s] * data[n]["organism"][o]["stage_temperature_response"][Pupa][n][o][g][t][2] * nP * P[n, o, end, s, t] * data[n]["organism"][o]["genetics"].Ξ_f[s]) -
+
+            (1 + data[n]["organism"][o]["genetics"].Ω[g]) * data[n]["organism"][o]["stage_temperature_response"][Female][n][o][g][t][1] *
+            F[n, o, s, g, t] + sum(A[SF_map[s],g][n,i]*F[i, o, s, g, t] for i in N))
+
+    @NLconstraint(model, F_con_1[n in N, o in O, s in SF, g in G, t in T[2:end]],
+
+            F[n, o, s, g, t] == F[n, o, s, g, t-1] +
+
+            (M[n, o, 1, g, t]*data[n]["organism"][o]["genetics"].Η[g]/(1e-6+sum(M[n, o, 1, i, t]*data[n]["organism"][o]["genetics"].Η[i] for i in G))) *
+            (data[n]["organism"][o]["genetics"].Φ[s] * data[n]["organism"][o]["stage_temperature_response"][Pupa][n][o][g][t][2] * nP * P[n, o, end, s, t] * data[n]["organism"][o]["genetics"].Ξ_f[s]) -
+
+            (1 + data[n]["organism"][o]["genetics"].Ω[g]) * data[n]["organism"][o]["stage_temperature_response"][Female][n][o][g][t][1] *
+            F[n, o, s, g, t] + control_F[n, o, s, g, t] + sum(A[SF_map[s],g][n,i]*F[i, o, s, g, t] for i in N))
+
+
+    # CONSTRAINTS_B: Controls
+    ###########################################
+    _calculate_release_constraints(network, tspan, homozygous_modified, 
+    wildtype, do_binary, model, data, node_strategy)
+
+    return model
+
 end
-
-##########################################
-# DECLARE VARIABLES_2: Restrict and otherwise schedule controls
-# also see CONSTRAINTS_B (OPERATIONAL CONSTRAINTS: Sets overall limit on releases)
-###########################################
-
-# Bound the control variable (size of release permitted per time step) TODO: currently applicable only to adult stages; update for PGSIT (eggs)
-@variable(model, 0.0 <= control_M[O, SM, G, T]) # <= 5000.0) # REMOVE "upper" part of the bound when using a schedule/envelope
-@variable(model, 0.0 <= control_F[O, SF, G, T]) # <= 5000.0)
-
-# Clear: Restrict releases such that none allowed for any organisms/stages/genotypes/timesteps
-fix.(control_M, 0.0; force = true)
-fix.(control_F, 0.0; force = true) # activate when checking dynamics
-fix.(control_F[:, wildtype, :, :], 0.0; force = true) # use always bc F = matrix
-fix.(control_F[:, :, homozygous_modified, :], 0.0; force = true) # use always bc F = matrix
-
-### This sets up releases to check dynamics
-# Important: Specify in which nodes/orgs/genes/timesteps the releases are permitted
-# FEMALES
-#=
-for t in T[25:10:65]
-        @show t
-        fix.(control_F[1, SF[homozygous_modified], G[wildtype], t], 50.0; force = true)
-end
-=#
-# MALES
-#=
-for t in T[25:10:65]
-    @show t
-    fix.(control_M[1, :, G[homozygous_modified], t], 50.0; force = true)
-end
-=#
-
-
-###########################################
-# CONSTRAINTS_A: BIOLOGICAL CONSTRAINTS
-###########################################
-
-#### EGGS
-# First state space, first time step, all genes
-@constraint(model, E_con_A0[o in O, s = SE[1], g = G, t = T[1]],
-
-        # Initial condition (time = 0 so not indexed here)
-        E[o, s, g, t] == E0[s, g] +
-
-        # Look back to oviposition (aka last substage of previous stage, current timestep)
-        sum((cube[:,:,g].*Τ[:,:,g].*S[g]*Β[g].*F[o,:,:,t].data)[:,:]) -
-
-        # Change: die or move to next substage
-        E[o, s, g, t] * (μE*compute_density(densE, sum(E[o,:,:,t])) + qE*nE))
-
-# First state space, second through last time step, all genes
-@constraint(model, E_con_A1[o in O, s = SE[1], g = G, t = T[2:end]],
-
-        # First state space, look back to previous time step (time = 1)
-        E[o, s, g, t] ==  E[o, s, g, t-1] +
-
-        # Look back to oviposition (aka last substage of previous stage, current timestep)
-        sum((cube[:,:,g].*Τ[:,:,g].*S[g]*Β[g].*F[o,:,:,t].data)[:,:]) -
-
-        # Change: die or move to next substage
-        E[o, s, g, t] * (μE*compute_density(densE, sum(E[o,:,:,t])) + qE*nE))
-
-# Second through last state space, first time step, all genes
-@constraint(model, E_con_B0[o in O, s = SE[2:end], g = G, t = T[1]],
-
-        # Initial condition (time = 0 so not indexed here) TODO: CLARIFY THIS
-        E[o, s, g, t] == E0[ s, g] +
-
-        # Look back to previous state space, current timestep
-        qE*nE*E[o, s-1, g, t] -
-
-        # Change: die or move to next substage
-        E[o, s, g, t] * (μE*compute_density(densE, sum(E[o,:,:,t])) + qE*nE))
-
-# Second through last state space, second through last time step, all genes
-@constraint(model, E_con_B1[o in O, s = SE[2:end], g = G, t = T[2:end]] ,
-
-        # Start at second state space, look back to previous time step
-        E[o, s, g, t] ==   E[o, s, g, t-1] +
-
-        # Look back to previous state space, current timestep
-        qE*nE*E[o, s-1, g, t] -
-
-        # Change: die or move to next STAGE
-        E[o, s, g, t] * (μE*compute_density(densE, sum(E[o,:,:,t])) + qE*nE))
-
-
-#### LARVAE
-# First state space, first time step, all genes
-@constraint(model, L_con_A0[o in O, s = SL[1], g = G, t = T[1]],
-
-        # Initial condition (time = 0 so not indexed here)
-        L[o, s, g, t] ==  L0[ s, g] +
-
-        # Look back to last substage of previous stage, current timestep
-        qE * nE * E[o,end,g,t] -
-
-        # Change: die or move to next substage
-        L[o, s, g, t] * (μL*compute_density(densL, sum(L[o,:,:,t])) + qL*nL))
-
-# First state space, second through last timestep, all genes
-@constraint(model, L_con_A1[o in O, s = SL[1], g = G, t = T[2:end]],
-
-        # Start at first substage, look back to previous timestep
-         L[o, s, g, t] ==  L[o, s, g, t-1] +
-
-        # Look back to the last substage of previous stage, current timestep
-        qE * nE * E[o, end,g,t] -
-
-        # Change: die or move to the next substage
-        L[o, s, g, t] * (μL*compute_density(densL, sum(L[o,:,:,t])) + qL*nL))
-
-# Second through last state space, first time step, all genes
-@constraint(model, L_con_B0[o in O, s = SL[2:end], g = G, t = T[1]],
-
-        # Initial condition (time = 0 so not indexed here)
-        L[o, s, g, t] == L0[ s, g] +
-
-        # Look back to the previous substage, current timestep
-        qL*nL*L[o, s-1, g, t] -
-
-        # Change: die or move to the next substage
-        L[o, s, g, t] * (μL*compute_density(densL, sum(L[o,:,:,t])) + qL*nL))
-
-# Second through last state space, second through last time step, all genes
-@constraint(model, L_con_B1[o in O, s = SL[2:end], g = G, t = T[2:end]],
-
-        # Start at second substage, look back to previous timestep
-        L[o, s, g, t] == L[o, s, g, t-1] +
-
-        # Look back to the previous substage, current timestep
-         qL*nL*L[o, s-1, g, t] -
-
-        # Change: die or move to the next STAGE
-         L[o, s, g, t] * (μL*compute_density(densL, sum(L[o,:,:,t])) + qL*nL))
-
-
-#### PUPAE
-# First state space, first time step, all genes
-@constraint(model, P_con_A0[o in O, s = SP[1], g = G, t = T[1]],
-
-        # Initial condition (time = 0 so not indexed here)
-        P[o, s, g, t] ==  P0[ s, g] +
-
-        # Look back to the last substage of the previous stage
-        qL * nL * L[o, end , g ,t] -
-
-        # Change: die or move to the next substage
-        P[o, s, g, t] * (μP*compute_density(densP, sum(P[o, :, :, t])) + qP*nP))
-
-# First state space, second through last time step, all genes
-@constraint(model, P_con_A1[o in O, s = SP[1], g = G, t = T[2:end]],
-
-        # Start at first substage, look back to previous timestep
-        P[o, s, g, t] ==  P[o, s, g, t-1] +
-
-        # Look back to the last substage of the previous stage
-        qL * nL * L[o, end , g ,t] -
-
-        # Change: die or move to the next substage
-        P[o, s, g, t] * (μP*compute_density(densP, sum(P[o, :, :, t])) + qP*nP))
-
-# Second through last state space, first time step, all genes
-@constraint(model, P_con_B0[o in O, s = SP[2:end], g = G, t = T[1]] ,
-
-        # Initial condition (time = 0 so not indexed here)
-        P[o, s, g, t] ==  P0[ s, g] +
-
-        # Look back to previous substage, current timestep
-        qP*nP*P[o, s-1, g, t] -
-
-        # Change: die or move to the next substage
-        P[o, s, g, t] * (μP*compute_density(densP, sum(P[o, :, :, t])) + qP*nP))
-
-# Second through last state space, second through last time step, all genes
-@constraint(model, P_con_B1[o in O, s = SP[2:end], g = G, t = T[2:end]],
-
-        # Start at second substage, look back to the previous timestep
-        P[o, s, g, t] ==  P[o, s, g, t-1] +
-
-        # Look back to the previous substage, current time step
-        qP*nP*P[o, s-1, g, t] -
-
-        # Change: die or move to the next STAGE
-        P[o, s, g, t] * (μP*compute_density(densP, sum(P[o, :, :, t])) + qP*nP))
-
-#### MALES
-# First state space, first timestep
-@constraint(model, M_con_0[o in O, s = SM, g = G, t = T[1]],
-
-        # Initial condition (time = 0 so not indexed here)
-        M[o, s, g, t] ==  M0[ s, g] +
-
-        # Look back to last substage pf previous STAGE and take sex-appropriate (phi) portion
-        (1-Φ[g]) * qP * nP * P[o, end, g ,t] * Ξ_m[g] -
-
-        # Change: die or move to next STAGE
-        (1 + Ω[g]) * μM * M[o, s, g, t] * compute_density(densM, sum(M[o, :, :, t])))
-
-# First state space, second through last timestep
-@constraint(model, M_con_1[o in O, s = SM, g = G, t = T[2:end]],
-
-        # First substage, look back to previous timstep
-        M[o, s, g, t] ==  M[o, s, g, t-1] +
-
-        # Look back to last substage pf previous STAGE and take sex-appropriate (phi) portion
-        (1-Φ[g]) * qP * nP * P[o, end, g ,t] * Ξ_m[g] -
-
-        # Change: die or move to next STAGE + CONTROL when applicable
-        (1 + Ω[g]) * μM * M[o, s, g, t] * compute_density(densM, sum(M[o, :, :, t])) + control_M[o, s, g, t])
-
-
-# Mating constraint to save computation time
-@constraint(model, mate_bound[o in O, g = G, t = T], M[o, 1, g, t]*Η[g] <= (sum(M[o, 1, i, t]*Η[i] for i in G)))
-
-
-#### FEMALES
-# First state space, first timestep
-@NLconstraint(model, F_con_0[o in O, s in SF, g in G, t = T[1]],
-
-        # Initial condition (time = 0 so not indexed here)
-        F[o, s, g, t] == F0[ s, g] +
-
-        # Mating term (the only nonlinearity) multipled by sex-appropriate (phi) portion of previous STAGE
-        (M[o, 1, g, t]*Η[g]/(1e-6 + sum(M[o, 1, i, t]*Η[i] for i in G)))*(Φ[s] * qP * nP * P[o, end, s, t] * Ξ_f[s]) -
-
-        # Change: die or move to next STAGE (oviposition/egg production)
-        (1 + Ω[g]) * μF * F[o, s, g, t] )
-
-# First state space, second through last timesteps
-@NLconstraint(model, F_con_1[o in O, s in SF, g in G, t in T[2:end]],
-
-        # First stage, look back to previous timestep
-        F[o, s, g, t] == F[o, s, g, t-1] +
-
-        # Mating term (the only nonlinearity) multipled by sex-appropriate (phi) portion of previous STAGE
-        (M[o, 1, g, t]*Η[g]/(1e-6+sum(M[o, 1, i, t]*Η[i] for i in G)))*(Φ[s] * qP * nP * P[o, end, s, t] * Ξ_f[s]) -
-
-        # Change: die or move to next STAGE (oviposition/egg production) + CONTROL when applicable
-        (1 + Ω[g]) * μF * F[o, s, g, t] + control_F[o, s, g, t])
-
-
-###########################################
-# CONSTRAINTS_B: OPERATIONAL CONSTRAINTS
-###########################################
-
-
-#TODO: COME BACK TO THESE
-
-
-###########################################
-# OBJECTIVE FUNCTIONS: Use one at a time
-###########################################
-
-#### OPTION 1 [DEBUGGING]
-@objective(model, Min, 0)
-
-#TODO: COME BACK TO THESE
-
-
-###########################################
-# OPTIMIZE!
-###########################################
-
-# Optimize using given objective function (can also use without ANY specific objective function)
-optimize!(model)
-
-# Nice way to monitor what's going on
-println("Objective value, single node multi-organism: ", objective_value(model))
