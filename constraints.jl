@@ -151,7 +151,6 @@ function _add_constraint(model::JuMP.Model, optinfo_dict::Dict,
     return
 end
 
-
 function _calculate_release_constraints(network::Network, tspan::Tuple,
     homozygous_modified, wildtype, do_binary::Bool,
     model::JuMP.Model,

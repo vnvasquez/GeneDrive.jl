@@ -13,8 +13,6 @@ function init_pupa!(node::Node, species::Type{<:Species},
     node_name = get_name(node)
     ctemp = get_temperature_value(node.temperature, inputs.temperature[node_name], t)
 
-    #@show ctemp
-
     female = get_lifestage(node, species, Female)
     NF = female.N0
     μF, _ = temperature_effect(ctemp, female)
@@ -31,11 +29,8 @@ function init_pupa!(node::Node, species::Type{<:Species},
     P0[end, gene_index] = (NF*μF) / (nP*qP*Φ[gene_index])
 
     for i in nP-1:-1:1
-        P0[i, gene_index] = ((μP + qP*nP)/(qP*nP)) * P0[i+1,gene_index] #TODO: Original
-        #P0[i, gene_index] = (((μP/qP*nP) + qP*nP) * P0[i+1,gene_index])/qP*nP
+        P0[i, gene_index] = ((μP + qP*nP)/(qP*nP)) * P0[i+1,gene_index] 
     end
-
-    #@show μP, qP, nP, P0
 
     return P0
 
@@ -63,54 +58,15 @@ function init_egg!(node::Node, species::Type{<:Species}, gene_index::Int64, inpu
     Β = genetics.Β
 
     E0 = zeros(nE, gN)
-    E0[1,gene_index] = (Β[gene_index]*NF)/(μE + qE*nE) #TODO: Original
-    #E0[1,gene_index] = (Β[gene_index]*NF)/((μE/qE*nE) + qE*nE)
+    E0[1,gene_index] = (Β[gene_index]*NF)/(μE + qE*nE) 
 
     for i in 2:size(E0)[1]
-        E0[i, gene_index] = (qE*nE*E0[i-1, gene_index]) / (μE + qE*nE) #TODO: Original
-        #E0[i, gene_index] = E0[i-1, gene_index]*qE*nE / ((μE/qE*nE) + qE*nE)
+        E0[i, gene_index] = (qE*nE*E0[i-1, gene_index]) / (μE + qE*nE) 
     end
-    #@show μE, qE, nE, E0
     return E0
 
 end
-#=
-function init_egg_dens_dep!(node::Node, species::Type{<:Species}, gene_index::Int64, inputs, t)
 
-    node_name = get_name(node)
-    ctemp = get_temperature_value(node.temperature, inputs.temperature[node_name], t)
-
-    female = get_lifestage(node, species, Female)
-    NF = female.N0
-
-
-    egg = get_lifestage(node, species, Egg)
-    nE = egg.n
-    μE, qE = temperature_effect(ctemp, egg)
-
-    genetics = get_genetics(node, species)
-    gN = count_genotypes(genetics)
-    Β = genetics.Β
-    initial_eggs = Β[gene_index]*NF
-
-    u0 = zeros(nE)
-    u0[1] = initial_eggs
-    u0[2] = initial_eggs
-    du0 = zeros(nE)
-
-    function f!(du0, u0)
-        # u0[1] is the value of K
-        du0[1] = Β[gene_index]*NF - (μE*(1 + (initial_eggs + sum(u0[2]))/u0[1]) + qE*nE)*initial_eggs
-        du0[2] = qE*nE*initial_eggs - (μE*(1 + (initial_eggs + sum(u0[2]))/u0[1]) + qE*nE)*u0[2]
-    end
-
-    NLsolve.nlsolve(f!, u0)
-
-    @show μE, qE, nE, E0
-    return E0
-
-end
-=#
 
 """
         function init_larva!(node::Node, species::Type{<:Species}, gene_index::Int64, inputs, t)
@@ -141,8 +97,7 @@ function init_larva!(node::Node, species::Type{<:Species}, E0, P0, gene_index::I
     gN = count_genotypes(genetics)
 
     L0 = zeros(nL, gN)
-    L0[end, gene_index] = ((μP + qP*nP)/(qL*nL)) * P0[1, gene_index] #TODO: Original
-    #L0[end, gene_index] = (P0[1, gene_index]*((μP/qP*nP) + qP*nP))/(qP*nP)
+    L0[end, gene_index] = ((μP + qP*nP)/(qL*nL)) * P0[1, gene_index] 
 
     Lend = L0[end, gene_index]
     Eend = E0[end, gene_index]
@@ -150,70 +105,10 @@ function init_larva!(node::Node, species::Type{<:Species}, E0, P0, gene_index::I
         L0[i,gene_index] = ((Lend^(i/nL)) * (Eend^((nL-i)/nL)) * (nE^((nL-i)/nL)) * (qE^((nL-i)/nL))) / ((nL^((nL-i)/nL)) * (qL^((nL-i)/nL)))
     end
 
-    #@show μL, qL, nL, L0
     return L0
 
 end
 
-#=
-function init_larva_and_density_dep!(node::Node, species::Type{<:Species}, E0, P0, gene_index::Int64, inputs, t)
-
-    # Data
-    node_name = get_name(node)
-    ctemp = get_temperature_value(node.temperature, inputs.temperature[node_name], t)
-
-    female = get_lifestage(node, species, Female)
-    NF = female.N0
-
-    pupa = get_lifestage(node, species, Pupa)
-    nP = pupa.n
-    μP, qP = temperature_effect(ctemp, pupa)
-
-    egg = get_lifestage(node, species, Egg)
-    nE = egg.n
-    μE, qE = temperature_effect(ctemp, egg)
-
-    larva = get_lifestage(node, species, Larva)
-    nL = larva.n
-    μL, qL = temperature_effect(ctemp, larva)
-
-    genetics = get_genetics(node, species)
-    gN = count_genotypes(genetics)
-
-    # Fill knowns with data
-    L0 = zeros(nL, gN)
-    L0[end, gene_index] = (P0[1, gene_index]*((μP/(qP*nP)) + qP*nP))/(qL*nL)
-    Lend = L0[end, gene_index]
-    Eend = E0[end, gene_index]
-
-    # Change structure to fit
-    Lend = L0[end, gene_index][1,1]
-    Eend = E0[end, gene_index][1,1]
-
-
-    # Compose first guesses
-    x0 = zeros(3)
-    @show
-    x0[1] = 8460.0
-    x0[2] = 1731
-    x0[3] = (x0[1] + x0[2]+ Lend) / (( (qE*nE*Eend) / x0[1] ) * (qL*nL/μL) - ((qL*nL)^2 / μL) - 1)
-    dx0 = zeros(3)
-    f!(dx0, x0)
-    dx0
-
-
-    function f!(dx0, x0)
-        dx0[1] = qL*nL*x0[1] - ((μL/(qL*nL)) * (1 + (x0[1] + x0[2]+ Lend)/x0[3]) + qL*nL) * x0[2]
-        dx0[2] = qL*nL*x0[2] - ((μL/(qL*nL)) * (1 + (x0[1] + x0[2] + Lend)/x0[3]) + qL*nL) * Lend
-        dx0[3] = x0[3] - ((x0[1] + x0[2]+ Lend) / (( (qE*nE*Eend) / x0[1] ) * (qL*nL/μL) - ((qL*nL)^2 / μL) - 1))
-    end
-
-    NLsolve.nlsolve(f!, x0)
- # TODO: Zero: [9173.655797544772, 2028.4365691043176, 35.01473002956062] should be in order [Li1, Li2, K] for initial guess
-    return dx0
-
-end
-=#
 
 """
         function init_density_dependence!(node::Node, species::Type{<:Species}, eqpop, gene_index::Int64, inputs, t)
@@ -242,11 +137,9 @@ function init_density_dependence!(node::Node, species::Type{<:Species}, eqpop, g
     L0 = eqpop[nE+1:nE+nL, 1:gN]
     Eend = E0[end, gene_index]
 
-    density_param_KL = sum(L0) / ((qE * nE * Eend) / (μL * L0[1,gene_index]) - ((qL * nL) / μL) - 1) #TODO: Original
-    #density_param_KL = sum(L0) / (((qE * nE * Eend) / L0[1,gene_index]) * ((qL*nL)/μL) - ((qL*nL * qL*nL) / μL) - 1)
+    density_param_KL = sum(L0) / ((qE * nE * Eend) / (μL * L0[1,gene_index]) - ((qL * nL) / μL) - 1) 
 
-    density_param_γL = μL / density_param_KL  #TODO: Original
-    #density_param_γL = (μL/(qL*nL)) / density_param_KL
+    density_param_γL = μL / density_param_KL  
 
     return density_param_KL, density_param_γL
 
@@ -279,7 +172,6 @@ function init_male!(node::Node, species::Type{<:Species},
 
     M0[1, gene_index] = ((1-Φ[gene_index])*qP*nP*P0[end, gene_index]) / μM
 
-    #@show μM, M0
     return M0
 
 end
@@ -294,8 +186,7 @@ function init_female!(node::Node, species::Type{<:Species},
 
     node_name = get_name(node)
     ctemp = get_temperature_value(node.temperature, inputs.temperature[node_name], t)
-    # TODO: Check if this is the reason for mu = 0.09. Ctemp useless here because init based on prev stages/N0 as dictated.
-
+    
     female = get_lifestage(node, species, Female)
     F0_begin = female.N0
 
@@ -305,7 +196,6 @@ function init_female!(node::Node, species::Type{<:Species},
     F0 = zeros(gN, gN)
     F0[gene_index, gene_index] = F0_begin
 
-    #@show F0
     return F0
 
 end
@@ -357,12 +247,7 @@ function init_node!(node::Node)
     u0_first_guess_collectedstages)
     eqpop = eq_pop.zero
 
-    #@show u0_first_guess_collectedstages
-    #@show eqpop
-    #@show densitydep0
-
     return eqpop, densitydep0
-
 
 end
 

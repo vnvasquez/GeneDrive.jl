@@ -54,6 +54,8 @@ mutable struct Drive{G <: Genotype}
     modified::Int64
 end
 
+abstract type Construct end
+
 """
         mutable struct Genetics
 
@@ -122,8 +124,6 @@ end
 - `all_wildtypes::Vector{Int64}`: Collect homozygous wildtype booleans.
 - `all_modified::Vector{Int64}`: Collect homozygous modified booleans.
 """
-abstract type Construct end
-
 mutable struct Genetics{C <: Construct}
 
     all_genotypes::Array{Drive{<:Genotype}}
@@ -223,8 +223,6 @@ struct BB <: Genotype end
 #               Split Drive            #
 ########################################
 struct SplitDrive <: Construct end
-# TODO: check which released/ which homozygous mod:
-# https://elifesciences.org/articles/51701
 struct WWWW <: Genotype end # wildtype
 struct WWWH <: Genotype end
 struct WWWR <: Genotype end
