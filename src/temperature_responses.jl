@@ -99,28 +99,6 @@ function get_temperature_response(ctemp::Float64, response::EggDurationRossi, ::
         1+exp(response.e - (response.f /(ctemp + response.b))))
 end
 
-#= #TODO: remove Pelotti implementation once decided
-"""
-    Data for temperature sensitive duration. Applies to AedesAegypti, egg stage.
-    Source: Rossi et al (2014) and Pelotti et al (2011) Table 1.
-"""
-mutable struct EggDurationRossi <: TemperatureResponse
-    a::Float64
-    b::Float64
-    c::Float64
-    d::Float64
-end
-
-"""
-    Function for temperature sensitive development rate (1/duration). Applies to AedesAegypti, egg stage.
-    Source:  Rossi et al (2014) and Pelotti et al (2011) Table 1.
-"""
-function get_temperature_response(ctemp::Float64, response::EggDurationRossi, ::Float64)
-    return 1/(response.a - response.b * exp(-((ctemp - response.c)/response.d)^2))
-end
-
-=#
-
 """
     Data for temperature sensitive mortality. Applies to AedesAegypti, larval stage.
     Source: Rossi et al (2014).
@@ -128,7 +106,7 @@ end
 mutable struct LarvaMortalityRossi <: TemperatureResponse
     a::Float64
     b::Float64
-    # TODO: why temp dependent deathrate unused in source
+    # TODO: why temp dependent deathrate unused in source?
     # c:: Float64 # π0 = 4.03*10^(-6)
 end
 
@@ -236,7 +214,7 @@ end
     Source: El Moustaid et al (2019).
 """
 function get_temperature_response(ctemp::Float64, response::EggDurationMoustaid, ::Float64)
-    # TODO: why q = 1/duration in original implementation (applies to all juv), and is ~65 days reasonable?
+    # TODO: why q = 1/duration in original implementation (applies to all juv)?
     return 1/(response.a - (response.b * ctemp) + response.c * ctemp^2)
 end
 
@@ -339,7 +317,7 @@ end
 mutable struct PupaMortalityMoustaid <: TemperatureResponse
     a::Float64
     b::Float64
-    c::Float64 # El Moustaid personal comm, lit value incorrect
+    c::Float64 # El Moustaid personal communication: lit value incorrect
     d::Float64
     e::Float64
 end
@@ -365,8 +343,8 @@ end
     Source: El Moustaid et al (2019).
 """
 mutable struct AdultMortalityMoustaid <: TemperatureResponse
-    a::Float64 # El Moustaid personal comm, lit value incorrect
-    b::Float64 # El Moustaid personal comm, lit value incorrect
+    a::Float64 # El Moustaid personal comm: lit value incorrect
+    b::Float64 # El Moustaid personal comm: lit value incorrect
     c::Float64 # El Moustaid personal comm: use "lf" param from Mordecai 2017, Table B
 end
 

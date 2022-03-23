@@ -1,11 +1,12 @@
-
+################################################################################
+#                                  Create Model                                 #
+################################################################################
 """
                 create_decision_model(network::Network, tspan; node_strategy::Dict, do_binary::Bool=false)
 
         Builds mathematical program.
 """
-
-function create_decision_model(network::Network, 
+function create_decision_model(network::Network,
         tspan; node_strategy::Dict, do_binary::Bool=false)
 
     for (key_node, node) in enumerate(values(get_nodes(network)))
@@ -20,9 +21,9 @@ function create_decision_model(network::Network,
     initial_condition, density_net = init_network!(network);
 
     ##################
-    # Solver(s) 
+    # Solver(s)
     ##################
-    ipopt_def = optimizer_with_attributes(Ipopt.Optimizer, "linear_solver" => "pardiso", 
+    ipopt_def = optimizer_with_attributes(Ipopt.Optimizer, "linear_solver" => "pardiso",
         "print_level"=>1)
 
     i = optimizer_with_attributes(Juniper.Optimizer,"nl_solver" => ipopt_def,
@@ -32,7 +33,7 @@ function create_decision_model(network::Network,
     #  Model Creation
     ##################
     if do_binary
-        model = Model(i); 
+        model = Model(i);
         @info(@info("Ensure that the solver(s) being called are installed: $(i)")        )
     else
         model = Model(ipopt_def);
@@ -86,8 +87,8 @@ function create_decision_model(network::Network,
     G = 1:gene_count
 
     # Add sets to model object TODO: fix
-    model.obj_dict[:Sets]=Dict(:N=>N, :O=>O, 
-        :SE=>SE, :SL=>SL, :SP=>SP, :SM=>SM, :SF=>SF, 
+    model.obj_dict[:Sets]=Dict(:N=>N, :O=>O,
+        :SE=>SE, :SL=>SL, :SP=>SP, :SM=>SM, :SF=>SF,
         :G=>G, :T=>T)
 
     # DECLARE VARIABLES_1: Life Stages
@@ -98,19 +99,19 @@ function create_decision_model(network::Network,
     @variable(model, M[N, O, SM, G, T] >= 0)
     @variable(model, F[N, O, SF, G, T] >= 0)
 
-    # DECLARE VARIABLES_2: Binary nodes 
+    # DECLARE VARIABLES_2: Binary nodes
     ###########################################
     if do_binary
         @variable(model, release_location[N], Bin)
     else
         @variable(model, release_location[N])
-        fix.(release_location, 1.0) 
+        fix.(release_location, 1.0)
     end
 
     # DECLARE VARIABLES_3: Controls
     ###########################################
-    @variable(model, 0.0 <= control_M[N, O, SM, G, T]) 
-    @variable(model, 0.0 <= control_F[N, O, SF, G, T]) 
+    @variable(model, 0.0 <= control_M[N, O, SM, G, T])
+    @variable(model, 0.0 <= control_F[N, O, SF, G, T])
 
     # WARMSTART VARIABLES_1: Lifestages
     ###########################################
@@ -121,12 +122,12 @@ function create_decision_model(network::Network,
             initialcond_dict[Egg][node_name][organism] = initial_condition.x[ix].x[jx][SE,:]
             initialcond_dict[Larva][node_name][organism] = initial_condition.x[ix].x[jx][nE+1:nL+nE,:]
             initialcond_dict[Pupa][node_name][organism] = initial_condition.x[ix].x[jx][nE+nL+1:nE+nL+nP,:]
-            initialcond_dict[Male][node_name][organism] = initial_condition.x[ix].x[jx][nE+nL+nP+1,:]' 
+            initialcond_dict[Male][node_name][organism] = initial_condition.x[ix].x[jx][nE+nL+nP+1,:]'
             initialcond_dict[Female][node_name][organism] = initial_condition.x[ix].x[jx][nE+nL+nP+2:end,:]
         end
     end
     for node_name in N, organism in O, t in T
-        set_start_value.(E[node_name, organism, :,:,t].data, initialcond_dict[Egg][node_name][organism]) 
+        set_start_value.(E[node_name, organism, :,:,t].data, initialcond_dict[Egg][node_name][organism])
         set_start_value.(L[node_name, organism, :,:,t].data, initialcond_dict[Larva][node_name][organism])
         set_start_value.(P[node_name, organism, :,:,t].data, initialcond_dict[Pupa][node_name][organism] )
         set_start_value.(M[node_name, organism, :,:,t].data, initialcond_dict[Male][node_name][organism])
@@ -283,7 +284,7 @@ function create_decision_model(network::Network,
     @constraint(model, mate_bound[n in N, o in O, g in G, t in T], M[n, o, 1, g, t]*data[n]["organism"][o]["genetics"].Η[g] <= (sum(M[n, o, 1, i, t] * data[n]["organism"][o]["genetics"].Η[i] for i in G)))
 
 
-    #### FEMALES: 
+    #### FEMALES:
     @NLconstraint(model, F_con_0[n in N, o in O, s in SF, g in G, t in [T[1]]],
 
             F[n, o, s, g, t] == initial_condition.x[n].x[o][SF_map[s], g] +
@@ -307,13 +308,16 @@ function create_decision_model(network::Network,
 
     # CONSTRAINTS_B: Controls
     ###########################################
-    _calculate_release_constraints(network, tspan, homozygous_modified, 
+    _calculate_release_constraints(network, tspan, homozygous_modified,
     wildtype, do_binary, model, data, node_strategy)
 
     return model
 
 end
 
+################################################################################
+#                                  Solve Model                                 #
+################################################################################
 """
                 solve_decision_model(model::JuMP.Model, objective_function::Nothing=nothing; kwargs...)
 
@@ -324,13 +328,13 @@ function solve_decision_model(model::JuMP.Model, objective_function::Nothing=not
         #Re-set constraints by fixing controls to zero
         control_M = model[:control_M]
         fix.(control_M, 0.0; force = true)
-        control_F = model[:control_F] 
-        fix.(control_F, 0.0; force = true) 
+        control_F = model[:control_F]
+        fix.(control_F, 0.0; force = true)
 
         # Permit optimizer to act as a nonlinear solver
-        @objective(model, Min, 0) 
+        @objective(model, Min, 0)
         optimize!(model);
         @info("No objective function specified. Default supplied: `@objective(model, Min, 0)`")
 
-        return model 
-end 
+        return model
+end
