@@ -5,10 +5,20 @@
 ########################################
 #                 Nodes                #
 ########################################
+"""
+        function get_nodes(network::Network)
+
+    Returns the `Node` object(s) contained in the `Network` object.
+"""
 function get_nodes(network::Network)
     return network.nodes
 end
 
+"""
+        function count_nodes(network::Network)
+
+    Returns a count of the nodes contained in the `Network` object.
+"""
 function count_nodes(network::Network)
     return length(network.nodes)
 end
@@ -21,14 +31,29 @@ end
 #                Names                 #
 ########################################
 
+"""
+        function get_name(node::Node)
+
+    Returns the name (symbol) of the `Node` object.
+"""
 function get_name(node::Node)
     return node.name
 end
 
+"""
+        function get_name(network::Network)
+
+    Returns the name (symbol) of the `Network` object.
+"""
 function get_name(network::Network)
     return network.name
 end
 
+"""
+        function get_names(network::Network)
+
+    Returns the names (symbols) of the nodes within the `Network` object.
+"""
 function get_names(network::Network)
     return keys(network.nodes)
 end
@@ -37,10 +62,20 @@ end
 #                Location              #
 ########################################
 
+"""
+        function get_location(node::Node)
+
+    Returns the coordinates of the `Node`.
+"""
 function get_location(node::Node)
     return node.location
 end
 
+"""
+        function get_location(network::Network)
+
+    Returns the coordinates of the `Network`.
+"""
 function get_location(network::Network)
     return network.location
 end
@@ -49,27 +84,56 @@ end
 #               Organisms              #
 ########################################
 
+"""
+        function get_organisms(node::Node)
+
+    Returns vector of species populating the `Node`.
+"""
 function get_organisms(node::Node)
     return collect(keys(node.organisms))
 end
+"""
+        function count_organisms(node::Node)
 
+    Counts the variety of species populating the `Node`.
+"""
 function count_organisms(node::Node)
     return length(node.organisms)
 end
 
+"""
+        function get_organisms(network::Network, node::Symbol)
+
+    Returns vector of species populating the specified `Node` of the `Network``.
+"""
 function get_organisms(network::Network, node::Symbol)
     return collect(keys(network.nodes[node].organisms))
 end
 
+"""
+        function count_organisms(network::Network, node::Symbol)
+
+    Counts the variety of species populating the specified `Node` of the `Network`.
+"""
 function count_organisms(network::Network, node::Symbol)
     return length(network.nodes[node].organisms)
 end
 
+"""
+        function update_organism(node::Node, new_species)
+
+    Updates the species populating the `Node`.
+"""
 function update_organism(node::Node, new_species)
     node.organisms = new_species
     return node
 end
 
+"""
+        function update_organism(network::Network, node::Symbol, new_species)
+
+    Updates the species populating the specified `Node` of the `Network`.
+"""
 function update_organism(network::Network, node::Symbol, new_species)
     network.nodes[node].organisms = new_species
     return network
@@ -281,7 +345,6 @@ end
 
 ########################################
 #             Temperature              #
-# TODO: revisit each of these setups
 ########################################
 
 function get_temperature(node::Node)
@@ -303,13 +366,3 @@ function get_initial_temperature(node::Node)
     initial_ctemp = ctemp.values[1]
     return initial_ctemp
 end
-
-#= TODO: check the following for update temp:
-Fix the sinusoidal function later: requires correct setup to take new_temp as the mean
-AND necessary data for the rest of the struct fields
-
-function update_temperature(node::Node, temp_type::Type{<:SinusoidalTemperature}, new_temperature::Float64, Afield, Bfield, Cfield, Dfield)
-    new_node = deepcopy(node)
-    return new_node.temperature = SinusoidalTemperature(new_temperature)
-end
-=#
