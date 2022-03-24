@@ -19,7 +19,7 @@
 struct ExogenousInputs
     intervention::Dict{Symbol, Dict}
     temperature::Dict{Symbol, Float64}
-    function ExogenousInputs(; # ; for default arguments
+    function ExogenousInputs(; 
         intervention = Dict{Symbol, Dict}(),
         temperature = Dict{Symbol, Float64}())
         new(intervention,
@@ -36,14 +36,12 @@ function _make_intervention_space(::Type{Female}, number_of_genes::Int)
 end
 
 function _allocate_intervention_space(node::Node) 
-        #upper level dict
+        
         values = Dict{Symbol, Dict}(get_name(node) => Dict())
-        # second level dict
         for organism in get_organisms(node)
             values[get_name(node)][organism] = Dict()
             number_of_genes = count_genotypes(node, organism)
             for life_stage in keys(get_lifestages(node, organism))
-                #third level dict
                 values[get_name(node)][organism][life_stage] = _make_intervention_space(life_stage, number_of_genes)
             end
         end

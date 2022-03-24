@@ -37,7 +37,6 @@ struct LogisticDensity <: DensityDependence end
 """
 function compute_density(data::Density{LogisticDensity}, stage)
     return (1 + (sum(stage)/data.param))
-    # TODO: note to Murat that nonlinearity not an issue bc sum is divided by a single parameter
 end
 
 """
@@ -104,7 +103,7 @@ Data for life stages. Applies to any organism represented by stage-structured po
 mutable struct Stage{L <: LifeStage}
     μ_temperature_response::TemperatureResponse
     q_temperature_response::TemperatureResponse
-    n::Union{Nothing, Int64} #TODO: Define Erlang more thoroughly in docstring.
+    n::Union{Nothing, Int64} 
     density::Density{<: DensityDependence}
     dependency::Union{Nothing, Type{<:LifeStage}}
     N0::Int64
@@ -150,12 +149,17 @@ struct Male <: LifeStage end
 """
         function Stage{Male}(μ::Float64, n::Int64, density, dependency, N0::Int64)
 
-    Returns male life stage populated with input data. Applicable to holometabolous (complete) or hemimetabolous (partial) metamorphosing insect species.
+    Returns male life stage populated with input data. Not dynamically responsive to temperature. Applicable to holometabolous (complete) or hemimetabolous (partial) metamorphosing insect species.
 """
 function Stage{Male}(μ::Float64, n::Int64, density, dependency, N0::Int64)
     return Stage{Male}(NoResponse(μ), NoResponse(0.0), n, density, dependency, N0)
 end
 
+"""
+        function Stage{Male}(μ::TemperatureResponse, n::Int64, density, dependency, N0::Int64)
+
+    Returns male life stage populated with input data. Dynamically responsive to temperature. Applicable to holometabolous (complete) or hemimetabolous (partial) metamorphosing insect species.
+"""
 function Stage{Male}(μ::TemperatureResponse, n::Int64, density, dependency, N0::Int64)
     return Stage{Male}(μ, NoResponse(0.0), n, density, dependency, N0)
 end
@@ -170,12 +174,17 @@ struct Female <: LifeStage end
 """
         function Stage{Female}(μ::Float64, n::Int64, density, dependency, N0::Int64)
 
-    Returns female life stage populated with input data. Applicable to holometabolous (complete) or hemimetabolous (partial) metamorphosing insect species.
+    Returns female life stage populated with input data. Not dynamically responsive to temperature. Applicable to holometabolous (complete) or hemimetabolous (partial) metamorphosing insect species.
 """
 function Stage{Female}(μ::Float64, n::Int64, density, dependency, N0::Int64)
     return Stage{Female}(NoResponse(μ), NoResponse(0.0), n, density, dependency, N0)
 end
 
+"""
+        function Stage{Female}(μ::TemperatureResponse, n::Int64, density, dependency, N0::Int64)
+
+    Returns female life stage populated with input data. Dynamically responsive to temperature. Applicable to holometabolous (complete) or hemimetabolous (partial) metamorphosing insect species.
+"""
 function Stage{Female}(μ::TemperatureResponse, n::Int64, density, dependency, N0::Int64)
     return Stage{Female}(μ, NoResponse(0.0), n, density, dependency, N0)
 end

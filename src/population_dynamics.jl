@@ -8,8 +8,6 @@
     Returns oviposited eggs (count).
 """
 function oviposit(F, node::Node, key_species, genetics::Genetics{C}, gene_index::Int64, inputs::ExogenousInputs, t) where {C <: Construct}
-#function oviposit(F, node::Node, genetics, gene_index::Int64, t)
-
     node_name = get_name(node)
     ctemp = get_temperature_value(node.temperature, inputs.temperature[node_name], t)
 
@@ -42,22 +40,14 @@ function create_egg!(dE, E, node::Node, species::Type{<:Species}, eggsnew, gene_
 
     curr = get_lifestage(node, species, Egg)
     curr_μ, curr_q = temperature_effect(ctemp, curr)
-    dens = compute_density(curr.density, E) #TODO: take curr instead of curr.density
+    dens = compute_density(curr.density, E) 
 
     prev = eggsnew
 
-    #TODO: original
     dE[1,gene_index] = prev - E[1,gene_index]*(curr_μ * dens + curr_q * curr.n)
     for i in 2:size(dE)[1]
         dE[i,gene_index] = curr_q * curr.n * E[i-1,gene_index] - E[i,gene_index] * (curr_μ * dens + curr_q * curr.n)
     end
-
-    #=
-    dE[1,gene_index] = prev - E[1,gene_index]*(curr_μ/(curr_q * curr.n) * dens + curr_q * curr.n)
-    for i in 2:size(dE)[1]
-        dE[i,gene_index] = curr_q * curr.n * E[i-1,gene_index] - E[i,gene_index] * (curr_μ/(curr_q * curr.n) * dens + curr_q * curr.n)
-    end
-    =#
 
     return
 
@@ -73,7 +63,6 @@ function create_larva!(dL, L, E, node::Node, species::Type{<:Species}, gene_inde
     node_name = get_name(node)
     ctemp = get_temperature_value(node.temperature, inputs.temperature[node_name], t)
 
-    # TODO: UPDATE EACH TO "curr = stage_data" and change "dens" name to "compute_dens" or similar
     curr = get_lifestage(node, species, Larva)
     curr_μ, curr_q = temperature_effect(ctemp, curr)
     dens = compute_density(curr.density, L)
@@ -81,18 +70,11 @@ function create_larva!(dL, L, E, node::Node, species::Type{<:Species}, gene_inde
     prev = get_previous_lifestage(node, species, curr)
     prev_q = temperature_effect(ctemp, prev)[2]
 
-    #TODO: Original
     dL[1,gene_index] = prev_q * prev.n * E[end,gene_index] - L[1,gene_index] * (curr_μ * dens + curr_q * curr.n)
     for i in 2:size(dL)[1]
         dL[i,gene_index] = curr_q * curr.n * L[i-1,gene_index] - L[i,gene_index] * (curr_μ * dens + curr_q * curr.n)
     end
-    #=
-    dL[1,gene_index] = prev_q * prev.n * E[end,gene_index] - L[1,gene_index] * (curr_μ/(curr_q * curr.n) * dens + curr_q * curr.n)
-    for i in 2:size(dL)[1]
-        dL[i,gene_index] = curr_q * curr.n * L[i-1,gene_index] - L[i,gene_index] * (curr_μ/(curr_q * curr.n) * dens + curr_q * curr.n)
-    end
-    =#
-
+   
     return
 
 end
@@ -115,18 +97,11 @@ function create_pupa!(dP, P, L, node::Node, species::Type{<:Species}, gene_index
     prev = get_previous_lifestage(node, species, curr)
     prev_q = temperature_effect(ctemp, prev)[2]
 
-    #TODO: Original
     dP[1,gene_index] = prev_q * prev.n * L[end, gene_index] - P[1,gene_index] * (curr_μ * dens + curr_q * curr.n)
     for i in 2:size(dP)[1]
         dP[i,gene_index] = curr_q * curr.n * P[i-1,gene_index] - P[i,gene_index] * (curr_μ * dens + curr_q * curr.n)
     end
-    #=
-    dP[1,gene_index] = prev_q * prev.n * L[end, gene_index] - P[1,gene_index] * (curr_μ/(curr_q * curr.n) * dens + curr_q * curr.n)
-    for i in 2:size(dP)[1]
-        dP[i,gene_index] = curr_q * curr.n * P[i-1,gene_index] - P[i,gene_index] * (curr_μ/(curr_q * curr.n) * dens + curr_q * curr.n)
-    end
-    =#
-
+  
     return
 
 end
