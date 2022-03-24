@@ -4,7 +4,7 @@
 """
                 create_decision_model(network::Network, tspan; node_strategy::Dict, do_binary::Bool=false)
 
-        Builds mathematical program.
+        Builds mathematical program. Problem can be created as an NLP or MINLP.
 """
 function create_decision_model(network::Network,
         tspan; node_strategy::Dict, do_binary::Bool=false)
