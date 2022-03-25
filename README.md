@@ -9,7 +9,7 @@
 
 ## Installation and usage 
 
-Version advisory: `GeneDrive.jl` will work with Julia v1.7+. Add the package with:
+`GeneDrive.jl` will work with Julia version 1.7 and above. Add the package with:
 
 ```julia
 julia> ]
