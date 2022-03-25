@@ -93,25 +93,25 @@ function create_decision_model(network::Network,
 
     # DECLARE VARIABLES_1: Life Stages
     ###########################################
-    @variable(model, E[N, O, SE, G, T] >= 0)
-    @variable(model, L[N, O, SL, G, T] >= 0)
-    @variable(model, P[N, O, SP, G, T] >= 0)
-    @variable(model, M[N, O, SM, G, T] >= 0)
-    @variable(model, F[N, O, SF, G, T] >= 0)
+    JuMP.@variable(model, E[N, O, SE, G, T] >= 0)
+    JuMP.@variable(model, L[N, O, SL, G, T] >= 0)
+    JuMP.@variable(model, P[N, O, SP, G, T] >= 0)
+    JuMP.@variable(model, M[N, O, SM, G, T] >= 0)
+    JuMP.@variable(model, F[N, O, SF, G, T] >= 0)
 
     # DECLARE VARIABLES_2: Binary nodes
     ###########################################
     if do_binary
-        @variable(model, release_location[N], Bin)
+        JuMP.@variable(model, release_location[N], Bin)
     else
-        @variable(model, release_location[N])
+        JuMP.@variable(model, release_location[N])
         fix.(release_location, 1.0)
     end
 
     # DECLARE VARIABLES_3: Controls
     ###########################################
-    @variable(model, 0.0 <= control_M[N, O, SM, G, T])
-    @variable(model, 0.0 <= control_F[N, O, SF, G, T])
+    JuMP.@variable(model, 0.0 <= control_M[N, O, SM, G, T])
+    JuMP.@variable(model, 0.0 <= control_F[N, O, SF, G, T])
 
     # WARMSTART VARIABLES_1: Lifestages
     ###########################################
@@ -137,16 +137,16 @@ function create_decision_model(network::Network,
     # EXPRESSIONS: Migration
     ###########################################
     A = get_migration(network, species)
-    @expression(model, migration_E[n in N, o in O, s in SE, g in G, t in T], A[SE_map[s],g][n,:]' * E[:, o, s, g, t])
-    @expression(model, migration_L[n in N, o in O, s in SL, g in G, t in T], A[SL_map[s],g][n,:]' * L[:, o, s, g, t])
-    @expression(model, migration_P[n in N, o in O, s in SP, g in G, t in T], A[SP_map[s],g][n,:]' * P[:, o, s, g, t])
-    @expression(model, migration_M[n in N, o in O, s in SM, g in G, t in T], A[SM_map[s],g][n,:]' * M[:, o, s, g, t])
+    JuMP.@expression(model, migration_E[n in N, o in O, s in SE, g in G, t in T], A[SE_map[s],g][n,:]' * E[:, o, s, g, t])
+    JuMP.@expression(model, migration_L[n in N, o in O, s in SL, g in G, t in T], A[SL_map[s],g][n,:]' * L[:, o, s, g, t])
+    JuMP.@expression(model, migration_P[n in N, o in O, s in SP, g in G, t in T], A[SP_map[s],g][n,:]' * P[:, o, s, g, t])
+    JuMP.@expression(model, migration_M[n in N, o in O, s in SM, g in G, t in T], A[SM_map[s],g][n,:]' * M[:, o, s, g, t])
 
     # CONSTRAINTS_A: Life Stages
     ###########################################
 
     #### EGGS
-    @constraint(model, E_con_A0[n in N, o in O, s in [SE[1]], g in G, t in [T[1]]],
+    JuMP.@constraint(model, E_con_A0[n in N, o in O, s in [SE[1]], g in G, t in [T[1]]],
 
             E[n, o, s, g, t] == initialcond_dict[Egg][n][o][SE_map[s], g] +
 
@@ -155,7 +155,7 @@ function create_decision_model(network::Network,
             E[n, o, s, g, t] * (data[n]["organism"][o]["stage_temperature_response"][Egg][n][o][g][t][1] * compute_density(densE, sum(E[n, o, :, :, t])) +
             data[n]["organism"][o]["stage_temperature_response"][Egg][n][o][g][t][2] * nE) + migration_E[n,o,s,g,t])
 
-    @constraint(model, E_con_A1[n in N, o in O, s in [SE[1]], g in G, t in T[2:end]],
+    JuMP.@constraint(model, E_con_A1[n in N, o in O, s in [SE[1]], g in G, t in T[2:end]],
 
             E[n, o, s, g, t] ==  E[n, o, s, g, t-1] +
 
@@ -164,7 +164,7 @@ function create_decision_model(network::Network,
             E[n, o, s, g, t] * (data[n]["organism"][o]["stage_temperature_response"][Egg][n][o][g][t][1]*compute_density(densE, sum(E[n, o, :, :, t])) +
             data[n]["organism"][o]["stage_temperature_response"][Egg][n][o][g][t][2]*nE) + migration_E[n,o,s,g,t])
 
-    @constraint(model, E_con_B0[n in N, o in O, s in SE[2:end], g in G, t in [T[1]]],
+    JuMP.@constraint(model, E_con_B0[n in N, o in O, s in SE[2:end], g in G, t in [T[1]]],
 
             E[n, o, s, g, t] == initial_condition.x[n].x[o][SE_map[s], g] +
 
@@ -173,7 +173,7 @@ function create_decision_model(network::Network,
             E[n, o, s, g, t] * (data[n]["organism"][o]["stage_temperature_response"][Egg][n][o][g][t][1]*compute_density(densE, sum(E[n, o, :, :, t])) +
             data[n]["organism"][o]["stage_temperature_response"][Egg][n][o][g][t][2]*nE) + migration_E[n,o,s,g,t])
 
-    @constraint(model, E_con_B1[n in N, o in O, s in SE[2:end], g in G, t in T[2:end]],
+    JuMP.@constraint(model, E_con_B1[n in N, o in O, s in SE[2:end], g in G, t in T[2:end]],
 
             E[n, o, s, g, t] == E[n, o, s, g, t-1] +
 
@@ -184,7 +184,7 @@ function create_decision_model(network::Network,
 
 
     #### LARVAE
-    @constraint(model, L_con_A0[n in N, o in O, s in [SL[1]], g in G, t in [T[1]]],
+    JuMP.@constraint(model, L_con_A0[n in N, o in O, s in [SL[1]], g in G, t in [T[1]]],
 
             L[n, o, s, g, t] ==  initial_condition.x[n].x[o][SL_map[s], g] +
 
@@ -193,7 +193,7 @@ function create_decision_model(network::Network,
             L[n, o, s, g, t] * (data[n]["organism"][o]["stage_temperature_response"][Larva][n][o][g][t][1]*compute_density(densL, sum(L[n, o, :, :, t])) +
             data[n]["organism"][o]["stage_temperature_response"][Larva][n][o][g][t][2]*nL) + migration_L[n,o,s,g,t])
 
-    @constraint(model, L_con_A1[n in N, o in O, s in [SL[1]], g in G, t in T[2:end]],
+    JuMP.@constraint(model, L_con_A1[n in N, o in O, s in [SL[1]], g in G, t in T[2:end]],
 
             L[n, o, s, g, t] ==  L[n, o, s, g, t-1] +
 
@@ -202,7 +202,7 @@ function create_decision_model(network::Network,
             L[n, o, s, g, t] * (data[n]["organism"][o]["stage_temperature_response"][Larva][n][o][g][t][1]*compute_density(densL, sum(L[n, o, :, :, t])) +
             data[n]["organism"][o]["stage_temperature_response"][Larva][n][o][g][t][2]*nL) + migration_L[n,o,s,g,t])
 
-    @constraint(model, L_con_B0[n in N, o in O, s in SL[2:end], g in G, t in [T[1]]],
+    JuMP.@constraint(model, L_con_B0[n in N, o in O, s in SL[2:end], g in G, t in [T[1]]],
 
             L[n, o, s, g, t] == initial_condition.x[n].x[o][SL_map[s], g] +
 
@@ -211,7 +211,7 @@ function create_decision_model(network::Network,
             L[n, o, s, g, t] * (data[n]["organism"][o]["stage_temperature_response"][Larva][n][o][g][t][1]*compute_density(densL, sum(L[n, o, :, :, t])) +
             data[n]["organism"][o]["stage_temperature_response"][Larva][n][o][g][t][2]*nL) + migration_L[n,o,s,g,t])
 
-    @constraint(model, L_con_B1[n in N, o in O, s in SL[2:end], g in G, t in T[2:end]],
+    JuMP.@constraint(model, L_con_B1[n in N, o in O, s in SL[2:end], g in G, t in T[2:end]],
 
             L[n, o, s, g, t] == L[n, o, s, g, t-1] +
 
@@ -223,7 +223,7 @@ function create_decision_model(network::Network,
 
 
     #### PUPAE
-    @constraint(model, P_con_A0[n in N, o in O, s in [SP[1]], g in G, t in [T[1]]],
+    JuMP.@constraint(model, P_con_A0[n in N, o in O, s in [SP[1]], g in G, t in [T[1]]],
 
             P[n, o, s, g, t] ==  initial_condition.x[n].x[o][SP_map[s], g] +
 
@@ -232,7 +232,7 @@ function create_decision_model(network::Network,
             P[n, o, s, g, t] * (data[n]["organism"][o]["stage_temperature_response"][Pupa][n][o][g][t][1]*compute_density(densP, sum(P[n, o, :, :, t])) +
             data[n]["organism"][o]["stage_temperature_response"][Pupa][n][o][g][t][2]*nP) + migration_P[n,o,s,g,t])
 
-    @constraint(model, P_con_A1[n in N, o in O, s in [SP[1]], g in G, t in T[2:end]],
+    JuMP.@constraint(model, P_con_A1[n in N, o in O, s in [SP[1]], g in G, t in T[2:end]],
 
             P[n, o, s, g, t] ==  P[n, o, s, g, t-1] +
 
@@ -241,7 +241,7 @@ function create_decision_model(network::Network,
             P[n, o, s, g, t] * (data[n]["organism"][o]["stage_temperature_response"][Pupa][n][o][g][t][1]*compute_density(densP, sum(P[n, o, :, :, t])) +
             data[n]["organism"][o]["stage_temperature_response"][Pupa][n][o][g][t][2]*nP) + migration_P[n,o,s,g,t])
 
-    @constraint(model, P_con_B0[n in N, o in O, s in SP[2:end], g in G, t in [T[1]]] ,
+    JuMP.@constraint(model, P_con_B0[n in N, o in O, s in SP[2:end], g in G, t in [T[1]]] ,
 
             P[n, o, s, g, t] ==  initial_condition.x[n].x[o][SP_map[s], g] +
 
@@ -250,7 +250,7 @@ function create_decision_model(network::Network,
             P[n, o, s, g, t] * (data[n]["organism"][o]["stage_temperature_response"][Pupa][n][o][g][t][1]*compute_density(densP, sum(P[n, o, :, :, t])) +
             data[n]["organism"][o]["stage_temperature_response"][Pupa][n][o][g][t][2]*nP) + migration_P[n,o,s,g,t])
 
-    @constraint(model, P_con_B1[n in N, o in O, s in SP[2:end], g in G, t in T[2:end]] ,
+    JuMP.@constraint(model, P_con_B1[n in N, o in O, s in SP[2:end], g in G, t in T[2:end]] ,
 
             P[n, o, s, g, t] ==  P[n, o, s, g, t-1] +
 
@@ -261,7 +261,7 @@ function create_decision_model(network::Network,
 
 
     #### MALES
-    @constraint(model, M_con_0[n in N, o in O, s in SM, g in G, t in [T[1]]],
+    JuMP.@constraint(model, M_con_0[n in N, o in O, s in SM, g in G, t in [T[1]]],
 
             M[n, o, s, g, t] ==  initial_condition.x[n].x[o][SM_map[s], g] +
 
@@ -270,7 +270,7 @@ function create_decision_model(network::Network,
             (1 + data[n]["organism"][o]["genetics"].Ω[g]) * data[n]["organism"][o]["stage_temperature_response"][Male][n][o][g][t][1] * M[n, o, s, g, t] * compute_density(densM, sum(M[n, o, :, :, t])) +
             migration_M[n,o,s,g,t])
 
-    @constraint(model, M_con_1[n in N, o in O, s in SM, g in G, t in T[2:end]],
+    JuMP.@constraint(model, M_con_1[n in N, o in O, s in SM, g in G, t in T[2:end]],
 
             M[n, o, s, g, t] ==  M[n, o, s, g, t-1] +
 
@@ -281,11 +281,11 @@ function create_decision_model(network::Network,
 
 
     #### MATING
-    @constraint(model, mate_bound[n in N, o in O, g in G, t in T], M[n, o, 1, g, t]*data[n]["organism"][o]["genetics"].Η[g] <= (sum(M[n, o, 1, i, t] * data[n]["organism"][o]["genetics"].Η[i] for i in G)))
+    JuMP.@constraint(model, mate_bound[n in N, o in O, g in G, t in T], M[n, o, 1, g, t]*data[n]["organism"][o]["genetics"].Η[g] <= (sum(M[n, o, 1, i, t] * data[n]["organism"][o]["genetics"].Η[i] for i in G)))
 
 
     #### FEMALES:
-    @NLconstraint(model, F_con_0[n in N, o in O, s in SF, g in G, t in [T[1]]],
+    JuMP.@NLconstraint(model, F_con_0[n in N, o in O, s in SF, g in G, t in [T[1]]],
 
             F[n, o, s, g, t] == initial_condition.x[n].x[o][SF_map[s], g] +
 
@@ -295,7 +295,7 @@ function create_decision_model(network::Network,
             (1 + data[n]["organism"][o]["genetics"].Ω[g]) * data[n]["organism"][o]["stage_temperature_response"][Female][n][o][g][t][1] *
             F[n, o, s, g, t] + sum(A[SF_map[s],g][n,i]*F[i, o, s, g, t] for i in N))
 
-    @NLconstraint(model, F_con_1[n in N, o in O, s in SF, g in G, t in T[2:end]],
+    JuMP.@NLconstraint(model, F_con_1[n in N, o in O, s in SF, g in G, t in T[2:end]],
 
             F[n, o, s, g, t] == F[n, o, s, g, t-1] +
 
@@ -332,8 +332,8 @@ function solve_decision_model(model::JuMP.Model, objective_function::Nothing=not
         fix.(control_F, 0.0; force = true)
 
         # Permit optimizer to act as a nonlinear solver
-        @objective(model, Min, 0)
-        optimize!(model);
+        JuMP.@objective(model, Min, 0)
+        JuMP.optimize!(model);
         @info("No objective function specified. Default supplied: `@objective(model, Min, 0)`")
 
         return model

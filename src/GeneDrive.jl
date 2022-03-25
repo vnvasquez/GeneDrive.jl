@@ -10,6 +10,7 @@ const diffeqCB = DiffEqCallbacks
 import NLsolve
 import LinearAlgebra
 import RecursiveArrayTools
+import JuMP
 
 # Files
 #####################
@@ -32,6 +33,9 @@ include("population_dynamics.jl")
 
 include("dynamic_model_node.jl")
 include("dynamic_model_network.jl")
+
+include("constraints.jl")
+include("decision_model.jl")
 
 
 # Structs
@@ -99,6 +103,7 @@ export PupaMortalityRossi
 
 export Release
 export ProportionalRelease
+export ReleaseStrategy
 
 export SinusoidalTemperature
 export Species
@@ -176,6 +181,8 @@ export count_nodes
 export count_organisms
 export count_substages
 
+export create_decision_model
+
 export get_density
 export get_duration
 export get_exogenous_intervention
@@ -215,6 +222,8 @@ export population_model_node
 export population_model_network
 
 export Release
+
+export solve_decision_model
 
 export temperature_effect
 
