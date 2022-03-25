@@ -10,7 +10,11 @@ const diffeqCB = DiffEqCallbacks
 import NLsolve
 import LinearAlgebra
 import RecursiveArrayTools
+
 import JuMP
+import Ipopt
+import Gurobi 
+import Juniper 
 
 # Files
 #####################
