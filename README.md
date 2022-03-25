@@ -9,9 +9,9 @@
 
 Add the package with:
 
-```
+```julia
 julia> ]
-julia> add GeneDrive.jl
+(v1.7) pkg> add GeneDrive.jl
 ```
 
 ## Getting started
