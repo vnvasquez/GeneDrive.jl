@@ -1,2 +1,2 @@
-# GeneDrive
+# GeneDrive.jl
 
