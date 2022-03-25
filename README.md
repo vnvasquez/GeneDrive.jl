@@ -5,7 +5,7 @@
 [`GeneDrive.jl`]() is a [Julia](https://julialang.org) package designed for simulating biological dynamics and control. The objectives of the package include: 
 * Provide data models that structure inputs to experimental setups and exploit the power of Julia's type system for [multiple dispatch](https://docs.julialang.org/en/v1/manual/methods/). 
 * Enable the creation of dynamic models that build on the [`DifferentialEquations.jl`](https://diffeq.sciml.ai/stable/) platform.
-* Facilitate the formulation of decision models that employ [`JuMP.jl`](https://jump.dev/JuMP.jl/stable/), the domain-specifc modeling language for mathematical optimization embedded in Julia.
+* Facilitate the formulation of decision models that employ [`JuMP.jl`](https://jump.dev/JuMP.jl/stable/), the domain-specific modeling language for mathematical optimization embedded in Julia.
 
 ## Installation and usage 
 
