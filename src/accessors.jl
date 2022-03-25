@@ -142,7 +142,11 @@ end
 ########################################
 #              Life Stages             #
 ########################################
+"""
+        get_lifestages(node::Node, species::Type{<:Species})
 
+    Returns the lifestage data of the specefied species in `Node`.
+"""
 function get_lifestages(node::Node, species::Type{<:Species})
     return node.organisms[species].all_stages
 end
