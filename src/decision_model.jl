@@ -23,20 +23,20 @@ function create_decision_model(network::Network,
     ##################
     # Solver(s)
     ##################
-    ipopt_def = optimizer_with_attributes(Ipopt.Optimizer, "linear_solver" => "pardiso",
+    ipopt_def = JuMP.optimizer_with_attributes(Ipopt.Optimizer, "linear_solver" => "pardiso",
         "print_level"=>1)
 
-    i = optimizer_with_attributes(Juniper.Optimizer,"nl_solver" => ipopt_def,
-        "mip_solver"=> optimizer_with_attributes(Gurobi.Optimizer));
+    i = JuMP.optimizer_with_attributes(Juniper.Optimizer,"nl_solver" => ipopt_def,
+        "mip_solver"=> JuMP.optimizer_with_attributes(Gurobi.Optimizer));
 
     ##################
     #  Model Creation
     ##################
     if do_binary
-        model = Model(i);
+        model = JuMP.Model(i);
         @info(@info("Ensure that the solver(s) being called are installed: $(i)")        )
     else
-        model = Model(ipopt_def);
+        model = JuMP.Model(ipopt_def);
         @info("Ensure that the solver(s) being called are installed: $(ipopt_def)")
     end
 
@@ -105,7 +105,7 @@ function create_decision_model(network::Network,
         JuMP.@variable(model, release_location[N], Bin)
     else
         JuMP.@variable(model, release_location[N])
-        fix.(release_location, 1.0)
+        JuMP.fix.(release_location, 1.0)
     end
 
     # DECLARE VARIABLES_3: Controls
@@ -127,11 +127,11 @@ function create_decision_model(network::Network,
         end
     end
     for node_name in N, organism in O, t in T
-        set_start_value.(E[node_name, organism, :,:,t].data, initialcond_dict[Egg][node_name][organism])
-        set_start_value.(L[node_name, organism, :,:,t].data, initialcond_dict[Larva][node_name][organism])
-        set_start_value.(P[node_name, organism, :,:,t].data, initialcond_dict[Pupa][node_name][organism] )
-        set_start_value.(M[node_name, organism, :,:,t].data, initialcond_dict[Male][node_name][organism])
-        set_start_value.(F[node_name, organism, :,:,t].data, initialcond_dict[Female][node_name][organism])
+        JuMP.set_start_value.(E[node_name, organism, :,:,t].data, initialcond_dict[Egg][node_name][organism])
+        JuMP.set_start_value.(L[node_name, organism, :,:,t].data, initialcond_dict[Larva][node_name][organism])
+        JuMP.set_start_value.(P[node_name, organism, :,:,t].data, initialcond_dict[Pupa][node_name][organism] )
+        JuMP.set_start_value.(M[node_name, organism, :,:,t].data, initialcond_dict[Male][node_name][organism])
+        JuMP.set_start_value.(F[node_name, organism, :,:,t].data, initialcond_dict[Female][node_name][organism])
     end
 
     # EXPRESSIONS: Migration
@@ -327,9 +327,9 @@ function solve_decision_model(model::JuMP.Model, objective_function::Nothing=not
 
         #Re-set constraints by fixing controls to zero
         control_M = model[:control_M]
-        fix.(control_M, 0.0; force = true)
+        JuMP.fix.(control_M, 0.0; force = true)
         control_F = model[:control_F]
-        fix.(control_F, 0.0; force = true)
+        JuMP.fix.(control_F, 0.0; force = true)
 
         # Permit optimizer to act as a nonlinear solver
         JuMP.@objective(model, Min, 0)

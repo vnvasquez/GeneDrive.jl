@@ -114,9 +114,9 @@ function _add_constraint(model::JuMP.Model, optinfo_dict::Dict,
 
     # FIX ALTERNATIVE(S) 
     control_F = model[:control_F]
-    fix.(control_F, 0.0; force = true) 
-    fix.(control_F[:, :, wildtype, :, :], 0.0; force = true) 
-    fix.(control_F[:, :, :, homozygous_modified, :], 0.0; force = true) 
+    JuMP.fix.(control_F, 0.0; force = true) 
+    JuMP.fix.(control_F[:, :, wildtype, :, :], 0.0; force = true) 
+    JuMP.fix.(control_F[:, :, :, homozygous_modified, :], 0.0; force = true) 
 
     return
 end
@@ -146,7 +146,7 @@ function _add_constraint(model::JuMP.Model, optinfo_dict::Dict,
 
     # FIX ALTERNATIVE(S)
     control_M = model[:control_M]
-    fix.(control_M, 0.0; force = true)
+    JuMP.fix.(control_M, 0.0; force = true)
 
     return
 end
