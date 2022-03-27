@@ -6,43 +6,44 @@
 abstract type Genotype end
 
 """
-        mutable struct Drive{G <: Genotype}
-            genotype::Type{G}
-            cube_slice::Array{Float64,2}
-            s::Float64
-            τ::Array{Float64,2}
-            ϕ::Float64
-            ξ_m::Float64
-            ξ_f::Float64
-            ω::Float64
-            β::Float64
-            η::Float64
-            wildtype::Int64
-            modified::Int64
-        end
+    mutable struct Drive{G <: Genotype}
+        genotype::Type{G}
+        cube_slice::Array{Float64,2}
+        s::Float64
+        τ::Array{Float64,2}
+        ϕ::Float64
+        ξ_m::Float64
+        ξ_f::Float64
+        ω::Float64
+        β::Float64
+        η::Float64
+        wildtype::Int64
+        modified::Int64
+    end
 
-    Data for individual genotypes.
+Data for individual genotypes.
 
 # Fields
-- `genotype::Type{G}`: Single genotype.
-- `cube_slice::Array{Float64,2}`: Offspring likelihoods for this genotype.
-- `s::Float64`: Multiplicative fertility modifier.
-- `τ::Array{Float64,2}`: Offspring viability.
-- `ϕ::Float64`: Male to female emergence ratio.
-- `ξ_m::Float64`: Male pupatory success.
-- `ξ_f::Float64`: Female pupatory success.
-- `ω::Float64`: Multiplicative adult mortality modifier.
-- `β::Float64`: Female fecundity.
-- `η::Float64`: Male mating fitness.
-- `wildtype::Int64`: Boolean demarcates homozygous recessive.
-- `modified::Int64`: Boolean demarcates homozygous modified.
+
+  - `genotype::Type{G}`: Single genotype.
+  - `cube_slice::Array{Float64,2}`: Offspring likelihoods for this genotype.
+  - `s::Float64`: Multiplicative fertility modifier.
+  - `τ::Array{Float64,2}`: Offspring viability.
+  - `ϕ::Float64`: Male to female emergence ratio.
+  - `ξ_m::Float64`: Male pupatory success.
+  - `ξ_f::Float64`: Female pupatory success.
+  - `ω::Float64`: Multiplicative adult mortality modifier.
+  - `β::Float64`: Female fecundity.
+  - `η::Float64`: Male mating fitness.
+  - `wildtype::Int64`: Boolean demarcates homozygous recessive.
+  - `modified::Int64`: Boolean demarcates homozygous modified.
 """
 mutable struct Drive{G <: Genotype}
     genotype::Type{G}
-    cube_slice::Array{Float64,2}
+    cube_slice::Array{Float64, 2}
     #cube_slice::TemperatureResponse
     s::Float64
-    τ::Array{Float64,2}
+    τ::Array{Float64, 2}
     #τ::TemperatureResponse
     ϕ::Float64
     ξ_m::Float64
@@ -57,80 +58,80 @@ end
 abstract type Construct end
 
 """
-        mutable struct Genetics
+    mutable struct Genetics
 
-            all_genotypes::Array{Drive{<:Genotype}}
-            cube::Array{Float64, 3}
-            S::Vector{Float64}
-            Τ::Array{Float64,3}
-            Φ::Vector{Float64}
-            Ξ_m::Vector{Float64}
-            Ξ_f::Vector{Float64}
-            Ω::Vector{Float64}
-            Β::Vector{Float64}
-            Η::Vector{Float64}
-            all_wildtypes::Vector{Int64}
-            all_modified::Vector{Int64}
+        all_genotypes::Array{Drive{<:Genotype}}
+        cube::Array{Float64, 3}
+        S::Vector{Float64}
+        Τ::Array{Float64,3}
+        Φ::Vector{Float64}
+        Ξ_m::Vector{Float64}
+        Ξ_f::Vector{Float64}
+        Ω::Vector{Float64}
+        Β::Vector{Float64}
+        Η::Vector{Float64}
+        all_wildtypes::Vector{Int64}
+        all_modified::Vector{Int64}
 
-                function Genetics(all_genotypes::Array{Drive{<:Genotype}})
+            function Genetics(all_genotypes::Array{Drive{<:Genotype}})
 
-                    gN = length(all_genotypes)
-                    cube = Array{Float64, 3}(undef, gN, gN, gN)
-                    S = Vector{Float64}(undef, gN)
-                    Τ = Array{Float64,3}(undef, gN, gN, gN)
-                    Φ = Vector{Float64}(undef, gN)
-                    Ξ_m = Vector{Float64}(undef, gN)
-                    Ξ_f = Vector{Float64}(undef, gN)
-                    Ω = Vector{Float64}(undef, gN)
-                    Β = Vector{Float64}(undef, gN)
-                    Η = Vector{Float64}(undef, gN)
-                    all_wildtypes = Vector{Int64}(undef, gN)
-                    all_modified = Vector{Int64}(undef, gN)
+                gN = length(all_genotypes)
+                cube = Array{Float64, 3}(undef, gN, gN, gN)
+                S = Vector{Float64}(undef, gN)
+                Τ = Array{Float64,3}(undef, gN, gN, gN)
+                Φ = Vector{Float64}(undef, gN)
+                Ξ_m = Vector{Float64}(undef, gN)
+                Ξ_f = Vector{Float64}(undef, gN)
+                Ω = Vector{Float64}(undef, gN)
+                Β = Vector{Float64}(undef, gN)
+                Η = Vector{Float64}(undef, gN)
+                all_wildtypes = Vector{Int64}(undef, gN)
+                all_modified = Vector{Int64}(undef, gN)
 
-                    for (index, g) in enumerate(all_genotypes)
-                        cube[:,:,index] = g.cube_slice
-                        S[index] = g.s
-                        Τ[:,:,index] = g.τ
-                        Φ[index] = g.ϕ
-                        Ξ_m[index] = g.ξ_m
-                        Ξ_f[index] = g.ξ_f
-                        Ω[index] = g.ω
-                        Β[index] = g.β
-                        Η[index] = g.η
-                        all_wildtypes[index] = g.wildtype
-                        all_modified[index] = g.modified
-                    end
-
-                    new(all_genotypes, cube, S, Τ, Φ, Ξ_m, Ξ_f, Ω, Β, Η,
-                    all_wildtypes, all_modified)
-
+                for (index, g) in enumerate(all_genotypes)
+                    cube[:,:,index] = g.cube_slice
+                    S[index] = g.s
+                    Τ[:,:,index] = g.τ
+                    Φ[index] = g.ϕ
+                    Ξ_m[index] = g.ξ_m
+                    Ξ_f[index] = g.ξ_f
+                    Ω[index] = g.ω
+                    Β[index] = g.β
+                    Η[index] = g.η
+                    all_wildtypes[index] = g.wildtype
+                    all_modified[index] = g.modified
                 end
 
-        end
+                new(all_genotypes, cube, S, Τ, Φ, Ξ_m, Ξ_f, Ω, Β, Η,
+                all_wildtypes, all_modified)
 
-        Data for all genotypes in a population.
+            end
+
+    end
+
+Data for all genotypes in a population.
 
 # Fields
-- `all_genotypes::Array{Drive{<:Genotype}}`: All genotypes in a population.
-- `cube::Array{Float64, 3}`: Offspring likelihoods per genotype.
-- `S::Vector{Float64}`: Multiplicative fertility modifier genedata_splitdriveper genotype, applied to oviposition.
-- `Τ::Array{Float64,3}`: Offspring viability per genotype, applied to oviposition.
-- `Φ::Vector{Float64}`: Male to female emergence ratio per genotype.
-- `Ξ_m::Vector{Float64}`: Male pupatory success per genotype.
-- `Ξ_f::Vector{Float64}`: Female pupatory success per genotype.
-- `Ω::Vector{Float64}`: Multiplicative adult mortality modifier per genotype.
-- `Β::Vector{Float64}`: Female fecundity per genotype (count of eggs laid).
-- `Η::Vector{Float64}`: Male mating fitness per genotype.
-- `all_wildtypes::Vector{Int64}`: Collect homozygous wildtype booleans.
-- `all_modified::Vector{Int64}`: Collect homozygous modified booleans.
+
+  - `all_genotypes::Array{Drive{<:Genotype}}`: All genotypes in a population.
+  - `cube::Array{Float64, 3}`: Offspring likelihoods per genotype.
+  - `S::Vector{Float64}`: Multiplicative fertility modifier genedata_splitdriveper genotype, applied to oviposition.
+  - `Τ::Array{Float64,3}`: Offspring viability per genotype, applied to oviposition.
+  - `Φ::Vector{Float64}`: Male to female emergence ratio per genotype.
+  - `Ξ_m::Vector{Float64}`: Male pupatory success per genotype.
+  - `Ξ_f::Vector{Float64}`: Female pupatory success per genotype.
+  - `Ω::Vector{Float64}`: Multiplicative adult mortality modifier per genotype.
+  - `Β::Vector{Float64}`: Female fecundity per genotype (count of eggs laid).
+  - `Η::Vector{Float64}`: Male mating fitness per genotype.
+  - `all_wildtypes::Vector{Int64}`: Collect homozygous wildtype booleans.
+  - `all_modified::Vector{Int64}`: Collect homozygous modified booleans.
 """
 mutable struct Genetics{C <: Construct}
-
     all_genotypes::Array{Drive{<:Genotype}}
     cube::Array{Float64, 3}
     #cube::Array{TemperatureResponse}
     S::Vector{Float64}
-    Τ::Array{Float64,3}
+    Τ::Array{Float64, 3}
     #Τ::Array{TemperatureResponse}
     Φ::Vector{Float64}
     Ξ_m::Vector{Float64}
@@ -141,42 +142,40 @@ mutable struct Genetics{C <: Construct}
     all_wildtypes::Vector{Int64}
     all_modified::Vector{Int64}
 
-        function Genetics(::Type{C}, all_genotypes::Array{Drive{<:Genotype}}) where {C <: Construct}
+    function Genetics(
+        ::Type{C},
+        all_genotypes::Array{Drive{<:Genotype}},
+    ) where {C <: Construct}
+        gN = length(all_genotypes)
+        cube = Array{Float64, 3}(undef, gN, gN, gN)
+        S = Vector{Float64}(undef, gN)
+        Τ = Array{Float64, 3}(undef, gN, gN, gN)
+        Φ = Vector{Float64}(undef, gN)
+        Ξ_m = Vector{Float64}(undef, gN)
+        Ξ_f = Vector{Float64}(undef, gN)
+        Ω = Vector{Float64}(undef, gN)
+        Β = Vector{Float64}(undef, gN)
+        Η = Vector{Float64}(undef, gN)
+        all_wildtypes = Vector{Int64}(undef, gN)
+        all_modified = Vector{Int64}(undef, gN)
 
-            gN = length(all_genotypes)
-            cube = Array{Float64, 3}(undef, gN, gN, gN)
-            S = Vector{Float64}(undef, gN)
-            Τ = Array{Float64,3}(undef, gN, gN, gN)
-            Φ = Vector{Float64}(undef, gN)
-            Ξ_m = Vector{Float64}(undef, gN)
-            Ξ_f = Vector{Float64}(undef, gN)
-            Ω = Vector{Float64}(undef, gN)
-            Β = Vector{Float64}(undef, gN)
-            Η = Vector{Float64}(undef, gN)
-            all_wildtypes = Vector{Int64}(undef, gN)
-            all_modified = Vector{Int64}(undef, gN)
-
-            for (index, g) in enumerate(all_genotypes)
-                cube[:,:,index] = g.cube_slice
-                S[index] = g.s
-                Τ[:,:,index] = g.τ
-                Φ[index] = g.ϕ
-                Ξ_m[index] = g.ξ_m
-                Ξ_f[index] = g.ξ_f
-                Ω[index] = g.ω
-                Β[index] = g.β
-                Η[index] = g.η
-                all_wildtypes[index] = g.wildtype
-                all_modified[index] = g.modified
-            end
-
-            new{C}(all_genotypes, cube, S, Τ, Φ, Ξ_m, Ξ_f, Ω, Β, Η,
-            all_wildtypes, all_modified)
-
+        for (index, g) in enumerate(all_genotypes)
+            cube[:, :, index] = g.cube_slice
+            S[index] = g.s
+            Τ[:, :, index] = g.τ
+            Φ[index] = g.ϕ
+            Ξ_m[index] = g.ξ_m
+            Ξ_f[index] = g.ξ_f
+            Ω[index] = g.ω
+            Β[index] = g.β
+            Η[index] = g.η
+            all_wildtypes[index] = g.wildtype
+            all_modified[index] = g.modified
         end
 
+        new{C}(all_genotypes, cube, S, Τ, Φ, Ξ_m, Ξ_f, Ω, Β, Η, all_wildtypes, all_modified)
+    end
 end
-
 
 ########################################
 #               Wolbachia              #

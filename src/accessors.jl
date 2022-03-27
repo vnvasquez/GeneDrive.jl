@@ -6,27 +6,27 @@
 #                 Nodes                #
 ########################################
 """
-        function get_nodes(network::Network)
+    get_nodes(network::Network)
 
-    Returns the `Node` object(s) contained in the `Network` object.
+Return the `Node` object(s) contained in the `Network` object.
 """
 function get_nodes(network::Network)
     return network.nodes
 end
 
 """
-        function count_nodes(network::Network)
+    count_nodes(network::Network)
 
-    Returns a count of the nodes contained in the `Network` object.
+Return a count of the nodes contained in the `Network` object.
 """
 function count_nodes(network::Network)
     return length(network.nodes)
 end
 
 """
-        function count_nodes(node::Node)
+    count_nodes(node::Node)
 
-    Returns 1 (the count of the nodes contained in the `Node` object).
+Return 1 (the count of the nodes contained in the `Node` object).
 """
 function count_nodes(node::Node)
     return 1
@@ -37,27 +37,27 @@ end
 ########################################
 
 """
-        function get_name(node::Node)
+    get_name(node::Node)
 
-    Returns the name (symbol) of the `Node` object.
+Return the name (symbol) of the `Node` object.
 """
 function get_name(node::Node)
     return node.name
 end
 
 """
-        function get_name(network::Network)
+    get_name(network::Network)
 
-    Returns the name (symbol) of the `Network` object.
+Return the name (symbol) of the `Network` object.
 """
 function get_name(network::Network)
     return network.name
 end
 
 """
-        function get_names(network::Network)
+    get_names(network::Network)
 
-    Returns the names (symbols) of the nodes within the `Network` object.
+Return the names (symbols) of the nodes within the `Network` object.
 """
 function get_names(network::Network)
     return keys(network.nodes)
@@ -68,18 +68,18 @@ end
 ########################################
 
 """
-        function get_location(node::Node)
+    get_location(node::Node)
 
-    Returns the coordinates of the `Node`.
+Return the coordinates of `Node`.
 """
 function get_location(node::Node)
     return node.location
 end
 
 """
-        function get_location(network::Network)
+    get_location(network::Network)
 
-    Returns the coordinates of the `Network`.
+Return the coordinates of `Network`.
 """
 function get_location(network::Network)
     return network.location
@@ -90,44 +90,44 @@ end
 ########################################
 
 """
-        function get_organisms(node::Node)
+    get_organisms(node::Node)
 
-    Returns vector of species populating the `Node`.
+Return vector of species populating `Node`.
 """
 function get_organisms(node::Node)
     return collect(keys(node.organisms))
 end
 """
-        function count_organisms(node::Node)
+    count_organisms(node::Node)
 
-    Counts the variety of species populating the `Node`.
+Count the species populating `Node`.
 """
 function count_organisms(node::Node)
     return length(node.organisms)
 end
 
 """
-        function get_organisms(network::Network, node::Symbol)
+    get_organisms(network::Network, node::Symbol)
 
-    Returns vector of species populating the specified `Node` of the `Network``.
+Return vector of species populating the specified `Node` of `Network`.
 """
 function get_organisms(network::Network, node::Symbol)
     return collect(keys(network.nodes[node].organisms))
 end
 
 """
-        function count_organisms(network::Network, node::Symbol)
+    count_organisms(network::Network, node::Symbol)
 
-    Counts the variety of species populating the specified `Node` of the `Network`.
+Count the species populating the specified `Node` of `Network`.
 """
 function count_organisms(network::Network, node::Symbol)
     return length(network.nodes[node].organisms)
 end
 
 """
-        function update_organism(node::Node, new_species)
+    update_organism(node::Node, new_species)
 
-    Updates the species populating the `Node`.
+Update the species populating `Node`.
 """
 function update_organism(node::Node, new_species)
     node.organisms = new_species
@@ -135,9 +135,9 @@ function update_organism(node::Node, new_species)
 end
 
 """
-        function update_organism(network::Network, node::Symbol, new_species)
+    update_organism(network::Network, node::Symbol, new_species)
 
-    Updates the species populating the specified `Node` of the `Network`.
+Update the species populating the specified `Node` of `Network`.
 """
 function update_organism(network::Network, node::Symbol, new_species)
     network.nodes[node].organisms = new_species
@@ -148,88 +148,91 @@ end
 #              Life Stages             #
 ########################################
 """
-        function get_lifestages(node::Node, species::Type{<:Species})
+    get_lifestages(node::Node, species::Type{<:Species})
 
-    Returns all lifestage data for the specified species in `Node`.
+Return all data for all `LifeStage`s of `Species` in `Node`.
 """
 function get_lifestages(node::Node, species::Type{<:Species})
     return node.organisms[species].all_stages
 end
 
 """
-        function get_lifestage(node::Node, species::Type{<:Species}, life_stage::Type{<:LifeStage})
+    get_lifestage(node::Node, species::Type{<:Species}, life_stage::Type{<:LifeStage})
 
-    Returns data for the specified lifestage of the specified species in `Node`.
+Return data for specified `LifeStage` of `Species` in `Node`.
 """
 function get_lifestage(node::Node, species::Type{<:Species}, life_stage::Type{<:LifeStage})
     return node.organisms[species].all_stages[life_stage]
 end
 
 """
-        function get_previous_lifestage(node::Node, species::Type{<:Species}, ::Stage{T}) where T <: LifeStage
+    get_previous_lifestage(node::Node, species::Type{<:Species}, ::Stage{T}) where T <: LifeStage
 
-    Shows lifestage dependency: returns data for the lifestage previous to the specified lifestage of the specified species in `Node`.
+Show `LifeStage` dependency: return data for the `LifeStage` previous to the specified `LifeStage` of `Species` in `Node`.
 """
-function get_previous_lifestage(node::Node, species::Type{<:Species}, ::Stage{T}) where T <: LifeStage
+function get_previous_lifestage(
+    node::Node,
+    species::Type{<:Species},
+    ::Stage{T},
+) where {T <: LifeStage}
     prev = node.organisms[species].all_stages[T].dependency
     return node.organisms[species].all_stages[prev]
 end
 
 """
-        function count_substages(network::Network, node::Symbol, species::Type{<:Species})
-    Returns a count of the total substages for the specified species in the specified `Node` in `Network`. 
+    count_substages(network::Network, node::Symbol, species::Type{<:Species})
+
+Return count of the total substages for `Species` in the specified `Node` of `Network`.
 """
 function count_substages(network::Network, node::Symbol, species::Type{<:Species})
     stages_dict = network.nodes[node].organisms[species].all_stages
     # TODO: Improve efficiency
     substage_array = Vector{Int}()
     for (substage, stage) in stages_dict
-        substage_array = push!(substage_array,stage.n)
+        substage_array = push!(substage_array, stage.n)
     end
     return substage_array
 end
 
-
 """
-        function count_substages(node::Node, species::Type{<:Species})
-    Returns a count of the total substages for the specified species in `Node`. 
+    count_substages(node::Node, species::Type{<:Species})
+
+Return count of the total substages for `Species` in `Node`.
 """
 function count_substages(node::Node, species::Type{<:Species})
     stages_dict = node.organisms[species].all_stages
     # TODO: Improve efficiency
     substage_array = Vector{Int}()
     for (substage, stage) in stages_dict
-        substage_array = push!(substage_array,stage.n)
+        substage_array = push!(substage_array, stage.n)
     end
     return substage_array
 end
 
 """
-        function count_substages(node::Node, species::Type{<:Species}, stage::Type{<:LifeStage})
-    Returns a count of the substages in the specified lifestage for the specified species in `Node`. 
+    count_substages(node::Node, species::Type{<:Species}, stage::Type{<:LifeStage})
+
+Return count of the substages in `LifeStage` for `Species` in `Node`.
 """
 function count_substages(node::Node, species::Type{<:Species}, stage::Type{<:LifeStage})
     substages = node.organisms[species].all_stages[stage].n
 end
 
 """
-        function count_substages(node::Node, species::Type{<:Species}, stage::Type{Female})
-    Specific to the `Female` lifestage. Returns a count of the substages for the specified species in `Node`. 
+    count_substages(node::Node, species::Type{<:Species}, stage::Type{Female})
+
+Return count of the substages for `Species` in `Node`. Specific to the `Female` lifestage.
 """
 function count_substages(node::Node, species::Type{<:Species}, stage::Type{Female})
     substages = node.organisms[species].all_stages[stage].n
     gN = count_genotypes(node, species)
-    substages_total = substages*gN
+    substages_total = substages * gN
 end
 
-"""
-        function count_substages(stages_dict)
-    Helper function to count substages internally.
-"""
 function count_substages(stages_dict)
     substage_array = Vector{Int}()
     for (substage, stage) in stages_dict
-        substage_array = push!(substage_array,stage.n)
+        substage_array = push!(substage_array, stage.n)
     end
     return substage_array
 end
@@ -239,18 +242,25 @@ end
 ########################################
 
 """
-        unction get_duration(node::Node, species::Type{<:Species}, life_stage::Type{<:LifeStage})
-    Returns the temperature-sensitive duration (q_temperature_response) for the specified lifestage and species in `Node.`
+    get_duration(node::Node, species::Type{<:Species}, life_stage::Type{<:LifeStage})
+
+Return the temperature-sensitive duration (`q_temperature_response`) for the `LifeStage` of `Species` in `Node.`
 """
 function get_duration(node::Node, species::Type{<:Species}, life_stage::Type{<:LifeStage})
     return node.organisms[species].all_stages[life_stage].q_temperature_response
 end
 
 """
-        function update_duration(node::Node, species::Type{<:Species}, life_stage::Type{<:LifeStage}, new_q)
-    Updates the temperature-sensitive duration (q_temperature_response) for the specified lifestage and species in `Node.`
+    update_duration(node::Node, species::Type{<:Species}, life_stage::Type{<:LifeStage}, new_q)
+
+Update the temperature-sensitive duration (`q_temperature_response`) for the `LifeStage` of `Species` in `Node.`
 """
-function update_duration(node::Node, species::Type{<:Species}, life_stage::Type{<:LifeStage}, new_q)
+function update_duration(
+    node::Node,
+    species::Type{<:Species},
+    life_stage::Type{<:LifeStage},
+    new_q,
+)
     node.organisms[species].all_stages[life_stage].q_temperature_response = new_q
     return node
 end
@@ -260,18 +270,25 @@ end
 ########################################
 
 """
-        function get_mortality(node::Node, species::Type{<:Species}, life_stage::Type{<:LifeStage})
-    Returns the temperature-sensitive mortality (μ_temperature_response) for the specified lifestage and species in `Node.`
+    get_mortality(node::Node, species::Type{<:Species}, life_stage::Type{<:LifeStage})
+
+Return the temperature-sensitive mortality (`μ_temperature_response`) for the `LifeStage` of `Species` in `Node.`
 """
 function get_mortality(node::Node, species::Type{<:Species}, life_stage::Type{<:LifeStage})
     return node.organisms[species].all_stages[life_stage].μ_temperature_response
 end
 
 """
-        function update_mortality(node::Node, species::Type{<:Species}, life_stage::Type{<:LifeStage}, new_μ)
-    Updates the temperature-sensitive mortality (μ_temperature_response) for the specified lifestage and species in `Node.`
+    update_mortality(node::Node, species::Type{<:Species}, life_stage::Type{<:LifeStage}, new_μ)
+
+Update the temperature-sensitive mortality (`μ_temperature_response`) for the `LifeStage` of `Species` in `Node.`
 """
-function update_mortality(node::Node, species::Type{<:Species}, life_stage::Type{<:LifeStage}, new_μ)
+function update_mortality(
+    node::Node,
+    species::Type{<:Species},
+    life_stage::Type{<:LifeStage},
+    new_μ,
+)
     node.organisms[species].all_stages[life_stage].μ_temperature_response = new_μ
     return node
 end
@@ -281,37 +298,56 @@ end
 ########################################
 
 """
-        function get_density(node::Node, species::Type{<:Species}, life_stage::Type{<:LifeStage})
-    Returns the density-dependent function and parameterization for the specified lifestage and species in `Node.`
+    get_density(node::Node, species::Type{<:Species}, life_stage::Type{<:LifeStage})
+
+Return the density dependence model and parameterization for `LifeStage` of `Species` in `Node`.
 """
 function get_density(node::Node, species::Type{<:Species}, life_stage::Type{<:LifeStage})
     return node.organisms[species].all_stages[life_stage].density
 end
 
 """
-        function update_density_parameter(node::Node, species::Type{<:Species}, ::Type{T}; new_param_value::Float64) where T <: LifeStage
-    Updates the parameterization of the density-dependent function for the specified lifestage and species in `Node.`
+    update_density_parameter(node::Node, species::Type{<:Species}, ::Type{T}; new_param_value::Float64) where T <: LifeStage
+
+Update the parameterization of the density dependence model for `LifeStage` of `Species` in `Node`.
 """
-function update_density_parameter(node::Node, species::Type{<:Species}, ::Type{T}; new_param_value::Float64) where T <: LifeStage
+function update_density_parameter(
+    node::Node,
+    species::Type{<:Species},
+    ::Type{T};
+    new_param_value::Float64,
+) where {T <: LifeStage}
     @debug "changed the density parameters $T, $new_param_value"
     node.organisms[species].all_stages[T].density.param = new_param_value
     return
 end
 
 """
-        function update_density_model(node::Node, species::Type{<:Species}, ::Type{T}; new_density_model::Density) where T <: LifeStage
-    Updates the functional form of density dependence for the specified lifestage and species in `Node.`
+    update_density_model(node::Node, species::Type{<:Species}, ::Type{T}; new_density_model::Density) where T <: LifeStage
+
+Update the functional form of the density dependence model for `LifeStage` of `Species` in `Node`.
 """
-function update_density_model(node::Node, species::Type{<:Species}, ::Type{T}; new_density_model::Density) where T <: LifeStage
+function update_density_model(
+    node::Node,
+    species::Type{<:Species},
+    ::Type{T};
+    new_density_model::Density,
+) where {T <: LifeStage}
     node.organisms[species].all_stages[T].density.model = new_density_model
     return
 end
 
 """
-        function update_density!(node::Node, species::Type{<:Species}, ::Type{T}; new_density::Density) where T <: LifeStage
-    Updates density dependence - both functional form and parameterization - for the specified lifestage and species in `Node.`
+    update_density!(node::Node, species::Type{<:Species}, ::Type{T}; new_density::Density) where T <: LifeStage
+
+Update both the functional form and parameterization of the density dependence model for `LifeStage` of `Species` in `Node`.
 """
-function update_density!(node::Node, species::Type{<:Species}, ::Type{T}; new_density::Density) where T <: LifeStage
+function update_density!(
+    node::Node,
+    species::Type{<:Species},
+    ::Type{T};
+    new_density::Density,
+) where {T <: LifeStage}
     new_node = deepcopy(node)
     new_node.organisms[species].all_stages[T].density = new_density
     return new_node
@@ -323,24 +359,27 @@ end
 ########################################
 
 """
-        function get_genetics(node::Node, species::Type{<:Species})
-    Returns all genetic data for the specified species in `Node`.
+    get_genetics(node::Node, species::Type{<:Species})
+
+Return `Genetics` data for `Species` in `Node`.
 """
 function get_genetics(node::Node, species::Type{<:Species})
     return node.organisms[species].gene_data
 end
 
 """
-        function get_genetics(network::Network, node::Symbol, species::Type{<:Species})
-    Returns all genetic data for the specified species and `Node` in `Network`.
+    get_genetics(network::Network, node::Symbol, species::Type{<:Species})
+
+Return `Genetics` data for `Species` in `Node` of `Network`.
 """
 function get_genetics(network::Network, node::Symbol, species::Type{<:Species})
     return network.nodes[node].organisms[species].gene_data
 end
 
 """
-        function update_genetics(node::Node, species::Type{<:Species}, new_genetics)
-    Update all genetic data for the specified species in `Node`.
+    update_genetics(node::Node, species::Type{<:Species}, new_genetics)
+
+Update `Genetics` data for `Species` in `Node`.
 """
 function update_genetics(node::Node, species::Type{<:Species}, new_genetics)
     node.organisms[species].gene_data = new_genetics
@@ -348,118 +387,144 @@ function update_genetics(node::Node, species::Type{<:Species}, new_genetics)
 end
 
 """
-        function update_genetics_Ω(node::Node, species::Type{<:Species}, new_omega::Array{Float64,1})
-    Update `Ω` genetic data for the specified species in `Node`.
+    update_genetics_Ω(node::Node, species::Type{<:Species}, new_omega::Array{Float64,1})
+
+Update `Ω` data in `Genetics` for `Species` in `Node`.
 """
-function update_genetics_Ω(node::Node, species::Type{<:Species}, new_omega::Array{Float64,1})
+function update_genetics_Ω(
+    node::Node,
+    species::Type{<:Species},
+    new_omega::Array{Float64, 1},
+)
     node.organisms[species].gene_data.Ω = new_omega
     return node
 end
 
 """
-        function update_genetics_Ω(gene_data, new_omega::Array{Float64,1})
-    Update `Ω` genetic data. Helper function. 
+    update_genetics_Ω(gene_data, new_omega::Array{Float64,1})
+
+Update `Ω` data in `Genetics`. Helper function.
 """
-function update_genetics_Ω(gene_data, new_omega::Array{Float64,1})
+function update_genetics_Ω(gene_data, new_omega::Array{Float64, 1})
     gene_data.Ω = new_omega
     return gene_data
 end
 
 """
-        function update_genetics_Β(node::Node, species::Type{<:Species}, new_beta::Array{Float64,1})
-    Update `Β` genetic data for the specified species in `Node`.
+    update_genetics_Β(node::Node, species::Type{<:Species}, new_beta::Array{Float64,1})
+
+Update `Β` data in `Genetics` for `Species` in `Node`.
 """
-function update_genetics_Β(node::Node, species::Type{<:Species}, new_beta::Array{Float64,1})
+function update_genetics_Β(
+    node::Node,
+    species::Type{<:Species},
+    new_beta::Array{Float64, 1},
+)
     node.organisms[species].gene_data.Β = new_beta
     return node
 end
 
 """
-        function update_genetics_Η(node::Node, species::Type{<:Species}, new_eta::Array{Float64,1})
-    Update `Η` genetic data for the specified species in `Node`.
+    update_genetics_Η(node::Node, species::Type{<:Species}, new_eta::Array{Float64,1})
+
+Update `Η` data in `Genetics` for `Species` in `Node`.
 """
-function update_genetics_Η(node::Node, species::Type{<:Species}, new_eta::Array{Float64,1})
+function update_genetics_Η(node::Node, species::Type{<:Species}, new_eta::Array{Float64, 1})
     node.organisms[species].gene_data.Η = new_eta
     return node
 end
 
 """
-        function update_genetics_Η(gene_data, new_eta::Array{Float64,1})
-    Update `Η` genetic data. Helper function. 
+    update_genetics_Η(gene_data, new_eta::Array{Float64,1})
+
+Update `Η` data in `Genetics`. Helper function.
 """
-function update_genetics_Η(gene_data, new_eta::Array{Float64,1})
+function update_genetics_Η(gene_data, new_eta::Array{Float64, 1})
     gene_data.Η = new_eta
     return gene_data
 end
 
 """
-        function update_genetics_S(node::Node, species::Type{<:Species}, new_sigma::Array{Float64,1})
-    Update `S` genetic data for the specified species in `Node`.
+    update_genetics_S(node::Node, species::Type{<:Species}, new_sigma::Array{Float64,1})
+
+Update `S` data in `Genetics` for `Species` in `Node`.
 """
-function update_genetics_S(node::Node, species::Type{<:Species}, new_sigma::Array{Float64,1})
+function update_genetics_S(
+    node::Node,
+    species::Type{<:Species},
+    new_sigma::Array{Float64, 1},
+)
     node.organisms[species].gene_data.S = new_sigma
     return node
 end
 
 """
-        function get_genotypes(node::Node, species::Type{<:Species})
-    Returns the genotype data for the specified species and `Node`.
+    get_genotypes(node::Node, species::Type{<:Species})
+
+Return genotype data from `Genetics` for `Species` in `Node`.
 """
 function get_genotypes(node::Node, species::Type{<:Species})
     return node.organisms[species].gene_data.all_genotypes
 end
 
 """
-        function count_genotypes(node::Node, species::Type{<:Species})
-    Returns the total count of genotypes for the specified species and `Node`.
+    count_genotypes(node::Node, species::Type{<:Species})
+
+Return the total count of genotypes from `Genetics` for `Species` in `Node`.
 """
 function count_genotypes(node::Node, species::Type{<:Species})
     return length(node.organisms[species].gene_data.all_genotypes)
 end
 
 """
-        function count_genotypes(network::Network, node::Symbol, species::Type{<:Species})
-    Returns the total count of genotypes for the specified species and `Node` in `Network`.
+    count_genotypes(network::Network, node::Symbol, species::Type{<:Species})
+
+Return the total count of genotypes from `Genetics` for `Species` in `Node` of `Network`.
 """
 function count_genotypes(network::Network, node::Symbol, species::Type{<:Species})
     return length(network.nodes[node].organisms[species].gene_data.all_genotypes)
 end
 
 """
-        function count_genotypes(genetics::Genetics)
-    Returns the total count of genotypes the `Genetics` object.
+    count_genotypes(genetics::Genetics)
+
+Return the total count of genotypes in the `Genetics` object.
 """
 function count_genotypes(genetics::Genetics)
     return length(genetics.all_genotypes)
 end
 
 """
-        function get_homozygous_modified(node::Node, species::Type{<:Species})
-    Returns the index of the homozygous modified genotype for the specified species in `Node`.
+    get_homozygous_modified(node::Node, species::Type{<:Species})
+
+Return the index of the homozygous modified genotype in `Genetics` for `Species` in `Node`.
 """
 function get_homozygous_modified(node::Node, species::Type{<:Species})
     return findfirst(isodd, node.organisms[species].gene_data.all_modified)
 end
 
 """
-        function get_homozygous_modified(network::Network, node::Node, species::Type{<:Species})
-    Returns the index of the homozygous modified genotype for the specified species and `Node` in `Network`.
+    get_homozygous_modified(network::Network, node::Node, species::Type{<:Species})
+
+Return the index of the homozygous modified genotype in `Genetics` for `Species` in `Node` of `Network`.
 """
 function get_homozygous_modified(network::Network, node::Node, species::Type{<:Species})
     return findfirst(isodd, network.nodes[node].organisms[species].gene_data.all_modified)
 end
 
 """
-        function get_wildtype(node::Node, species::Type{<:Species})
-    Returns the index of the wildtype genotype for the specified species in `Node`.
+    get_wildtype(node::Node, species::Type{<:Species})
+
+Return the index of the wildtype genotype in `Genetics` for `Species` in `Node`.
 """
 function get_wildtype(node::Node, species::Type{<:Species})
     return findfirst(isodd, node.organisms[species].gene_data.all_wildtypes)
 end
 
 """
-        function get_wildtype(network::Network, node::Node, species::Type{<:Species})
-    Returns the index of the wildtype genotype for the specified species and `Node` in `Network`.
+    get_wildtype(network::Network, node::Node, species::Type{<:Species})
+
+Return the index of the wildtype genotype in `Genetics` for `Species` in `Node` of `Network`.
 """
 function get_wildtype(network::Network, node::Node, species::Type{<:Species})
     return findfirst(isodd, network.nodes[node].organisms[species].gene_data.all_wildtypes)
@@ -470,16 +535,18 @@ end
 ########################################
 
 """
-        function get_migration(network::Network, species::Type{<:Species})
-    Returns the migration characterizing each genotype and lifestage for the specified species in `Network`.
+    get_migration(network::Network, species::Type{<:Species})
+
+Return the migration characterizing each genotype and `Lifestage` for `Species` in `Network`.
 """
 function get_migration(network::Network, species::Type{<:Species})
     return network.migration[species]
 end
 
 """
-        function update_migration(network::Network, species::Type{<:Species}, new_migration)
-    Updates the migration characterizing each genotype and lifestage for the specified species in `Network`.
+    update_migration(network::Network, species::Type{<:Species}, new_migration)
+
+Update the migration characterizing each genotype and `Lifestage` for `Species` in `Network`.
 """
 function update_migration(network::Network, species::Type{<:Species}, new_migration)
     network.migration[species] = new_migration
@@ -491,16 +558,18 @@ end
 ########################################
 
 """
-        function get_temperature(node::Node)
-    Returns the `Temperature` object contained in `Node.` Includes type and values. 
+    get_temperature(node::Node)
+
+Return `Temperature` for `Node`. Object contains `type` and `values`.
 """
 function get_temperature(node::Node)
     return node.temperature
 end
 
 """
-        function get_initial_temperature(node::Node)
-    Returns the entry in the first index of the values for the `Temperature` object contained in `Node.` 
+    get_initial_temperature(node::Node)
+
+Return entry for the first index of `values` in `Temperature` of `Node.`
 """
 function get_initial_temperature(node::Node)
     ctemp = node.temperature
@@ -509,19 +578,29 @@ function get_initial_temperature(node::Node)
 end
 
 """
-        function update_temperature(node::Node, temp_type::Type{<:ConstantTemperature}, new_temperature::Float64)
-    Updates the type and values of the `Temperature` object contained in `Node`.
+    update_temperature(node::Node, temp_type::Type{<:ConstantTemperature}, new_temperature::Float64)
+
+Update the `type` and `values` of `Temperature` for `Node`.
 """
-function update_temperature(node::Node, temp_type::Type{<:ConstantTemperature}, new_temperature::Float64)
+function update_temperature(
+    node::Node,
+    temp_type::Type{<:ConstantTemperature},
+    new_temperature::Float64,
+)
     node.temperature = ConstantTemperature(new_temperature)
     return node
 end
 
 """
-        function update_temperature(node::Node, temp_type::Type{<:TimeSeriesTemperature}, new_temperature::Vector{Float64})
-    Updates the type and values of the `Temperature` object contained in `Node`.
+    update_temperature(node::Node, temp_type::Type{<:TimeSeriesTemperature}, new_temperature::Vector{Float64})
+
+Update the `type` and `values` of `Temperature` for `Node`.
 """
-function update_temperature(node::Node, temp_type::Type{<:TimeSeriesTemperature}, new_temperature::Vector{Float64})
+function update_temperature(
+    node::Node,
+    temp_type::Type{<:TimeSeriesTemperature},
+    new_temperature::Vector{Float64},
+)
     node.temperature = TimeSeriesTemperature(new_temperature)
     return node
 end

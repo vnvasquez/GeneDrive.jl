@@ -1,8 +1,8 @@
 
 """
-        population_model_node(du, u, (network, inputs), t)
+    population_model_node(du, u, (network, inputs), t)
 
-    Solves node implementation of dynamic population model.
+Solve node implementation of dynamic population model.
 """
 function population_model_node(du, u, (node, inputs), t)
 
@@ -11,7 +11,6 @@ function population_model_node(du, u, (node, inputs), t)
     ##################
 
     for (index_organism, key_species) in enumerate(keys(node.organisms))
-
         genetics = get_genetics(node, key_species)
         gN = count_genotypes(genetics)
         cube = genetics.cube
@@ -28,9 +27,9 @@ function population_model_node(du, u, (node, inputs), t)
         nE = n[1]
         nL = n[2]
         nP = n[3]
-        nJuv = nE+nL+nP
+        nJuv = nE + nL + nP
         nM = n[4]
-        nF = n[5]*gN + nM + nJuv
+        nF = n[5] * gN + nM + nJuv
 
         ##################
         #   State space  #
@@ -40,24 +39,23 @@ function population_model_node(du, u, (node, inputs), t)
         E = u.x[index_organism][1:nE, :]
         dE = @view du.x[index_organism][1:nE, :]
 
-        L = u.x[index_organism][1+nE : nE+nL, :]
-        dL = @view du.x[index_organism][1+nE : nE+nL, :]
+        L = u.x[index_organism][(1 + nE):(nE + nL), :]
+        dL = @view du.x[index_organism][(1 + nE):(nE + nL), :]
 
-        P = u.x[index_organism][1+nE+nL : nE+nL+nP, :]
-        dP = @view du.x[index_organism][1+nE+nL : nE+nL+nP, :]
+        P = u.x[index_organism][(1 + nE + nL):(nE + nL + nP), :]
+        dP = @view du.x[index_organism][(1 + nE + nL):(nE + nL + nP), :]
 
-        M = u.x[index_organism][1+nJuv, :]
-        dM = @view du.x[index_organism][1+nJuv, :]
+        M = u.x[index_organism][1 + nJuv, :]
+        dM = @view du.x[index_organism][1 + nJuv, :]
 
-        F = u.x[index_organism][1+nM+nJuv : nF, :]
-        dF = @view du.x[index_organism][1+nM+nJuv : nF, :]
+        F = u.x[index_organism][(1 + nM + nJuv):nF, :]
+        dF = @view du.x[index_organism][(1 + nM + nJuv):nF, :]
 
         ##################
         #   Life stages  #
         ##################
 
         for gene_index in 1:gN
-
             eggsnew = oviposit(F, node, key_species, genetics, gene_index, inputs, t)
 
             create_egg!(dE, E, node, key_species, eggsnew, gene_index, inputs, t)
@@ -70,10 +68,18 @@ function population_model_node(du, u, (node, inputs), t)
 
             matematrix = mate(P, M, Φ, Ξ_f, Η, node, key_species, gene_index, inputs, t)
 
-            create_female!(dF, F, Ω, Ξ_f, node, key_species, matematrix, gene_index, inputs, t)
-
+            create_female!(
+                dF,
+                F,
+                Ω,
+                Ξ_f,
+                node,
+                key_species,
+                matematrix,
+                gene_index,
+                inputs,
+                t,
+            )
         end
-
     end
-
 end

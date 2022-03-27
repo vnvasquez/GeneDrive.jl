@@ -13,8 +13,8 @@ import RecursiveArrayTools
 
 import JuMP
 import Ipopt
-import Gurobi 
-import Juniper 
+import Gurobi
+import Juniper
 
 # Files
 #####################
@@ -40,7 +40,6 @@ include("dynamic_model_network.jl")
 
 include("constraints.jl")
 include("decision_model.jl")
-
 
 # Structs
 #####################
