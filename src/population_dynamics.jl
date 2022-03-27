@@ -3,7 +3,7 @@
 ################################################################################
 
 """
-    oviposit(F, cube, Τ, S, Β, gene_index::Int64)
+    oviposit(F, likelihood, Τ, S, Β, gene_index::Int64)
 
 Return oviposited eggs (count).
 """
@@ -19,7 +19,7 @@ function oviposit(
     node_name = get_name(node)
     ctemp = get_temperature_value(node.temperature, inputs.temperature[node_name], t)
 
-    cube = genetics.cube
+    likelihood = genetics.likelihood
     Τ = genetics.Τ
     S = genetics.S
     Β = genetics.Β
@@ -30,7 +30,7 @@ function oviposit(
         ΒS[i, :] = Β[i] .* S'
     end
     # TODO: add genetic parameters necessary for additional constructs
-    O = cube[:, :, gene_index] .* Τ[:, :, gene_index] .* ΒS .* F
+    O = likelihood[:, :, gene_index] .* Τ[:, :, gene_index] .* ΒS .* F
 
     return sum(O)
 end

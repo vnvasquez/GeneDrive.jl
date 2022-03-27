@@ -8,7 +8,7 @@ abstract type Genotype end
 """
     mutable struct Drive{G <: Genotype}
         genotype::Type{G}
-        cube_slice::Array{Float64,2}
+        likelihood_slice::Array{Float64,2}
         s::Float64
         τ::Array{Float64,2}
         ϕ::Float64
@@ -26,7 +26,7 @@ Data for individual genotypes.
 # Fields
 
   - `genotype::Type{G}`: Single genotype.
-  - `cube_slice::Array{Float64,2}`: Offspring likelihoods for this genotype.
+  - `likelihood_slice::Array{Float64,2}`: Offspring likelihoods for this genotype.
   - `s::Float64`: Multiplicative fertility modifier.
   - `τ::Array{Float64,2}`: Offspring viability.
   - `ϕ::Float64`: Male to female emergence ratio.
@@ -40,8 +40,8 @@ Data for individual genotypes.
 """
 mutable struct Drive{G <: Genotype}
     genotype::Type{G}
-    cube_slice::Array{Float64, 2}
-    #cube_slice::TemperatureResponse
+    likelihood_slice::Array{Float64, 2}
+    #likelihood_slice::TemperatureResponse
     s::Float64
     τ::Array{Float64, 2}
     #τ::TemperatureResponse
@@ -61,7 +61,7 @@ abstract type Construct end
     mutable struct Genetics
 
         all_genotypes::Array{Drive{<:Genotype}}
-        cube::Array{Float64, 3}
+        likelihood::Array{Float64, 3}
         S::Vector{Float64}
         Τ::Array{Float64,3}
         Φ::Vector{Float64}
@@ -76,7 +76,7 @@ abstract type Construct end
             function Genetics(all_genotypes::Array{Drive{<:Genotype}})
 
                 gN = length(all_genotypes)
-                cube = Array{Float64, 3}(undef, gN, gN, gN)
+                likelihood = Array{Float64, 3}(undef, gN, gN, gN)
                 S = Vector{Float64}(undef, gN)
                 Τ = Array{Float64,3}(undef, gN, gN, gN)
                 Φ = Vector{Float64}(undef, gN)
@@ -89,7 +89,7 @@ abstract type Construct end
                 all_modified = Vector{Int64}(undef, gN)
 
                 for (index, g) in enumerate(all_genotypes)
-                    cube[:,:,index] = g.cube_slice
+                    likelihood[:,:,index] = g.likelihood_slice
                     S[index] = g.s
                     Τ[:,:,index] = g.τ
                     Φ[index] = g.ϕ
@@ -102,7 +102,7 @@ abstract type Construct end
                     all_modified[index] = g.modified
                 end
 
-                new(all_genotypes, cube, S, Τ, Φ, Ξ_m, Ξ_f, Ω, Β, Η,
+                new(all_genotypes, likelihood, S, Τ, Φ, Ξ_m, Ξ_f, Ω, Β, Η,
                 all_wildtypes, all_modified)
 
             end
@@ -114,7 +114,7 @@ Data for all genotypes in a population.
 # Fields
 
   - `all_genotypes::Array{Drive{<:Genotype}}`: All genotypes in a population.
-  - `cube::Array{Float64, 3}`: Offspring likelihoods per genotype.
+  - `likelihood::Array{Float64, 3}`: Offspring likelihoods per genotype.
   - `S::Vector{Float64}`: Multiplicative fertility modifier genedata_splitdriveper genotype, applied to oviposition.
   - `Τ::Array{Float64,3}`: Offspring viability per genotype, applied to oviposition.
   - `Φ::Vector{Float64}`: Male to female emergence ratio per genotype.
@@ -128,8 +128,8 @@ Data for all genotypes in a population.
 """
 mutable struct Genetics{C <: Construct}
     all_genotypes::Array{Drive{<:Genotype}}
-    cube::Array{Float64, 3}
-    #cube::Array{TemperatureResponse}
+    likelihood::Array{Float64, 3}
+    #likelihood::Array{TemperatureResponse}
     S::Vector{Float64}
     Τ::Array{Float64, 3}
     #Τ::Array{TemperatureResponse}
@@ -147,7 +147,7 @@ mutable struct Genetics{C <: Construct}
         all_genotypes::Array{Drive{<:Genotype}},
     ) where {C <: Construct}
         gN = length(all_genotypes)
-        cube = Array{Float64, 3}(undef, gN, gN, gN)
+        likelihood = Array{Float64, 3}(undef, gN, gN, gN)
         S = Vector{Float64}(undef, gN)
         Τ = Array{Float64, 3}(undef, gN, gN, gN)
         Φ = Vector{Float64}(undef, gN)
@@ -160,7 +160,7 @@ mutable struct Genetics{C <: Construct}
         all_modified = Vector{Int64}(undef, gN)
 
         for (index, g) in enumerate(all_genotypes)
-            cube[:, :, index] = g.cube_slice
+            likelihood[:, :, index] = g.likelihood_slice
             S[index] = g.s
             Τ[:, :, index] = g.τ
             Φ[index] = g.ϕ
@@ -173,7 +173,7 @@ mutable struct Genetics{C <: Construct}
             all_modified[index] = g.modified
         end
 
-        new{C}(all_genotypes, cube, S, Τ, Φ, Ξ_m, Ξ_f, Ω, Β, Η, all_wildtypes, all_modified)
+        new{C}(all_genotypes, likelihood, S, Τ, Φ, Ξ_m, Ξ_f, Ω, Β, Η, all_wildtypes, all_modified)
     end
 end
 

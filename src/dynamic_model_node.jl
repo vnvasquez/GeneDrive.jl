@@ -13,7 +13,7 @@ function population_model_node(du, u, (node, inputs), t)
     for (index_organism, key_species) in enumerate(keys(node.organisms))
         genetics = get_genetics(node, key_species)
         gN = count_genotypes(genetics)
-        cube = genetics.cube
+        likelihood = genetics.likelihood
         S = genetics.S
         Τ = genetics.Τ
         Φ = genetics.Φ

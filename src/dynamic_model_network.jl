@@ -18,7 +18,7 @@ function population_model_network(du, u, (network, inputs), t)
         for (index_organism, key_species) in enumerate(keys(node.organisms))
             genetics = get_genetics(network, key_nodename, key_species)
             gN = count_genotypes(genetics)
-            cube = genetics.cube
+            likelihood = genetics.likelihood
             S = genetics.S
             Τ = genetics.Τ
             Φ = genetics.Φ
