@@ -207,8 +207,7 @@ function create_decision_model(
         model,
         E_con_A0[n in N, o in O, s in [SE[1]], g in G, t in [T[1]]],
         E[n, o, s, g, t] ==
-        initialcond_dict[Egg][n][o][SE_map[s], g] +
-        sum(
+        initialcond_dict[Egg][n][o][SE_map[s], g] + sum(
             (data[n]["organism"][o]["genetics"].likelihood[
                 :,
                 :,
@@ -239,8 +238,7 @@ function create_decision_model(
         model,
         E_con_A1[n in N, o in O, s in [SE[1]], g in G, t in T[2:end]],
         E[n, o, s, g, t] ==
-        E[n, o, s, g, t - 1] +
-        sum(
+        E[n, o, s, g, t - 1] + sum(
             (data[n]["organism"][o]["genetics"].likelihood[
                 :,
                 :,

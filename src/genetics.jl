@@ -173,7 +173,20 @@ mutable struct Genetics{C <: Construct}
             all_modified[index] = g.modified
         end
 
-        new{C}(all_genotypes, likelihood, S, Τ, Φ, Ξ_m, Ξ_f, Ω, Β, Η, all_wildtypes, all_modified)
+        new{C}(
+            all_genotypes,
+            likelihood,
+            S,
+            Τ,
+            Φ,
+            Ξ_m,
+            Ξ_f,
+            Ω,
+            Β,
+            Η,
+            all_wildtypes,
+            all_modified,
+        )
     end
 end
 
