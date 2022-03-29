@@ -23,7 +23,7 @@ julia> using GeneDrive
 
 ## Getting started
 
-The [documentation]() features examples as well as more detailed descriptions of package functionalities and applications.  
+The [documentation]() features examples as well as more detailed descriptions of package functionalities.  
 
 ## License
 
