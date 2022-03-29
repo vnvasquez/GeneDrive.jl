@@ -1,9 +1,3 @@
-# API Reference
-
-```@index
-Modules = [GeneDrive]
-Pages   = ["api.md"]
-```
 
 ```@autodocs
 Modules = [GeneDrive]
