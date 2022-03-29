@@ -8,14 +8,11 @@ makedocs(;
     sitename="GeneDrive.jl",
     format=Documenter.HTML(; prettyurls=prettyurls = get(ENV, "CI", nothing) == "true"),
     pages=[
-        "Home" => "index.md", 
-        "Functionalities" => "functionalities.md",  
-        "Examples" => Any[
-            "datasetup_examples.md",  
-            "dynamic_examples.md", 
-            "decision_examples.md", 
-            ],
-        "Customization" => "developer_examples.md", 
+        "Home" => "index.md",
+        "Functionalities" => "functionalities.md",
+        "Examples" =>
+            Any["datasetup_examples.md", "dynamic_examples.md", "decision_examples.md"],
+        "Customization" => "developer_examples.md",
         "API Reference" => "api.md",
     ],
 )
