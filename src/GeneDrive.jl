@@ -245,6 +245,7 @@ export update_migration
 export update_mortality
 
 export update_organism
+export update_population_size
 export update_temperature
 
 end
