@@ -242,11 +242,10 @@ end
 
 Return updated population size. Note: `new_popsize` argument refers specifically to the Female population; if e.g. new_popsize = 500, the full adult population (Females and Males) will be 500*2.
 """
-function update_population_size(stages::OrderedDict{DataType, Stage}, new_popsize::Int64)
+function update_population_size(stages::DataStructures.OrderedDict{DataType, Stage}, new_popsize::Int64)
     stages[Female].N0 = new_popsize
-    return stages  
+    return stages
 end
-
 
 ########################################
 #               Duration               #

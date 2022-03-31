@@ -17,6 +17,7 @@ Once the information for an experiment has been organized using the data model, 
 The code below shows how to construct an example study population using data that is included with the package. 
 
 ```@example 
+using DataStructures
 using GeneDrive
 
 # Select species type 
@@ -25,8 +26,11 @@ species = AedesAegypti
 # Define how genetic information is passed on 
 genetics = genetics_mendelian()
 
-# Choose functional form of environmental response and define the population size 
-enviro_response = stages_rossi_500()
+# Choose functional form of environmental response for species life stages
+enviro_response = stages_rossi()
+
+# Update population size as desired
+update_population_size(enviro_response, 500) 
 
 # Assemble organism
 organisms = OrderedDict(species => Organism{species}(genetics,enviro_response));
