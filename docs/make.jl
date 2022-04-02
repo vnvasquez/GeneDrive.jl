@@ -9,10 +9,10 @@ makedocs(;
     format=Documenter.HTML(; prettyurls=prettyurls = get(ENV, "CI", nothing) == "true"),
     pages=[
         "Home" => "index.md",
-        "Functionalities" => "functionalities.md",
-        "Examples" =>
-            Any["datasetup_examples.md", "dynamic_examples.md", "decision_examples.md"],
-        "Customization" => "developer_examples.md",
+        "Features" => "features.md",
+        "Tutorials" =>
+            Any["datasetup_tutorials.md", "dynamic_tutorials.md", "decision_tutorials.md"],
+        #"User Guide" => Any["customization_userguide.md","optimization_userguide.md"]
         "API Reference" => "api.md",
     ],
 )

@@ -2,7 +2,7 @@
 
 ```@index
 Modules = [GeneDrive]
-Pages   = ["decision_examples.md"]
+Pages   = ["decision_tutorials.md"]
 ```
 The following shows how to build and solve optimization problems in `GeneDrive.jl`. Decision models allow us to determine the best (optimal) strategy for achieving a goal (objective), taking into account the limitations (constraints) of our system of interest. 
 

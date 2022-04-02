@@ -1,6 +1,6 @@
 ```@index
 Modules = [GeneDrive]
-Pages   = ["dynamic_examples.md"]
+Pages   = ["dynamic_tutorials.md"]
 ```
 # Dynamic Model
 
@@ -37,8 +37,7 @@ The code below demonstrates how to set up the RIDL (Release of Insects with Domi
 genetics = genetics_ridl();
 
 # Re-use other organismal data for brevity 
-organisms = OrderedDict(species => 
-    Organism{species}(genetics,enviro_response));
+organisms = make_organisms(species, genetics, enviro_response);
 
 # Define a new location
 coordinates3 = (16.9203, 145.7710)

@@ -1,7 +1,7 @@
 
 ```@index
 Modules = [GeneDrive]
-Pages   = ["developer_examples.md"]
+Pages   = ["customization_userguide.md"]
 ```
 
 # Customization 

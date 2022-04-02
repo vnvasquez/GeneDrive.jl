@@ -2,7 +2,7 @@
 
 ```@index
 Modules = [GeneDrive]
-Pages   = ["datasetup_examples.md"]
+Pages   = ["datasetup_tutorials.md"]
 ```
 
 The first step in any empirical effort is to clean and organize the data. This is also true for computational experiments! `GeneDrive.jl` uses structs to enforce consistency, define relationships, and dynamically assign methods to data. 
@@ -17,23 +17,22 @@ Once the information for an experiment has been organized using the data model, 
 The code below shows how to construct an example study population using data that is included with the package. 
 
 ```@example 
-using DataStructures
 using GeneDrive
 
 # Select species type 
 species = AedesAegypti 
 
 # Define how genetic information is passed on 
-genetics = genetics_mendelian()
+genetics = genetics_mendelian();
 
 # Choose functional form of environmental response for species life stages
-enviro_response = stages_rossi()
+enviro_response = stages_rossi();
 
 # Update population size as desired
-update_population_size(enviro_response, 500) 
+update_population_size(enviro_response, 500); 
 
 # Assemble organism
-organisms = OrderedDict(species => Organism{species}(genetics,enviro_response));
+organisms = make_organisms(species, genetics, enviro_response);
 ```
 
 To fully define an experiment, additional information is relevant: the spatial structure of the population, the ambient temperature of the habitat, and its geographic location should also be defined. The code below demonstrates how to do this; as above, it draws on pre-structured data from `GeneDrive.jl`.
@@ -43,20 +42,20 @@ To fully define an experiment, additional information is relevant: the spatial s
 temperature = TimeSeriesTemperature(historic1990);
 
 # Specify the geographic coordinates 
-coordinates = (16.1820, 145.7210)
+coordinates = (16.1820, 145.7210);
 
 # Define the spatial structure, name the location, and "populate" it 
-node1 = Node(:YorkeysKnob, organisms, temperature, coordinates)
+node1 = Node(:YorkeysKnob, organisms, temperature, coordinates);
 ```
 
 If the desired spatial structure is a network, we must also define migration rates for subsets of the population that move from node to node within that network. Migration is defined as a nested dictionary wherein the rate at which each genotype and lifestage moves between locations can be optionally specified. When migration rates are not defined for adjacent nodes or specific life stages (e.g., eggs) the default is set to zero.
 ```@example 
 # Define a second node 
-coordinates2 = (17.0966, 145.7747)
-node2 = Node(:Gordonsvale, organisms, temperature, coordinates2)
+coordinates2 = (17.0966, 145.7747);
+node2 = Node(:Gordonsvale, organisms, temperature, coordinates2);
 
 # Create a network comprised of the two nodes 
-network = Network(:Queensland, node1, node2)
+network = Network(:Queensland, node1, node2);
 
 # Specify that adult males and females of all genotypes move 
 migration_data = Dict(
@@ -76,7 +75,7 @@ migration_data = Dict(
 )
 
 # Add migration to the network object 
-assign_migration!(network2, migration_data, species)
+assign_migration!(network2, migration_data, species);
 ```
 
 For a graphical depiction of the `GeneDrive.jl` data model, see [ XXX figure on Functionalities page XXX ]. 
