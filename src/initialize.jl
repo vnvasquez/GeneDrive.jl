@@ -207,7 +207,7 @@ end
 """
     init_node!(node::Node)
 
-Returns initialized `Node`.
+Return initialized `Node`.
 """
 function init_node!(node::Node)
     t = 0.0
