@@ -41,6 +41,12 @@ include("dynamic_model_network.jl")
 include("constraints.jl")
 include("decision_model.jl")
 
+include("data_genetics.jl")
+include("data_life_stages.jl")
+include("data_temperature.jl")
+
+include("helpers.jl")
+
 # Structs
 #####################
 export AedesAegypti
@@ -120,6 +126,11 @@ export TimeSeriesTemperature
 
 # Genetic structs
 #####################
+export Mendelian
+export AA
+export Aa
+export aa
+
 export Wolbachia
 export WW
 export ww
@@ -219,6 +230,7 @@ export get_wildtype
 export init_node!
 export init_network!
 
+export make_organisms
 export Network
 
 export population_model_node
@@ -247,5 +259,17 @@ export update_mortality
 export update_organism
 export update_population_size
 export update_temperature
+
+# Data
+#####################
+
+export genetics_mcr
+export genetics_mendelian
+export genetics_ridl
+export genetics_wolbachia
+
+export stages_abiodun
+export stages_moustaid
+export stages_rossi
 
 end
