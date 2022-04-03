@@ -194,9 +194,9 @@ end
 #               Mendelian              #
 ########################################
 struct Mendelian <: Construct end # all wildtype
-struct AA <: Genotype end  
-struct Aa <: Genotype end 
-struct aa <: Genotype end 
+struct AA <: Genotype end
+struct Aa <: Genotype end
+struct aa <: Genotype end
 
 ########################################
 #               Wolbachia              #
