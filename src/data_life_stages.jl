@@ -23,7 +23,7 @@ pupadurationrossi = PupaDurationRossi(0.027, -1.7, 27.7)
 adultmortalityrossi = AdultMortalityRossi(0.053, 0.081, 23.0, 6.375 * 10^(-4))
 
 function instantiate_stages_rossi()
-    return OrderedDict(
+    return DataStructures.OrderedDict(
         Egg => Stage{Egg}(eggmortalityrossi, eggdurationrossi, 2, dens_none(), nothing, 0),
         Larva =>
             Stage{Larva}(larvamortalityrossi, larvadurationrossi, 3, dens_log(), Egg, 0),
@@ -49,7 +49,7 @@ pupamortalitymoustaid = PupaMortalityMoustaid(37.4679, 9.96278, 1.0, 38.0, 0.034
 adultmortalitymoustaid = AdultMortalityMoustaid(37.73, 9.16, -0.149)
 
 function instantiate_stages_moustaid()
-    return OrderedDict(
+    return DataStructures.OrderedDict(
         Egg => Stage{Egg}(
             eggmortalitymoustaid,
             eggdurationmoustaid,
@@ -124,7 +124,7 @@ pupamortalityabiodun = PupaMortalityAbiodun(
 adultmortalityabiodun = AdultMortalityAbiodun(4.4, 1.31, 0.03)
 
 function instantiate_stages_abiodun()
-    return OrderedDict(
+    return DataStructures.OrderedDict(
         Egg =>
             Stage{Egg}(eggmortalityabiodun, eggdurationabiodun, 2, dens_none(), nothing, 0),
         Larva => Stage{Larva}(
