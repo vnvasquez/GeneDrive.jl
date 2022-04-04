@@ -1,18 +1,17 @@
-# Data Model
-
 ```@index
 Modules = [GeneDrive]
 Pages   = ["datasetup_tutorials.md"]
 ```
+# [Data Model](@id data_model)
 
 The first step in any empirical effort is to clean and organize the data. This is also true for computational experiments! `GeneDrive.jl` uses structs to enforce consistency, define relationships, and dynamically assign methods to data. 
 
-Importantly, the struct approach enables modularity: users can construct experiments in a "building block" fashion by assembling information that has already been stored as proper `GeneDrive.jl` inputs. See [XXX data file names XXX] for available data models.   
+Importantly, the struct approach enables modularity: users can construct experiments in a "building block" fashion by assembling information that has already been stored as proper `GeneDrive.jl` inputs. The [Features](@ref features) section outlines the environmental, biological, and genetic details that can be defined thanks to the data model.
 
 Once the information for an experiment has been organized using the data model, we are ready to:
 * Save or share our data in a structured and reproducible way.
-* Call Ordinary Differential Equation (ODE) solution methods on our data. [XXX see dynamic_model.md file XXX]
-* Call optimization solution methods on our data. [XXX see decision_model.md file XXX]
+* Call [Ordinary Differential Equation (ODE) solution methods](@ref dynamic_model) on our data.
+* Call [optimization solution methods](@ref decision_model) on our data. 
 
 The code below shows how to construct an example study population using data that is included with the package. 
 

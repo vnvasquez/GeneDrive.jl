@@ -1,14 +1,15 @@
-# Decision Model
-
 ```@index
 Modules = [GeneDrive]
 Pages   = ["decision_tutorials.md"]
 ```
+# [Decision Model](@id decision_model)
+
 The following shows how to build and solve optimization problems in `GeneDrive.jl`. Decision models allow us to determine the best (optimal) strategy for achieving a goal (objective), taking into account the limitations (constraints) of our system of interest. 
 
 To set up the decision model, it is necessary to define an additional component for our data model: our problem's operational limitations (constraints). Operational constraints enter the simulation as fields of the `ReleaseStrategy` struct and are defined per node. View struct fields by running: 
 ```julia
-julia> ? ReleaseStrategy
+julia> ? 
+help?> ReleaseStrategy
 ```
 
 Biological constraints are pre-defined within the decision model. For brevity, we will specify our example operational constraints on top of the `node3` data model created previously. 

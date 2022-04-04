@@ -28,7 +28,7 @@ julia> using GeneDrive
 
 Gene drives include both naturally occurring and synthetic genetic elements. They have been harnessed by scientists for potential use in biological control (e.g.: [public health](https://royalsocietypublishing.org/doi/10.1098/rstb.2019.0803), [agriculture](https://royalsocietypublishing.org/doi/10.1098/rspb.2019.1515), [conservation](https://royalsocietypublishing.org/doi/10.1098/rspb.2019.1606)). "Drive" simply refers to these genetic elements being inherited with a high probability. Thefore, their frequency in a population grows quickly - and at the expense of the wildtype population. 
 
-While this package is not exclusively applicable to gene drive research [ XXX link to documentation Examples XXX], its name is a nod to this new technological horizon in biological control. 
+While this package is [not exclusively applicable to gene drive research](@ref environmental_dynamics), its name is a nod to this new technological horizon in biological control. 
 
 ## Citing GeneDrive.jl 
 

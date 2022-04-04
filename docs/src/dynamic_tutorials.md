@@ -2,19 +2,19 @@
 Modules = [GeneDrive]
 Pages   = ["dynamic_tutorials.md"]
 ```
-# Dynamic Model
+# [Dynamic Model](@id dynamic_model) 
 
 The following examples demonstrate how to create and run Ordinary Differential Equation (ODE) problems in `GeneDrive.jl`. Dynamic models allow us to understand the behavior of the system of interest; below, we see the effect of environmental and then anthropogenic perturbations. 
 
-## Environmental Dynamics 
+## [Environmental Dynamics](@id environmental_dynamics) 
 
-First, we will characterize the impact of seasonal temperature fluctuations on our study population. This experiment uses the information from the `node2` data model created in the previous example.
+First, we will characterize the impact of seasonal temperature fluctuations on our study population. This experiment uses the information from the `node2` data model created in the [previous example](@ref data_model). 
 
 ```@example 
 # Define the time horizon 
 tspan = (1,365)
 
-# Select solver (see DifferentialEquations.jl for options)
+# Select solver from the suite of available methods
 solver = OrdinaryDiffEq.Tsit5()
 
 # Solve 
@@ -27,7 +27,15 @@ results = sol_to_dict(node1, sol)
 plot(results)
 ```
 
-## Intervention Dynamics 
+Note that the solver is sourced from the robust DifferentialEquations.jl package (options [here](https://diffeq.sciml.ai/stable/solvers/ode_solve/#Full-List-of-Methods)). If that package is not already in your local environment, run the following to select your preferred solution method: 
+
+```julia
+julia> ]
+(v1.7) pkg> add OrdinaryDiffEq
+julia> using OrdinaryDiffEq
+```
+
+## [Intervention Dynamics](@id intervention_dynamics) 
 
 Here we model the dynamics of public health interventions that release genetically modified mosquitoes to replace or suppress wildtypes (mitigating the risk of disease spread). This experiment also accounts for the environmental dynamics we saw above. Importantly, the timing, size, sex, and genotype used for interventions varies according to the genetic tool. 
 
