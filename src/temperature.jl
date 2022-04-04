@@ -14,7 +14,7 @@ Data for simulation that features a single constant temperature in °C. Generate
 
 # Arguments
 
-  - `value::Float64`: Temperature value in °C; re-used by model at every time step. Defaults to 27.0.
+  - `value::Float64`: Temperature value in °C; re-used by model at every time step.
 """
 mutable struct ConstantTemperature <: Temperature
     value::Float64
@@ -59,10 +59,10 @@ Data for simulation that features sinusoidal temperature fluctuation in °C. Use
 
 # Arguments
 
-  - `a::Float64`: Amplitude. Defaults to 7.5.
-  - `b::Float64`: Periodicity coefficient. Defaults to 2.
-  - `c::Float64`: Time period (days). Defaults to 365.
-  - `d::Float64`: Mean. Defaults to 21.5.
+  - `a::Float64`: Amplitude. 
+  - `b::Float64`: Periodicity coefficient.
+  - `c::Float64`: Time period (days). 
+  - `d::Float64`: Mean. 
 """
 mutable struct SinusoidalTemperature <: Temperature
     a::Float64
@@ -106,7 +106,7 @@ Data for simulation that uses temperature time series in °C.
 
 # Arguments
 
-  - `value::Float64`: Time series of temperature values in °C. Defaults to observed temperatures in Cairns, Australia in the year 2010.
+  - `value::Float64`: Time series of temperature values in °C. 
 """
 mutable struct TimeSeriesTemperature <: Temperature
     values::Vector{Float64}
