@@ -24,12 +24,12 @@ function oviposit(
     S = genetics.S
     Β = genetics.Β
 
-    #TODO: This needs updating since it allocates a matrix per iteration
+    #TODO: Improve; currently allocates a matrix per iteration
     ΒS = Matrix{Float64}(undef, length(Β), length(S))
     for i in 1:length(Β)
         ΒS[i, :] = Β[i] .* S'
     end
-    # TODO: add genetic parameters necessary for additional constructs
+    # TODO: add genetic parameters for new constructs
     O = likelihood[:, :, gene_index] .* Τ[:, :, gene_index] .* ΒS .* F
 
     return sum(O)

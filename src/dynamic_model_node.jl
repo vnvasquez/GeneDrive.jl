@@ -33,8 +33,8 @@ function population_model_node(du, u, (node, inputs), t)
 
         ##################
         #   State space  #
-        # TODO: FLEXIBLY DEFINE STATE SPACE (AND SUBSTAGES) GIVEN ORGANISMS WITH VARIED BIOLOGY
         ##################
+        # TODO: fix
 
         E = u.x[index_organism][1:nE, :]
         dE = @view du.x[index_organism][1:nE, :]

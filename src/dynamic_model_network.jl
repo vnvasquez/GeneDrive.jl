@@ -41,8 +41,7 @@ function population_model_network(du, u, (network, inputs), t)
             ##################
             #   State space  #
             ##################
-            # TODO: Make indexing cleaner/more generalizable with: substages, state space (u, du), and Q.
-            # Eg: Q could be a sparse matrix (all 0 in juv stages)
+            # TODO: fix
 
             E = u.x[index_node].x[index_organism][1:nE, :]
             dE = @view du.x[index_node].x[index_organism][1:nE, :]

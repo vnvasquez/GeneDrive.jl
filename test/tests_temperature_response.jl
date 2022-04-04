@@ -15,12 +15,6 @@
     response = get_temperature_response(27.0, test_eggdurationrossi)
     @test isapprox(response, 0.670839; atol=1e-3)
 
-    #= #TODO: remove Pelotti implementation once decided
-    test_eggdurationrossi = EggDurationRossi(6.9, 4.0, 20.0, 4.1)
-    response = get_temperature_response(27.0, test_eggdurationrossi)
-    @test isapprox(response, 0.1496296; atol = 1e-3)
-    =#
-
     test_larvamortalityrossi = LarvaMortalityRossi(0.0143, 0.00189)
     response = get_temperature_response(27.0, test_larvamortalityrossi)
     @test isapprox(response, 0.056716; atol=1e-3)
