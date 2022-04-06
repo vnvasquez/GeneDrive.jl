@@ -59,10 +59,10 @@ Data for simulation that features sinusoidal temperature fluctuation in °C. Use
 
 # Arguments
 
-  - `a::Float64`: Amplitude. 
+  - `a::Float64`: Amplitude.
   - `b::Float64`: Periodicity coefficient.
-  - `c::Float64`: Time period (days). 
-  - `d::Float64`: Mean. 
+  - `c::Float64`: Time period (days).
+  - `d::Float64`: Mean.
 """
 mutable struct SinusoidalTemperature <: Temperature
     a::Float64
@@ -106,7 +106,7 @@ Data for simulation that uses temperature time series in °C.
 
 # Arguments
 
-  - `value::Float64`: Time series of temperature values in °C. 
+  - `value::Float64`: Time series of temperature values in °C.
 """
 mutable struct TimeSeriesTemperature <: Temperature
     values::Vector{Float64}
