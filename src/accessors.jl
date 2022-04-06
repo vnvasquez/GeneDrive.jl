@@ -616,7 +616,7 @@ end
 """
     update_temperature(node::Node, temp_type::Type{<:TimeSeriesTemperature}, new_temperature::Vector{Float64})
 
-Update the `type` and `values` of `Temperature` for `Node`.
+Update the `type` and `values` of `Temperature` for `TimeSeriesTemperature` in `Node`.
 """
 function update_temperature(
     node::Node,
@@ -624,5 +624,24 @@ function update_temperature(
     new_temperature::Vector{Float64},
 )
     node.temperature = TimeSeriesTemperature(new_temperature)
+    return node
+end
+
+"""
+    update_temperature(node::Node, temp_type::Type{<:SinusoidalTemperature}, new_temperature::Vector{Float64})
+
+Update the `type` and `values` of `Temperature` for `SinusoidalTemperature` in `Node`.
+"""
+function update_temperature(
+    node::Node,
+    temp_type::Type{<:SinusoidalTemperature},
+    new_temperature::Vector{Float64},
+)
+    a = new_temperature[1]
+    b = new_temperature[2]
+    c = new_temperature[3]
+    d = new_temperature[4]
+
+    node.temperature = SinusoidalTemperature(a, b, c, d)
     return node
 end
