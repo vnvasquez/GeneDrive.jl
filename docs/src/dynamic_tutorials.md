@@ -18,12 +18,12 @@ tspan = (1,365)
 solver = OrdinaryDiffEq.Tsit5()
 
 # Solve 
-sol = solve_population_model(node2, [temperature], solver, tspan);
+sol = solve_dynamic_model(node2, solver, tspan);
 
 # Format results
-results = sol_to_dict(node1, sol)
+results = format_dynamic_model_results(node2, sol)
 
-# Visualize 
+# Visualize subset of results 
 plot(results)
 ```
 
@@ -66,13 +66,13 @@ releases_males = Release(node3, species, Male, release_genotype,
 
 With the new problem now set up, we solve it and analyze the results: 
 ```@example 
-# Solve (re-use temperature, solver, and tspan from previous example)
-sol = solve_population_model(node3, [temperature], [releases_males], 
+# Solve (re-use solver and tspan from previous example)
+sol = solve_dynamic_model(node3, [releases_males], 
     solver, tspan);
 
-# Format
-results = sol_to_dict(node3, sol)
+# Format results 
+results = format_dynamic_model_results(node3, sol)
 
-# Visualize 
+# Visualize subset of results
 plot(results)
 ```

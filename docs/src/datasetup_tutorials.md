@@ -71,10 +71,10 @@ migration_data = Dict(
                             (:Gordonsvale, :YorkeysKnob) => 0.02),
     ("Female", "aa") => Dict((:YorkeysKnob, :Gordonsvale) => 0.02,
                             (:Gordonsvale, :YorkeysKnob) => 0.02)
-)
+);
 
 # Add migration to the network object 
 assign_migration!(network2, migration_data, species);
 ```
 
-For a graphical depiction of the `GeneDrive.jl` data model, see [ XXX figure on Functionalities page XXX ]. 
+For a graphical depiction of the `GeneDrive.jl` data model, see the [Features](@ref features) section of the documentation. 
