@@ -196,6 +196,8 @@ export count_organisms
 export count_substages
 
 export create_decision_model
+export format_decision_model_results
+export format_dynamic_model_results
 
 export get_density
 export get_duration
@@ -239,6 +241,7 @@ export population_model_network
 export Release
 
 export solve_decision_model
+export solve_dynamic_model
 
 export temperature_effect
 
