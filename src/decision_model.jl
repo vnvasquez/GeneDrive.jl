@@ -1,6 +1,31 @@
 ################################################################################
 #                                  Create Model                                 #
 ################################################################################
+
+
+##################
+# Solver(s) default
+##################
+function create_default_solvers(do_binary::Bool)
+    ipopt_def = JuMP.optimizer_with_attributes(
+        Ipopt.Optimizer
+    )
+
+    if !do_binary
+        return ipopt_def 
+    end 
+
+    i = JuMP.optimizer_with_attributes(
+        Juniper.Optimizer,
+        "nl_solver" => ipopt_def,
+        "mip_solver" => JuMP.optimizer_with_attributes(Cbc.Optimizer),
+    )
+
+    return i 
+end 
+
+
+
 """
     create_decision_model(network::Network, tspan; node_strategy::Dict, do_binary::Bool=false)
 
@@ -11,6 +36,7 @@ function create_decision_model(
     tspan;
     node_strategy::Dict,
     do_binary::Bool=false,
+    optimizer=nothing 
 )
     for (key_node, node) in enumerate(values(get_nodes(network)))
         if length(collect(tspan[1]:tspan[2])) !== length(node.temperature.values)
@@ -25,20 +51,10 @@ function create_decision_model(
     ##################
     initial_condition, density_net = init_network!(network)
 
+    ##################  
+    # Solver
     ##################
-    # Solver(s)
-    ##################
-    ipopt_def = JuMP.optimizer_with_attributes(
-        Ipopt.Optimizer,
-        "linear_solver" => "pardiso",
-        "print_level" => 1,
-    )
-
-    i = JuMP.optimizer_with_attributes(
-        Juniper.Optimizer,
-        "nl_solver" => ipopt_def,
-        "mip_solver" => JuMP.optimizer_with_attributes(Gurobi.Optimizer),
-    )
+    i = optimizer === nothing ? create_default_solvers(do_binary) : optimizer 
 
     ##################
     #  Model Creation
