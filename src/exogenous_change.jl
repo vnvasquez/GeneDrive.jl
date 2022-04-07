@@ -432,7 +432,7 @@ function TemperatureSeriesData(node::Node, times::Vector, values::Vector)
     callbacks = Vector()
     for (index, time) in enumerate(times)
         condition = (u, t, integrator) -> t == time
-        affect = get_effect_temperature(get_name(node), values[index])
+        affect = get_effect_temperature_timeseries(get_name(node), values[index])
         push!(callbacks, diffeq.DiscreteCallback(condition, affect))
     end
     callback_set = diffeq.CallbackSet((), tuple(callbacks...))
@@ -477,14 +477,13 @@ function TemperatureShockData(
     callbacks = Vector()
     for (index, time) in enumerate(times)
         condition_start = (u, t, integrator) -> t == time[1]
-        affect_start = get_effect_temperature(get_name(node), variable_shock[index])
+        affect_start = get_effect_temperature_shock(get_name(node), variable_shock[index])
         push!(callbacks, diffeq.DiscreteCallback(condition_start, affect_start))
         condition_stop = (u, t, integrator) -> t == time[2]
-        affect_stop = get_effect_temperature(get_name(node), 0.0)
+        affect_stop = get_effect_temperature_shock(get_name(node), -variable_shock[index])
         push!(callbacks, diffeq.DiscreteCallback(condition_stop, affect_stop))
     end
     callback_set = diffeq.CallbackSet((), tuple(callbacks...))
-    #times = collect(Iterators.flatten(times))
     return TemperatureShockData(get_name(node), times, variable_shock, callback_set)
 end
 
@@ -502,8 +501,16 @@ function TemperatureShockData(
     return TemperatureShockData(node, times, shock_values)
 end
 
-function get_effect_temperature(node_name::Symbol, value::Float64)
+function get_effect_temperature_timeseries(node_name::Symbol, value::Float64)
     return (integrator) -> begin
         integrator.p[2].temperature[node_name] = value
+        @info("temp changed to $(integrator.p[2].temperature[node_name])")
+    end
+end
+
+function get_effect_temperature_shock(node_name::Symbol, value::Float64)
+    return (integrator) -> begin
+        integrator.p[2].temperature[node_name] += value
+        @info("temp bias changed to $(integrator.p[2].temperature[node_name])")
     end
 end

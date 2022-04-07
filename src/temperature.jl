@@ -30,8 +30,7 @@ function get_temperature_value(
     temp_value_from_inputs::Float64,
     t,
 )
-    # TODO: sort out the addition of perturbations (occasional error where model.value is doubled in absence of pert)
-    return temperature_model.value #+ temp_value_from_inputs
+    return temperature_model.value + temp_value_from_inputs
 end
 
 """
@@ -81,9 +80,10 @@ function get_temperature_value(
     temp_value_from_inputs::Float64,
     t,
 )
-    # TODO: sort out the addition of perturbations (occaisional error where model.value is doubled in absence of pert)
-    return temperature_model.a * cos((temperature_model.b * π / temperature_model.c) * t) +
-           temperature_model.d  #+ temp_value_from_inputs
+# NB: temperature_model.d sets initial value; 
+# inputs used thereafter to account for mean because allows for temperature_model.d + shocks as needed  
+return temperature_model.a * cos((temperature_model.b * π / temperature_model.c) * t) +
+           temp_value_from_inputs 
 end
 
 """
