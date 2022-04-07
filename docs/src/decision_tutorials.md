@@ -31,10 +31,10 @@ To solve the decision model as an optimization, a goal (objective) must be suppl
 # Solve 
 sol = solve_decision_model(prob);
 
-# Format results
+# Format all results
 results = format_decision_model_results(sol);
 
 # Visualize subset of results 
-plot(results) 
+plot_decision_ridl_females(sol) 
 ```
 

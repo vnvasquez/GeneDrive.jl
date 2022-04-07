@@ -4,7 +4,7 @@ Pages   = ["dynamic_tutorials.md"]
 ```
 # [Dynamic Model](@id dynamic_model) 
 
-The following examples demonstrate how to create and run Ordinary Differential Equation (ODE) problems in `GeneDrive.jl`. Dynamic models allow us to understand the behavior of the system of interest; below, we see the effect of environmental and then anthropogenic perturbations. 
+The following examples demonstrate how to create and run Ordinary Differential Equation (ODE) problems in `GeneDrive.jl`. Dynamic models allow us to understand the behavior of the system of interest; below, we see the effect of both environmental and then anthropogenic perturbations. 
 
 ## [Environmental Dynamics](@id environmental_dynamics) 
 
@@ -20,11 +20,11 @@ solver = OrdinaryDiffEq.Tsit5()
 # Solve 
 sol = solve_dynamic_model(node2, solver, tspan);
 
-# Format results
+# Format all results
 results = format_dynamic_model_results(node2, sol)
 
 # Visualize subset of results 
-plot(results)
+plot_dynamic_mendelian_females(node2, sol)
 ```
 
 Note that the solver is sourced from the robust DifferentialEquations.jl package (options [here](https://diffeq.sciml.ai/stable/solvers/ode_solve/#Full-List-of-Methods)). If that package is not already in your local environment, run the following to select your preferred solution method: 
@@ -70,9 +70,9 @@ With the new problem now set up, we solve it and analyze the results:
 sol = solve_dynamic_model(node3, [releases_males], 
     solver, tspan);
 
-# Format results 
+# Format all results 
 results = format_dynamic_model_results(node3, sol)
 
 # Visualize subset of results
-plot(results)
+plot_dynamic_ridl_females(node3, sol)
 ```

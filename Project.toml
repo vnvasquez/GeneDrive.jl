@@ -1,7 +1,7 @@
 name = "GeneDrive"
 uuid = "d9acca20-95e5-11e9-3d4c-3b57da6f4e87"
 authors = ["Valeri Vasquez"]
-version = "0.1.0"
+version = "0.1.0-DEV"
 
 [deps]
 CPUSummary = "2a0fbf3d-bb9c-48f3-b0a9-814d99fd7ab9"

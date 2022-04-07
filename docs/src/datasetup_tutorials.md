@@ -37,8 +37,8 @@ organisms = make_organisms(species, genetics, enviro_response);
 To fully define an experiment, additional information is relevant: the spatial structure of the population, the ambient temperature of the habitat, and its geographic location should also be defined. The code below demonstrates how to do this; as above, it draws on pre-structured data from `GeneDrive.jl`.
 
 ```@example 
-# Define the temperature data as a time series 
-temperature = TimeSeriesTemperature(historic1990);
+# Define temperature functional form and data 
+temperature = example_temperature_timeseries;
 
 # Specify the geographic coordinates 
 coordinates = (16.1820, 145.7210);
