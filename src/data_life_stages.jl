@@ -150,21 +150,20 @@ end
 
 stages_abiodun() = instantiate_stages_abiodun();
 
-
 ########################################
 #   *Generic* No Temperature Response  #
 ########################################
-function instantiate_stages_noresponse() 
-    return DataStructures.OrderedDict( 
+function instantiate_stages_noresponse()
+    return DataStructures.OrderedDict(
         # NB: These point estimates for mortality (all stages) and juvenile stage duration
         # do *not* ascribe to a particular species and should be replaced as needed for 
         # experimental use. 
-        Egg => Stage{Egg}(0.05, 1/4., 2, dens_none(), nothing, 0),
-        Larva => Stage{Larva}(0.15, 1/3., 3, dens_log(), Egg, 0),
-        Pupa => Stage{Pupa}(0.05, 1/6., 2, dens_none(), Larva, 0),
+        Egg => Stage{Egg}(0.05, 1 / 4.0, 2, dens_none(), nothing, 0),
+        Larva => Stage{Larva}(0.15, 1 / 3.0, 3, dens_log(), Egg, 0),
+        Pupa => Stage{Pupa}(0.05, 1 / 6.0, 2, dens_none(), Larva, 0),
         Male => Stage{Male}(0.09, 1, dens_none(), Pupa, 0),
-        Female => Stage{Female}(0.09, 1, dens_none(), Pupa, 500)
+        Female => Stage{Female}(0.09, 1, dens_none(), Pupa, 500),
     )
 end
 
-stages_noresponse() = instantiate_stages_noresponse() 
+stages_noresponse() = instantiate_stages_noresponse()
