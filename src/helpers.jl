@@ -712,3 +712,259 @@ function format_decision_model_results(sol)
     end
     return results_dict
 end
+
+########################################
+#     Plot Select Dynamic Results      #
+########################################
+
+"""
+    plot_mendelian_females(node::Node, sol)
+
+Return visualization of adult female population dynamics across all genotypes.
+"""
+function plot_mendelian_females(node::Node, sol)
+    results = format_dynamic_model_results(node, sol)
+
+    mendelian_base_F_1 =
+        results["AedesAegypti"]["Female"]["AA"][1, :] .+
+        results["AedesAegypti"]["Female"]["Aa"][1, :] .+
+        results["AedesAegypti"]["Female"]["aa"][1, :]
+
+    mendelian_base_F_2 =
+        results["AedesAegypti"]["Female"]["AA"][2, :] .+
+        results["AedesAegypti"]["Female"]["Aa"][2, :] .+
+        results["AedesAegypti"]["Female"]["aa"][2, :]
+
+    mendelian_base_F_3 =
+        results["AedesAegypti"]["Female"]["AA"][3, :] .+
+        results["AedesAegypti"]["Female"]["Aa"][3, :] .+
+        results["AedesAegypti"]["Female"]["aa"][3, :]
+
+    timesteps = sol.t[1:(end - 1)]
+
+    traces = PlotlyJS.GenericTrace{Dict{Symbol, Any}}[]
+    push!(
+        traces,
+        PlotlyJS.scatter(;
+            name="AA",
+            x=timesteps,
+            y=mendelian_base_F_1,
+            mode="lines",
+            line_shape="linear",
+            line_color="green",
+            fillcolor="transparent",
+            line_width=2,
+        ),
+    )
+    push!(
+        traces,
+        PlotlyJS.scatter(;
+            name="Aa",
+            x=timesteps,
+            y=mendelian_base_F_2[1:(end - 1)],
+            mode="lines",
+            line_shape="linear",
+            line_color="green",
+            fillcolor="transparent",
+            line_width=2,
+            line_dash="dashdot",
+        ),
+    )
+
+    push!(
+        traces,
+        PlotlyJS.scatter(;
+            name="aa",
+            x=timesteps,
+            y=mendelian_base_F_3[1:(end - 1)],
+            mode="lines",
+            line_shape="linear",
+            line_color="green",
+            fillcolor="transparent",
+            line_width=2,
+            line_dash="dot",
+        ),
+    )
+    p = PlotlyJS.plot(
+        traces,
+        PlotlyJS.Layout(
+            title=attr(text="Females", x=0.5, xanchor="center"),
+            xaxis_title="Time [Days]",
+            yaxis_title="Population [Count]",
+            width=800,
+            height=450,
+            font_size=12,
+            fillcolor="transparent",
+            xaxis=PlotlyJS.attr(tickfont_size=14),
+            yaxis=PlotlyJS.attr(tickfont_size=14),
+            legend=PlotlyJS.attr(
+                yanchor="bottom",
+                y=-0.3,
+                xanchor="center",
+                x=0.5,
+                orientation="h",
+                font_size=11.2,
+            ),
+        ),
+    )
+end
+
+"""
+    plot_wolbachia_females(node::Node, sol)
+
+Return visualization of adult female population dynamics across all genotypes.
+"""
+function plot_wolbachia_females(node::Node, sol)
+    results = format_dynamic_model_results(node, sol)
+
+    wolbachia_base_F_1 =
+        results["AedesAegypti"]["Female"]["WW"][1, :] .+
+        results["AedesAegypti"]["Female"]["ww"][1, :]
+    wolbachia_base_F_2 =
+        results["AedesAegypti"]["Female"]["WW"][2, :] .+
+        results["AedesAegypti"]["Female"]["ww"][2, :]
+    timesteps = sol.t[1:(end - 1)]
+
+    traces = PlotlyJS.GenericTrace{Dict{Symbol, Any}}[]
+    push!(
+        traces,
+        PlotlyJS.scatter(;
+            name="Wildtype",
+            x=timesteps,
+            y=wolbachia_base_F_2,
+            mode="lines",
+            line_shape="linear",
+            line_color="green",
+            fillcolor="transparent",
+            line_width=2,
+        ),
+    )
+    push!(
+        traces,
+        PlotlyJS.scatter(;
+            name="Infected",
+            x=timesteps,
+            y=wolbachia_base_F_1[1:(end - 1)],
+            mode="lines",
+            line_shape="linear",
+            line_color="green",
+            fillcolor="transparent",
+            line_width=2,
+            line_dash="dashdot",
+        ),
+    )
+    p = PlotlyJS.plot(
+        traces,
+        PlotlyJS.Layout(
+            title=attr(text="Females", x=0.5, xanchor="center"),
+            xaxis_title="Time [Days]",
+            yaxis_title="Population [Count]",
+            width=800,
+            height=450,
+            font_size=12,
+            fillcolor="transparent",
+            xaxis=PlotlyJS.attr(tickfont_size=14),
+            yaxis=PlotlyJS.attr(tickfont_size=14),
+            legend=PlotlyJS.attr(
+                yanchor="bottom",
+                y=-0.3,
+                xanchor="center",
+                x=0.5,
+                orientation="h",
+                font_size=11.2,
+            ),
+        ),
+    )
+end
+
+"""
+    plot_ridl_females(node::Node, sol)
+
+Return visualization of adult female population dynamics across all genotypes.
+"""
+function plot_ridl_females(node::Node, sol)
+    results = format_dynamic_model_results(node, sol)
+
+    ridl_base_F_1 =
+        results["AedesAegypti"]["Female"]["WW"][1, :] .+
+        results["AedesAegypti"]["Female"]["WR"][1, :] .+
+        results["AedesAegypti"]["Female"]["RR"][1, :]
+
+    ridl_base_F_2 =
+        results["AedesAegypti"]["Female"]["WW"][2, :] .+
+        results["AedesAegypti"]["Female"]["WR"][2, :] .+
+        results["AedesAegypti"]["Female"]["RR"][2, :]
+
+    ridl_base_F_3 =
+        results["AedesAegypti"]["Female"]["WW"][3, :] .+
+        results["AedesAegypti"]["Female"]["WR"][3, :] .+
+        results["AedesAegypti"]["Female"]["RR"][3, :]
+
+    timesteps = sol.t[1:(end - 1)]
+
+    traces = PlotlyJS.GenericTrace{Dict{Symbol, Any}}[]
+    push!(
+        traces,
+        PlotlyJS.scatter(;
+            name="WW",
+            x=timesteps,
+            y=ridl_base_F_1,
+            mode="lines",
+            line_shape="linear",
+            line_color="green",
+            fillcolor="transparent",
+            line_width=2,
+        ),
+    )
+    push!(
+        traces,
+        PlotlyJS.scatter(;
+            name="WR",
+            x=timesteps,
+            y=ridl_base_F_2[1:(end - 1)],
+            mode="lines",
+            line_shape="linear",
+            line_color="green",
+            fillcolor="transparent",
+            line_width=2,
+            line_dash="dashdot",
+        ),
+    )
+
+    push!(
+        traces,
+        PlotlyJS.scatter(;
+            name="RR",
+            x=timesteps,
+            y=ridl_base_F_3[1:(end - 1)],
+            mode="lines",
+            line_shape="linear",
+            line_color="green",
+            fillcolor="transparent",
+            line_width=2,
+            line_dash="dot",
+        ),
+    )
+    p = PlotlyJS.plot(
+        traces,
+        PlotlyJS.Layout(
+            title=attr(text="Females", x=0.5, xanchor="center"),
+            xaxis_title="Time [Days]",
+            yaxis_title="Population [Count]",
+            width=800,
+            height=450,
+            font_size=12,
+            fillcolor="transparent",
+            xaxis=PlotlyJS.attr(tickfont_size=14),
+            yaxis=PlotlyJS.attr(tickfont_size=14),
+            legend=PlotlyJS.attr(
+                yanchor="bottom",
+                y=-0.3,
+                xanchor="center",
+                x=0.5,
+                orientation="h",
+                font_size=11.2,
+            ),
+        ),
+    )
+end
