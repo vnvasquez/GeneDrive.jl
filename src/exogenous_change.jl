@@ -504,13 +504,13 @@ end
 function get_effect_temperature_timeseries(node_name::Symbol, value::Float64)
     return (integrator) -> begin
         integrator.p[2].temperature[node_name] = value
-        @info("temp changed to $(integrator.p[2].temperature[node_name])")
+        # @info("temp changed to $(integrator.p[2].temperature[node_name])")
     end
 end
 
 function get_effect_temperature_shock(node_name::Symbol, value::Float64)
     return (integrator) -> begin
         integrator.p[2].temperature[node_name] += value
-        @info("temp bias changed to $(integrator.p[2].temperature[node_name])")
+        # @info("temp BIAS changed to $(integrator.p[2].temperature[node_name])")
     end
 end

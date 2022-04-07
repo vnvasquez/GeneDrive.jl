@@ -31,11 +31,10 @@ function solve_dynamic_model(node::Node, algorithm, tspan)
         collected_callback_set = diffeq.CallbackSet((), tuple(callbacks...))
     end
     inputs = ExogenousInputs(node)
-
     u0, dens = init_node!(node)
     @info("Simulation initialized. Beginning model run with $(typeof(node.temperature)).")
-    prob = diffeq.ODEProblem(population_model_node, u0, tspan, (node, inputs))
 
+    prob = diffeq.ODEProblem(population_model_node, u0, tspan, (node, inputs))
     sol = diffeq.solve(
         prob,
         algorithm,
@@ -97,6 +96,146 @@ function solve_dynamic_model(node::Node, releases::Vector, algorithm, tspan)
         callback=collected_callback_set,
         tstops=unique!(tstops),
         reltol=1e-9,
+    )
+    @info(" Model run complete.")
+
+    return sol
+end
+
+"""
+    solve_dynamic_model(node::Node, shocks::TemperatureShockData, algorithm, tspan)
+
+Return ODE model solution for single node problem with temperature shocks.
+"""
+function solve_dynamic_model(node::Node, shocks::TemperatureShockData, algorithm, tspan)
+    @info("No releases specified.")
+
+    tstops = Vector{Float64}()
+    callbacks = Vector()
+    collected_callback_set = []
+
+    if isa(node.temperature, TimeSeriesTemperature) == true
+        shock_data = zeros(length(node.temperature.values))
+        for (ix, t) in enumerate(tspan[1]:tspan[2])
+            for (jx, t_range) in enumerate(shocks.times)
+                if t_range[1] <= t <= t_range[2]
+                    shock_data[ix] = shocks.values[jx]
+                end
+            end
+        end
+        tempseries = [
+            TemperatureSeriesData(
+                node,
+                collect(tspan[1]:tspan[2]),
+                node.temperature.values + shock_data,
+            ),
+        ]
+        for temp in tempseries
+            push!(tstops, temp.times...)
+            push!(callbacks, temp.set.discrete_callbacks...)
+        end
+        collected_callback_set = diffeq.CallbackSet((), tuple(callbacks...))
+    else
+        for times in shocks.times
+            push!(tstops, times...)
+        end
+        push!(callbacks, shocks.set.discrete_callbacks...)
+    end
+    collected_callback_set = diffeq.CallbackSet((), tuple(callbacks...))
+    inputs = ExogenousInputs(node)
+    u0, dens = init_node!(node)
+    @info(
+        "Simulation initialized. Beginning model run with shocks and $(typeof(node.temperature))."
+    )
+
+    prob = diffeq.ODEProblem(population_model_node, u0, tspan, (node, inputs))
+    sol = diffeq.solve(
+        prob,
+        algorithm,
+        callback=collected_callback_set,
+        tstops=unique!(tstops),
+        reltol=1e-9,
+        dt=1.0,
+    )
+    @info(" Model run complete.")
+
+    return sol
+end
+
+"""
+    solve_dynamic_model(node::Node, releases::Vector, shocks::TemperatureShockData, algorithm, tspan)
+
+Return ODE model solution for single node problem with releases and temperature shocks.
+"""
+function solve_dynamic_model(
+    node::Node,
+    releases::Vector,
+    shocks::TemperatureShockData,
+    algorithm,
+    tspan,
+)
+    tstops = Vector{Float64}()
+    callbacks = Vector()
+    collected_callback_set = []
+
+    if isa(node.temperature, TimeSeriesTemperature) == true
+        shock_data = zeros(length(node.temperature.values))
+        for (ix, t) in enumerate(tspan[1]:tspan[2])
+            for (jx, t_range) in enumerate(shocks.times)
+                if t_range[1] <= t <= t_range[2]
+                    shock_data[ix] = shocks.values[jx]
+                end
+            end
+        end
+        tempseries = [
+            TemperatureSeriesData(
+                node,
+                collect(tspan[1]:tspan[2]),
+                node.temperature.values + shock_data,
+            ),
+        ]
+        for temp in tempseries
+            push!(tstops, temp.times...)
+            push!(callbacks, temp.set.discrete_callbacks...)
+        end
+        for release in releases
+            push!(tstops, release.times...)
+            push!(callbacks, release.callbacks...)
+        end
+        collected_callback_set = diffeq.CallbackSet((), tuple(callbacks...))
+    else
+        for release in releases
+            push!(tstops, release.times...)
+            push!(callbacks, release.callbacks...)
+        end
+        #=
+        for shock in shocks
+            for times in shock.times
+                push!(tstops, times...)
+            end
+            push!(callbacks, shock.set.discrete_callbacks...)
+        end
+        =#
+        for times in shocks.times
+            push!(tstops, times...)
+        end
+        push!(callbacks, shocks.set.discrete_callbacks...)
+        collected_callback_set = diffeq.CallbackSet((), tuple(callbacks...))
+    end
+    inputs = ExogenousInputs(node)
+    u0, dens = init_node!(node)
+    @info(
+        "Simulation initialized. Beginning model run with releases, shocks, and $(typeof(node.temperature))."
+    )
+
+    prob = diffeq.ODEProblem(population_model_node, u0, tspan, (node, inputs))
+    sol = diffeq.solve(
+        prob,
+        algorithm,
+        callback=collected_callback_set,
+        tstops=unique!(tstops),
+        reltol=1e-9,
+        dt=1.0,
     )
     @info(" Model run complete.")
 
