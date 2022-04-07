@@ -89,7 +89,8 @@ end
 #               Organisms              #
 ########################################
 """
-make_organisms(species::Type{<:Species},genetics::Genetics,stages::DataStructures.OrderedDict{Type{<:LifeStage}, Stage})
+    make_organisms(species::Type{<:Species},genetics::Genetics,stages::DataStructures.OrderedDict)
+
 Return `Organism` object.
 """
 function make_organisms(
@@ -259,6 +260,86 @@ function update_population_size(stages::DataStructures.OrderedDict, new_popsize:
     return stages
 end
 
+"""
+    update_egg_mortality(stages::DataStructures.OrderedDict, vital_rate::Float64)
+
+Return updated mortality for `Egg` stage. Note: Exclusively applicable to `NoResponse` temperature type.
+"""
+function update_egg_mortality(stages::DataStructures.OrderedDict, vital_rate::Float64)
+    new_stages = deepcopy(stages)
+    return new_stages[Egg].μ_temperature_response = NoResponse(vital_rate)
+end
+
+"""
+    update_egg_duration(stages::DataStructures.OrderedDict, vital_rate::Float64)
+
+Return updated duration for `Egg` stage. Note: Exclusively applicable to `NoResponse` temperature type.
+"""
+function update_egg_duration(stages::DataStructures.OrderedDict, vital_rate::Float64)
+    new_stages = deepcopy(stages)
+    return new_stages[Egg].q_temperature_response = NoResponse(vital_rate)
+end
+
+"""
+    update_larva_mortality(stages::DataStructures.OrderedDict, vital_rate::Float64)
+
+Return updated mortality for `Larva` stage. Note: Exclusively applicable to `NoResponse` temperature type.
+"""
+function update_larva_mortality(stages::DataStructures.OrderedDict, vital_rate::Float64)
+    new_stages = deepcopy(stages)
+    return new_stages[Larva].μ_temperature_response = NoResponse(vital_rate)
+end
+
+"""
+    update_larva_duration(stages::DataStructures.OrderedDict, vital_rate::Float64)
+
+Return updated duration for `Larva` stage. Note: Exclusively applicable to `NoResponse` temperature type.
+"""
+function update_larva_duration(stages::DataStructures.OrderedDict, vital_rate::Float64)
+    new_stages = deepcopy(stages)
+    return new_stages[Larva].q_temperature_response = NoResponse(vital_rate)
+end
+
+"""
+    update_pupa_mortality(stages::DataStructures.OrderedDict, vital_rate::Float64)
+
+Return updated mortality for `Pupa` stage. Note: Exclusively applicable to `NoResponse` temperature type.
+"""
+function update_pupa_mortality(stages::DataStructures.OrderedDict, vital_rate::Float64)
+    new_stages = deepcopy(stages)
+    return new_stages[Pupa].μ_temperature_response = NoResponse(vital_rate)
+end
+
+"""
+    update_pupa_duration(stages::DataStructures.OrderedDict, vital_rate::Float64)
+
+Return updated duration for `Pupa` stage. Note: Exclusively applicable to `NoResponse` temperature type.
+"""
+function update_pupa_duration(stages::DataStructures.OrderedDict, vital_rate::Float64)
+    new_stages = deepcopy(stages)
+    return new_stages[Pupa].q_temperature_response = NoResponse(vital_rate)
+end
+
+"""
+    update_female_mortality(stages::DataStructures.OrderedDict, vital_rate::Float64)
+
+Return updated mortality for `Female` stage. Note: Exclusively applicable to `NoResponse` temperature type.
+"""
+function update_female_mortality(stages::DataStructures.OrderedDict, vital_rate::Float64)
+    new_stages = deepcopy(stages)
+    return new_stages[Female].μ_temperature_response = NoResponse(vital_rate)
+end
+
+"""
+    update_male_mortality(stages::DataStructures.OrderedDict, vital_rate::Float64)
+
+Return updated mortality for `Male` stage. Note: Exclusively applicable to `NoResponse` temperature type.
+"""
+function update_male_mortality(stages::DataStructures.OrderedDict, vital_rate::Float64)
+    new_stages = deepcopy(stages)
+    return new_stages[Male].μ_temperature_response = NoResponse(vital_rate)
+end
+
 ########################################
 #               Duration               #
 ########################################
@@ -373,6 +454,21 @@ function update_density!(
     new_node = deepcopy(node)
     new_node.organisms[species].all_stages[T].density = new_density
     return new_node
+end
+
+"""
+    update_density!(stages::DataStructures.OrderedDict,lifestage::Type{T},new_density::Density) where {T <: LifeStage}
+
+Update both the functional form and parameterization of the density dependence model for `LifeStage`.
+"""
+function update_density!(
+    stages::DataStructures.OrderedDict,
+    stage::Type{T},
+    new_density::Density,
+) where {T <: LifeStage}
+    new_stages = deepcopy(stages)
+    new_stages[stage].density = new_density
+    return new_stages
 end
 
 ########################################
