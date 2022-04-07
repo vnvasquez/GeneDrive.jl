@@ -281,6 +281,9 @@ export update_temperature
 
 # Data
 #####################
+export example_temperature_constant
+export example_temperature_sinusoidal
+export example_temperature_timeseries
 
 export genetics_mcr
 export genetics_mendelian
@@ -289,6 +292,7 @@ export genetics_wolbachia
 
 export stages_abiodun
 export stages_moustaid
+export stages_noresponse
 export stages_rossi
 
 end
