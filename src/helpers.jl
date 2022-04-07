@@ -208,14 +208,6 @@ function solve_dynamic_model(
             push!(tstops, release.times...)
             push!(callbacks, release.callbacks...)
         end
-        #=
-        for shock in shocks
-            for times in shock.times
-                push!(tstops, times...)
-            end
-            push!(callbacks, shock.set.discrete_callbacks...)
-        end
-        =#
         for times in shocks.times
             push!(tstops, times...)
         end
@@ -352,6 +344,133 @@ function solve_dynamic_model(network::Network, releases::Vector, algorithm, tspa
     return sol_net
 end
 
+"""
+    solve_dynamic_model(network::Network, shocks::Vector, algorithm, tspan)
+
+Return ODE model solution for network problem with temperature shocks.
+"""
+function solve_dynamic_model(network::Network, shocks::Vector, algorithm, tspan)
+    @info("No releases specified for any node of the network $(get_name(network)).")
+
+    @info("Temperature shocks specified for the following nodes in the network: ")
+    for shock in shocks
+        println("$(shock.node)")
+    end
+
+    tstops = Vector()
+    callbacks = Vector()
+    collected_callback_set=[]
+
+    for (key, node) in network.nodes 
+        if isa(node.temperature, TimeSeriesTemperature) == true
+            shock_data = zeros(length(node.temperature.values))
+            for (ix, t) in enumerate(tspan[1]:tspan[2])
+                for shock in shocks
+                    for (jx, t_range) in enumerate(shock.times)
+                        if t_range[1] <= t <= t_range[2]
+                            shock_data[ix] = shock.values[jx]
+                        end
+                    end
+                end
+            end
+            tempseries = [TemperatureSeriesData(node, collect(tspan[1]:tspan[2]), 
+            node.temperature.values)]
+            for temp in tempseries
+                push!(tstops, temp.times...)
+                push!(callbacks, temp.set.discrete_callbacks...)
+            end
+            collected_callback_set = diffeq.CallbackSet((), tuple(callbacks...))
+        else 
+            for shock in shocks
+                for times in shock.times
+                    push!(tstops, times...)
+                end
+                push!(callbacks, shock.set.discrete_callbacks...)
+            end
+            collected_callback_set = diffeq.CallbackSet((), tuple(callbacks...))
+        end 
+    end 
+    inputs = ExogenousInputs(network)
+    u0_net, dens_net = init_network!(network) 
+    @info("Simulation initialized. Beginning model run (with temperature shocks) in $(count_nodes(network))-node network $(get_name(network)).")
+
+    prob = diffeq.ODEProblem(population_model_network, u0_net, tspan, (network, inputs))
+    sol_net = diffeq.solve(prob, algorithm, callback = collected_callback_set, tstops = unique!(tstops), reltol=1e-9)
+    @info(" Model run complete.")
+
+    return sol_net
+end
+
+"""
+    solve_dynamic_model(network::Network, releases::Vector, shocks::Vector, algorithm, tspan)
+
+Return ODE model solution for network problem with releases and temperature shocks.
+"""
+function solve_dynamic_model(network::Network, releases::Vector, shocks::Vector, algorithm, tspan)
+    @info("Releases specified for the following nodes in the network: ")
+    for release in releases 
+        println("$(release.node)")
+    end 
+
+    @info("Temperature shocks specified for the following nodes in the network: ")
+    for shock in shocks
+        println("$(shock.node)")
+    end
+
+    tstops = Vector()
+    callbacks = Vector()
+    collected_callback_set=[]
+
+    for (key, node) in network.nodes 
+        if isa(node.temperature, TimeSeriesTemperature) == true
+            shock_data = zeros(length(node.temperature.values))
+            for (ix, t) in enumerate(tspan[1]:tspan[2])
+                for shock in shocks
+                    for (jx, t_range) in enumerate(shock.times)
+                        if t_range[1] <= t <= t_range[2]
+                            shock_data[ix] = shock.values[jx]
+                        end
+                    end
+                end
+            end
+            tempseries = [TemperatureSeriesData(node, collect(tspan[1]:tspan[2]), 
+            node.temperature.values)]
+            for temp in tempseries
+                push!(tstops, temp.times...)
+                push!(callbacks, temp.set.discrete_callbacks...)
+            end
+            for release in releases
+                push!(tstops, release.times...)
+                push!(callbacks, release.callbacks...)
+            end
+            collected_callback_set = diffeq.CallbackSet((), tuple(callbacks...))
+        else 
+            for shock in shocks
+                for times in shock.times
+                    push!(tstops, times...)
+                end
+                push!(callbacks, shock.set.discrete_callbacks...)
+            end
+            for release in releases
+                push!(tstops, release.times...)
+                push!(callbacks, release.callbacks...)
+            end
+            collected_callback_set = diffeq.CallbackSet((), tuple(callbacks...))
+        end 
+    end 
+    inputs = ExogenousInputs(network)
+    u0_net, dens_net = init_network!(network) 
+    @info("Simulation initialized. Beginning model run (with releases and temperature shocks) in $(count_nodes(network))-node network $(get_name(network)).")
+
+    prob = diffeq.ODEProblem(population_model_network, u0_net, tspan, (network, inputs))
+    sol_net = diffeq.solve(prob, algorithm, callback = collected_callback_set, tstops = unique!(tstops), reltol=1e-9)
+    @info(" Model run complete.")
+
+    return sol_net
+end
+
+
+
 ########################################
 #        Format Dynamic Results        #
 ########################################
@@ -365,83 +484,6 @@ function _count_substages(node::Node, species::Type{<:Species}, stage::Type{Fema
     gN = count_genotypes(node, species)
 
     return substages * gN
-end
-
-"""
-    format_dynamic_model_results(network::Network, sol)
-
-Return dictionary containing ODE model results. Indexed per node, organism, life stage, and genotype.
-"""
-function format_dynamic_model_results(network::Network, sol)
-    timesteps = length(sol.t)
-    results = Dict{String, Dict{String, Dict{String, Dict{String, Matrix{Float64}}}}}()
-
-    for (index, node) in enumerate(values(network.nodes))
-        node_key = "$(get_name(node))"
-        results[node_key] = Dict{String, Dict{String, Dict{String, Matrix{Float64}}}}()
-        organisms = get_organisms(node)
-        gN = count_genotypes(node, get_organisms(node)[1])
-
-        for (index, org) in enumerate(organisms)
-            org_key = "$(org)"
-            results[node_key][org_key] = Dict{String, Dict{String, Matrix{Float64}}}()
-
-            stages = get_lifestages(node, org)
-            genotypes = get_genotypes(node, org)
-
-            for (index, stage) in enumerate(keys(stages))
-                stage_key = "$(stage)"
-                sN = _count_substages(node, org, stage)
-                results[node_key][org_key][stage_key] = Dict{String, Matrix{Float64}}()
-
-                for gene in genotypes
-                    gene_key = "$(gene.genotype)"
-                    results[node_key][org_key][stage_key][gene_key] =
-                        zeros(Float64, sN, timesteps)
-                end
-            end
-        end
-    end
-
-    for t in 1:(timesteps - 1)
-        for (index, node) in enumerate(values(network.nodes))
-            node_index = index
-            node_key = "$(get_name(node))"
-
-            for (index, org) in enumerate(keys(organisms))
-                sN_ = 1
-                org_index = index
-                org_key = "$(org)"
-                mat = sol.u[t].x[node_index].x[org_index]
-
-                genotypes = get_genotypes(node, org)
-                stages = get_lifestages(node, org)
-
-                for (index, stage) in enumerate(keys(stages))
-                    stage_index = index
-                    stage_key = "$(stage)"
-                    sN = _count_substages(node, org, stage)
-
-                    for (index, gene) in enumerate(genotypes)
-                        gene_index = index
-                        gene_key = "$(gene.genotype)"
-                        range = sN_:(sN_ + sN - 1)
-
-                        if stage_key != "Female"
-                            values = mat[range, gene_index]
-                        else
-                            values = transpose(mat[range, gene_index])
-                        end
-
-                        results[node_key][org_key][stage_key][gene_key][1:sN, t] = values
-                    end
-
-                    sN_ += sN
-                end
-            end
-        end
-    end
-    return results
 end
 
 """
@@ -508,6 +550,84 @@ function format_dynamic_model_results(node::Node, sol)
                 end
 
                 sN_ += sN
+            end
+        end
+    end
+    return results
+end
+
+"""
+    format_dynamic_model_results(network::Network, sol)
+
+Return dictionary containing ODE model results. Indexed per node, organism, life stage, and genotype.
+"""
+function format_dynamic_model_results(network::Network, sol)
+    timesteps = length(sol.t)
+    results = Dict{String, Dict{String, Dict{String, Dict{String, Matrix{Float64}}}}}()
+
+    for (index, node) in enumerate(values(network.nodes))
+        node_key = "$(get_name(node))"
+        results[node_key] = Dict{String, Dict{String, Dict{String, Matrix{Float64}}}}()
+        organisms = get_organisms(node)
+        gN = count_genotypes(node, get_organisms(node)[1])
+
+        for (index, org) in enumerate(organisms)
+            org_key = "$(org)"
+            results[node_key][org_key] = Dict{String, Dict{String, Matrix{Float64}}}()
+
+            stages = get_lifestages(node, org)
+            genotypes = get_genotypes(node, org)
+
+            for (index, stage) in enumerate(keys(stages))
+                stage_key = "$(stage)"
+                sN = _count_substages(node, org, stage)
+                results[node_key][org_key][stage_key] = Dict{String, Matrix{Float64}}()
+
+                for gene in genotypes
+                    gene_key = "$(gene.genotype)"
+                    results[node_key][org_key][stage_key][gene_key] =
+                        zeros(Float64, sN, timesteps)
+                end
+            end
+        end
+    end
+
+    for t in 1:(timesteps - 1)
+        for (index, node) in enumerate(values(network.nodes))
+            node_index = index
+            node_key = "$(get_name(node))"
+            organisms = get_organisms(node)
+
+            for (index, org) in enumerate(organisms)#enumerate(keys(organisms))
+                sN_ = 1
+                org_index = index
+                org_key = "$(org)"
+                mat = sol.u[t].x[node_index].x[org_index]
+
+                genotypes = get_genotypes(node, org)
+                stages = get_lifestages(node, org)
+
+                for (index, stage) in enumerate(keys(stages))
+                    stage_index = index
+                    stage_key = "$(stage)"
+                    sN = _count_substages(node, org, stage)
+
+                    for (index, gene) in enumerate(genotypes)
+                        gene_index = index
+                        gene_key = "$(gene.genotype)"
+                        range = sN_:(sN_ + sN - 1)
+
+                        if stage_key != "Female"
+                            values = mat[range, gene_index]
+                        else
+                            values = transpose(mat[range, gene_index])
+                        end
+
+                        results[node_key][org_key][stage_key][gene_key][1:sN, t] = values
+                    end
+
+                    sN_ += sN
+                end
             end
         end
     end
