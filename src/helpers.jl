@@ -359,9 +359,9 @@ function solve_dynamic_model(network::Network, shocks::Vector, algorithm, tspan)
 
     tstops = Vector()
     callbacks = Vector()
-    collected_callback_set=[]
+    collected_callback_set = []
 
-    for (key, node) in network.nodes 
+    for (key, node) in network.nodes
         if isa(node.temperature, TimeSeriesTemperature) == true
             shock_data = zeros(length(node.temperature.values))
             for (ix, t) in enumerate(tspan[1]:tspan[2])
@@ -373,14 +373,19 @@ function solve_dynamic_model(network::Network, shocks::Vector, algorithm, tspan)
                     end
                 end
             end
-            tempseries = [TemperatureSeriesData(node, collect(tspan[1]:tspan[2]), 
-            node.temperature.values)]
+            tempseries = [
+                TemperatureSeriesData(
+                    node,
+                    collect(tspan[1]:tspan[2]),
+                    node.temperature.values,
+                ),
+            ]
             for temp in tempseries
                 push!(tstops, temp.times...)
                 push!(callbacks, temp.set.discrete_callbacks...)
             end
             collected_callback_set = diffeq.CallbackSet((), tuple(callbacks...))
-        else 
+        else
             for shock in shocks
                 for times in shock.times
                     push!(tstops, times...)
@@ -388,14 +393,22 @@ function solve_dynamic_model(network::Network, shocks::Vector, algorithm, tspan)
                 push!(callbacks, shock.set.discrete_callbacks...)
             end
             collected_callback_set = diffeq.CallbackSet((), tuple(callbacks...))
-        end 
-    end 
+        end
+    end
     inputs = ExogenousInputs(network)
-    u0_net, dens_net = init_network!(network) 
-    @info("Simulation initialized. Beginning model run (with temperature shocks) in $(count_nodes(network))-node network $(get_name(network)).")
+    u0_net, dens_net = init_network!(network)
+    @info(
+        "Simulation initialized. Beginning model run (with temperature shocks) in $(count_nodes(network))-node network $(get_name(network))."
+    )
 
     prob = diffeq.ODEProblem(population_model_network, u0_net, tspan, (network, inputs))
-    sol_net = diffeq.solve(prob, algorithm, callback = collected_callback_set, tstops = unique!(tstops), reltol=1e-9)
+    sol_net = diffeq.solve(
+        prob,
+        algorithm,
+        callback=collected_callback_set,
+        tstops=unique!(tstops),
+        reltol=1e-9,
+    )
     @info(" Model run complete.")
 
     return sol_net
@@ -406,11 +419,17 @@ end
 
 Return ODE model solution for network problem with releases and temperature shocks.
 """
-function solve_dynamic_model(network::Network, releases::Vector, shocks::Vector, algorithm, tspan)
+function solve_dynamic_model(
+    network::Network,
+    releases::Vector,
+    shocks::Vector,
+    algorithm,
+    tspan,
+)
     @info("Releases specified for the following nodes in the network: ")
-    for release in releases 
+    for release in releases
         println("$(release.node)")
-    end 
+    end
 
     @info("Temperature shocks specified for the following nodes in the network: ")
     for shock in shocks
@@ -419,9 +438,9 @@ function solve_dynamic_model(network::Network, releases::Vector, shocks::Vector,
 
     tstops = Vector()
     callbacks = Vector()
-    collected_callback_set=[]
+    collected_callback_set = []
 
-    for (key, node) in network.nodes 
+    for (key, node) in network.nodes
         if isa(node.temperature, TimeSeriesTemperature) == true
             shock_data = zeros(length(node.temperature.values))
             for (ix, t) in enumerate(tspan[1]:tspan[2])
@@ -433,8 +452,13 @@ function solve_dynamic_model(network::Network, releases::Vector, shocks::Vector,
                     end
                 end
             end
-            tempseries = [TemperatureSeriesData(node, collect(tspan[1]:tspan[2]), 
-            node.temperature.values)]
+            tempseries = [
+                TemperatureSeriesData(
+                    node,
+                    collect(tspan[1]:tspan[2]),
+                    node.temperature.values,
+                ),
+            ]
             for temp in tempseries
                 push!(tstops, temp.times...)
                 push!(callbacks, temp.set.discrete_callbacks...)
@@ -444,7 +468,7 @@ function solve_dynamic_model(network::Network, releases::Vector, shocks::Vector,
                 push!(callbacks, release.callbacks...)
             end
             collected_callback_set = diffeq.CallbackSet((), tuple(callbacks...))
-        else 
+        else
             for shock in shocks
                 for times in shock.times
                     push!(tstops, times...)
@@ -456,20 +480,26 @@ function solve_dynamic_model(network::Network, releases::Vector, shocks::Vector,
                 push!(callbacks, release.callbacks...)
             end
             collected_callback_set = diffeq.CallbackSet((), tuple(callbacks...))
-        end 
-    end 
+        end
+    end
     inputs = ExogenousInputs(network)
-    u0_net, dens_net = init_network!(network) 
-    @info("Simulation initialized. Beginning model run (with releases and temperature shocks) in $(count_nodes(network))-node network $(get_name(network)).")
+    u0_net, dens_net = init_network!(network)
+    @info(
+        "Simulation initialized. Beginning model run (with releases and temperature shocks) in $(count_nodes(network))-node network $(get_name(network))."
+    )
 
     prob = diffeq.ODEProblem(population_model_network, u0_net, tspan, (network, inputs))
-    sol_net = diffeq.solve(prob, algorithm, callback = collected_callback_set, tstops = unique!(tstops), reltol=1e-9)
+    sol_net = diffeq.solve(
+        prob,
+        algorithm,
+        callback=collected_callback_set,
+        tstops=unique!(tstops),
+        reltol=1e-9,
+    )
     @info(" Model run complete.")
 
     return sol_net
 end
-
-
 
 ########################################
 #        Format Dynamic Results        #
