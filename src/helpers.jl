@@ -718,11 +718,11 @@ end
 ########################################
 
 """
-    plot_mendelian_females(node::Node, sol)
+    plot_dynamic_mendelian_females(node::Node, sol)
 
 Return visualization of adult female population dynamics across all genotypes.
 """
-function plot_mendelian_females(node::Node, sol)
+function plot_dynamic_mendelian_females(node::Node, sol)
     results = format_dynamic_model_results(node, sol)
 
     mendelian_base_F_1 =
@@ -810,11 +810,11 @@ function plot_mendelian_females(node::Node, sol)
 end
 
 """
-    plot_wolbachia_females(node::Node, sol)
+    plot_dynamic_wolbachia_females(node::Node, sol)
 
 Return visualization of adult female population dynamics across all genotypes.
 """
-function plot_wolbachia_females(node::Node, sol)
+function plot_dynamic_wolbachia_females(node::Node, sol)
     results = format_dynamic_model_results(node, sol)
 
     wolbachia_base_F_1 =
@@ -878,11 +878,11 @@ function plot_wolbachia_females(node::Node, sol)
 end
 
 """
-    plot_ridl_females(node::Node, sol)
+    plot_dynamic_ridl_females(node::Node, sol)
 
 Return visualization of adult female population dynamics across all genotypes.
 """
-function plot_ridl_females(node::Node, sol)
+function plot_dynamic_ridl_females(node::Node, sol)
     results = format_dynamic_model_results(node, sol)
 
     ridl_base_F_1 =
@@ -937,6 +937,85 @@ function plot_ridl_females(node::Node, sol)
             name="RR",
             x=timesteps,
             y=ridl_base_F_3[1:(end - 1)],
+            mode="lines",
+            line_shape="linear",
+            line_color="green",
+            fillcolor="transparent",
+            line_width=2,
+            line_dash="dot",
+        ),
+    )
+    p = PlotlyJS.plot(
+        traces,
+        PlotlyJS.Layout(
+            title=attr(text="Females", x=0.5, xanchor="center"),
+            xaxis_title="Time [Days]",
+            yaxis_title="Population [Count]",
+            width=800,
+            height=450,
+            font_size=12,
+            fillcolor="transparent",
+            xaxis=PlotlyJS.attr(tickfont_size=14),
+            yaxis=PlotlyJS.attr(tickfont_size=14),
+            legend=PlotlyJS.attr(
+                yanchor="bottom",
+                y=-0.3,
+                xanchor="center",
+                x=0.5,
+                orientation="h",
+                font_size=11.2,
+            ),
+        ),
+    )
+end
+
+"""
+    plot_decision_ridl_females(sol)
+
+Return visualization of adult female population dynamics across all genotypes.
+"""
+function plot_decision_ridl_females(sol)
+    results = format_decision_model_results(sol)
+
+    df = results[:node_1_organism_1_F]
+
+    timesteps = sol.t[1:(end - 1)]
+
+    traces = PlotlyJS.GenericTrace{Dict{Symbol, Any}}[]
+    push!(
+        traces,
+        PlotlyJS.scatter(;
+            name="WW",
+            x=timesteps,
+            y=df.F_G1,
+            mode="lines",
+            line_shape="linear",
+            line_color="green",
+            fillcolor="transparent",
+            line_width=2,
+        ),
+    )
+    push!(
+        traces,
+        PlotlyJS.scatter(;
+            name="WR",
+            x=timesteps,
+            y=df.F_G2,
+            mode="lines",
+            line_shape="linear",
+            line_color="green",
+            fillcolor="transparent",
+            line_width=2,
+            line_dash="dashdot",
+        ),
+    )
+
+    push!(
+        traces,
+        PlotlyJS.scatter(;
+            name="RR",
+            x=timesteps,
+            y=df.F_G3,
             mode="lines",
             line_shape="linear",
             line_color="green",

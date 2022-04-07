@@ -238,9 +238,11 @@ export init_network!
 
 export make_organisms
 
-export plot_mendelian_females
-export plot_ridl_females
-export plot_wolbachia_females
+export plot_decision_ridl_females
+
+export plot_dynamic_mendelian_females
+export plot_dynamic_ridl_females
+export plot_dynamic_wolbachia_females
 
 export population_model_node
 export population_model_network
