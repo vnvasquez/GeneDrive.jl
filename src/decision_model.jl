@@ -2,18 +2,12 @@
 #                                  Create Model                                 #
 ################################################################################
 
-
-##################
-# Solver(s) default
-##################
-function create_default_solvers(do_binary::Bool)
-    ipopt_def = JuMP.optimizer_with_attributes(
-        Ipopt.Optimizer
-    )
+function _create_default_solvers(do_binary::Bool)
+    ipopt_def = JuMP.optimizer_with_attributes(Ipopt.Optimizer)
 
     if !do_binary
-        return ipopt_def 
-    end 
+        return ipopt_def
+    end
 
     i = JuMP.optimizer_with_attributes(
         Juniper.Optimizer,
@@ -21,13 +15,11 @@ function create_default_solvers(do_binary::Bool)
         "mip_solver" => JuMP.optimizer_with_attributes(Cbc.Optimizer),
     )
 
-    return i 
-end 
-
-
+    return i
+end
 
 """
-    create_decision_model(network::Network, tspan; node_strategy::Dict, do_binary::Bool=false)
+    create_decision_model(network::Network, tspan; node_strategy::Dict, do_binary::Bool=false, optimizer=nothing)
 
 Build mathematical program. Problem created as an NLP (do_binary=false) or MINLP (do_binary=true).
 """
@@ -36,7 +28,7 @@ function create_decision_model(
     tspan;
     node_strategy::Dict,
     do_binary::Bool=false,
-    optimizer=nothing 
+    optimizer=nothing,
 )
     for (key_node, node) in enumerate(values(get_nodes(network)))
         if length(collect(tspan[1]:tspan[2])) !== length(node.temperature.values)
@@ -54,10 +46,10 @@ function create_decision_model(
     ##################  
     # Solver
     ##################
-    i = optimizer === nothing ? create_default_solvers(do_binary) : optimizer 
+    i = optimizer === nothing ? _create_default_solvers(do_binary) : optimizer
 
     ##################
-    #  Model Creation
+    # Model Creation
     ##################
     if do_binary
         model = JuMP.Model(i)
