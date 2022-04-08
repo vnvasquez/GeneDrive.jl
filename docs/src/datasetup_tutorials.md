@@ -73,7 +73,7 @@ migration_data = Dict( # node1 <-> node2
 );
 
 # Add migration to the network object 
-assign_migration!(network2, migration_data, species);
+assign_migration!(network, migration_data, species);
 ```
 
 For a graphical depiction of the `GeneDrive.jl` data model, see the [Features](@ref features) section of the documentation. 
