@@ -48,11 +48,11 @@ function solve_dynamic_model(node::Node, algorithm, tspan)
 end
 
 """
-    solve_dynamic_model(node::Node, releases::Vector, algorithm, tspan)
+    solve_dynamic_model(node::Node, releases::Vector{Release}, algorithm, tspan)
 
 Return ODE model solution for single node problem with releases.
 """
-function solve_dynamic_model(node::Node, releases::Vector, algorithm, tspan)
+function solve_dynamic_model(node::Node, releases::Vector{Release}, algorithm, tspan)
     tstops = Vector()
     callbacks = Vector()
     collected_callback_set = []
@@ -163,7 +163,7 @@ function solve_dynamic_model(node::Node, shocks::TemperatureShockData, algorithm
 end
 
 """
-    solve_dynamic_model(node::Node, releases::Vector, shocks::TemperatureShockData, algorithm, tspan)
+    solve_dynamic_model(node::Node, releases::Vector{Release}, shocks::TemperatureShockData, algorithm, tspan)
 
 Return ODE model solution for single node problem with releases and temperature shocks.
 """
@@ -283,11 +283,11 @@ function solve_dynamic_model(network::Network, algorithm, tspan)
 end
 
 """
-    solve_dynamic_model(network::Network, releases::Vector, algorithm, tspan)
+    solve_dynamic_model(network::Network, releases::Vector{Release}, algorithm, tspan)
 
 Return ODE model solution for network problem with releases.
 """
-function solve_dynamic_model(network::Network, releases::Vector, algorithm, tspan)
+function solve_dynamic_model(network::Network, releases::Vector{Release}, algorithm, tspan)
     @info("Releases specified for the following nodes in the network: ")
     for release in releases
         println("$(release.node)")
@@ -345,11 +345,11 @@ function solve_dynamic_model(network::Network, releases::Vector, algorithm, tspa
 end
 
 """
-    solve_dynamic_model(network::Network, shocks::Vector, algorithm, tspan)
+    solve_dynamic_model(network::Network, shocks::Vector{TemperatureShockData}, algorithm, tspan)
 
 Return ODE model solution for network problem with temperature shocks.
 """
-function solve_dynamic_model(network::Network, shocks::Vector, algorithm, tspan)
+function solve_dynamic_model(network::Network, shocks::Vector{TemperatureShockData}, algorithm, tspan)
     @info("No releases specified for any node of the network $(get_name(network)).")
 
     @info("Temperature shocks specified for the following nodes in the network: ")
@@ -415,14 +415,14 @@ function solve_dynamic_model(network::Network, shocks::Vector, algorithm, tspan)
 end
 
 """
-    solve_dynamic_model(network::Network, releases::Vector, shocks::Vector, algorithm, tspan)
+    solve_dynamic_model(network::Network, releases::Vector{Release}, shocks::Vector{TemperatureShockData}, algorithm, tspan)
 
 Return ODE model solution for network problem with releases and temperature shocks.
 """
 function solve_dynamic_model(
     network::Network,
     releases::Vector,
-    shocks::Vector,
+    shocks::Vector{TemperatureShockData},
     algorithm,
     tspan,
 )
@@ -681,10 +681,10 @@ function format_decision_model_results(sol)
             continue
         end
 
-        if eltype(var_val) == VariableRef
+        if eltype(var_val) == JuMP.VariableRef
             for n in axes(var_val)[1]
                 for o in axes(var_val)[2]
-                    df = DataFrame()
+                    df = DataFrames.DataFrame()
                     if length(axes(var_val)) == 5
                         for g in axes(var_val[n, o, :, :, :])[2]
                             col_symbol = Symbol(var_key, "_G$(g)")
