@@ -49,7 +49,7 @@ function create_decision_model(
     i = optimizer === nothing ? _create_default_solvers(do_binary) : optimizer
 
     ##################
-    # Model Creation
+    # Model
     ##################
     if do_binary
         model = JuMP.Model(i)

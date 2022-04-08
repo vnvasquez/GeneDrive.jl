@@ -13,7 +13,7 @@ import RecursiveArrayTools
 
 import JuMP
 import Ipopt
-import Cbc # import Gurobi
+import Cbc
 import Juniper
 
 # Files
