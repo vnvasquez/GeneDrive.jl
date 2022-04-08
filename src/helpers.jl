@@ -690,11 +690,11 @@ function format_decision_model_results(sol)
                             col_symbol = Symbol(var_key, "_G$(g)")
                             if occursin("F", String(var_key))
                                 df[!, col_symbol] =
-                                    sum(value.(var_val[n, o, g, :, :]).data, dims=1)[1, :]
+                                    sum(JuMP.value.(var_val[n, o, g, :, :]).data, dims=1)[1, :]
                                 continue
                             end
                             df[!, col_symbol] =
-                                sum(value.(var_val[n, o, :, g, :]).data, dims=1)[1, :]
+                                sum(JuMP.value.(var_val[n, o, :, g, :]).data, dims=1)[1, :]
                         end
                     end
                     if length(axes(var_val)) == 4

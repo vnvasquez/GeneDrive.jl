@@ -20,6 +20,6 @@ const genetics_key_map = Dict(
     # end RIDL (total = WW, WR, RR)
     "AA" => AA,
     "Aa" => Aa,
-    "aa" => aa
+    "aa" => aa,
     # end Mendelian 
 )

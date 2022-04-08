@@ -15,6 +15,7 @@ import JuMP
 import Ipopt
 import Cbc
 import Juniper
+import DataFrames
 
 # Files
 #####################
