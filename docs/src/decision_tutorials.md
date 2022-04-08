@@ -11,9 +11,23 @@ To set up the decision model, it is necessary to define an additional component 
 julia> ? 
 help?> ReleaseStrategy
 ```
-
 Biological constraints are pre-defined within the decision model. For brevity, we will specify our example operational constraints on top of the `node3` data model created previously. 
-```@example
+``` @setup decision_example
+using GeneDrive
+
+species = AedesAegypti 
+genetics = genetics_ridl()
+enviro_response = stages_rossi()
+update_population_size(enviro_response, 500)
+organisms = make_organisms(species, genetics, enviro_response)
+temperature = example_temperature_timeseries
+coordinates3 = (16.9203, 145.7710)
+node3 = Node(:Cairns, organisms, temperature, coordinates3)
+release_genotype = get_homozygous_modified(node3, species)
+tspan = (1,365);
+```
+
+```@example decision_example
 # Define constraints using desired fields (re-use `release_genotype`)
 node3_strategy = ReleaseStrategy(release_this_gene_index = release_genotype, 
     release_this_life_stage = Male, release_start_time = 7, 
@@ -27,14 +41,11 @@ prob = create_decision_model(node3, tspan; node_strategy = mystrategy);
 ```
 
 To solve the decision model as an optimization, a goal (objective) must be supplied. However, even in the absence of an objective function we can derive useful information: without an objective, the solution method auto-selected by `GeneDrive.jl` acts as a nonlinear solver and allows us to compare the behavior of our dynamic and decision models. 
-```@example 
+```@example decision_example
 # Solve 
 sol = solve_decision_model(prob);
 
-# Format all results
+# Format all results for analysis 
 results = format_decision_model_results(sol);
-
-# Visualize subset of results 
-plot_decision_ridl_females(sol) 
 ```
-
+To visualize a subset of the results, run `plot_decision_ridl_females(sol)`. Because no objective function was specified, this output should qualitatively match those from the dynamic model when no intervention is conducted (i.e. when using the same data model, and no RIDL release object is passed to `solve_dynamic_model`).  

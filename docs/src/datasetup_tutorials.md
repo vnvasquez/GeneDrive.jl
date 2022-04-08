@@ -15,7 +15,7 @@ Once the information for an experiment has been organized using the data model, 
 
 The code below shows how to construct an example study population using data that is included with the package. 
 
-```@example 
+```@example data_example
 using GeneDrive
 
 # Select species type 
@@ -36,7 +36,7 @@ organisms = make_organisms(species, genetics, enviro_response);
 
 To fully define an experiment, additional information is relevant: the spatial structure of the population, the ambient temperature of the habitat, and its geographic location should also be defined. The code below demonstrates how to do this; as above, it draws on pre-structured data from `GeneDrive.jl`.
 
-```@example 
+```@example data_example
 # Define temperature functional form and data 
 temperature = example_temperature_timeseries;
 
@@ -48,7 +48,7 @@ node1 = Node(:YorkeysKnob, organisms, temperature, coordinates);
 ```
 
 If the desired spatial structure is a network, we must also define migration rates for subsets of the population that move from node to node within that network. Migration is defined as a nested dictionary wherein the rate at which each genotype and lifestage moves between locations can be optionally specified. When migration rates are not defined for adjacent nodes or specific life stages (e.g., eggs) and genotypes, the default rate is set to zero.
-```@example 
+```@example data_example
 # Define a second node 
 coordinates2 = (17.0966, 145.7747);
 node2 = Node(:Gordonsvale, organisms, temperature, coordinates2);
