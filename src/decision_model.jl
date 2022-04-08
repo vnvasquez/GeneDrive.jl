@@ -51,13 +51,7 @@ function create_decision_model(
     ##################
     # Model
     ##################
-    if do_binary
-        model = JuMP.Model(i)
-        @info(@info("Ensure that the solver(s) being called are installed: $(i)"))
-    else
-        model = JuMP.Model(ipopt_def)
-        @info("Ensure that the solver(s) being called are installed: $(ipopt_def)")
-    end
+    model = JuMP.Model(i)
 
     ##################
     # Parameters
@@ -529,6 +523,22 @@ function create_decision_model(
     )
 
     return model
+end
+
+"""
+    create_decision_model(node::Node, tspan; node_strategy::Dict, do_binary::Bool=false, optimizer=nothing)
+
+Build mathematical program. Problem created as an NLP (do_binary=false) or MINLP (do_binary=true). NB: `Node` is recreated as a `Network` object internally; this does not change the problem but is relevant for data exploration as it adds one index layer to the formatted results.
+"""
+function create_decision_model(
+    node::Node,
+    tspan;
+    node_strategy::Dict,
+    do_binary::Bool=false,
+)
+    node_name = get_name(node)
+    network = Network(node_name, node)
+    return create_decision_model(network, tspan; node_strategy, do_binary)
 end
 
 ################################################################################
