@@ -148,7 +148,7 @@ Data for biological control interventions predicated on releasing modified organ
   - `organism::Type{<:Species}`: Species of organism being released.
   - `stage::Type{<:LifeStage}`: `Life stage` of organism being released.
   - `gene_index::Int64`: Genotype being released to implement the intervention.
-  - `times::Vector{Float64}`: Release start/stop time points. Multiple sets of start/stop points with variable intervals permitted.
+  - `times::Vector{Float64}`: Release time points. 
   - `values::Vector{Float64}`: Number of modified organisms released during each time period. Variably sized releases permitted.
   - `callbacks::Vector`
 """
@@ -245,23 +245,23 @@ end
         stage::Type{<:LifeStage}
         gene_index::Int64
         times::Vector{Float64}
-        values::Vector{Float64}
+        proportion::Float64
         callbacks::Vector
         adults_counting::String
     end
 
-Data for biological control interventions predicated on releasing modified organisms. Applicable to both suppression and replacement techniques.
+Data for biological control interventions predicated on releasing modified organisms.
 
 # Arguments
 
   - `node::Symbol`: `Node` where releases occur.
   - `organism::Type{<:Species}`: Species of organism being released.
-  - `stage::Type{<:LifeStage}`: `Life stage` of organism being released.
+  - `stage::Type{<:LifeStage}`: `LifeStage` of organism being released.
   - `gene_index::Int64`: Genotype being released to implement the intervention.
-  - `times::Vector{Float64}`: Release start/stop time points. Multiple sets of start/stop points with variable intervals permitted.
-  - `values::Vector{Float64}`: Number of modified organisms released during each time period. Variably sized releases permitted.
+  - `times::Vector{Float64}`: Release time points. 
+  - `proportion::Float64`: Proportion of modified organisms released during each time period. 
   - `callbacks::Vector`
-  - `adults_to_count::String`: The population against which to measure proportional release size. Choices include `Male`, `Female`, or `All`.
+  - `adults_to_count::String`: The `LifeStage` of the standing population against which to measure proportional release size. Choices include `Male`, `Female`, or `All`.
 """
 mutable struct ProportionalRelease <: Intervention
     node::Symbol
@@ -299,7 +299,7 @@ function ProportionalRelease(
     stage::Type{T},
     gene,
     times::Vector,
-    release::Float64,
+    proportion::Float64,
     adult_counting::String,
 ) where {T <: LifeStage}
     callbacks = Vector()
@@ -311,7 +311,7 @@ function ProportionalRelease(
             organism,
             stage,
             gene,
-            release,
+            proportion,
             _get_adult_map(adult_counting),
         )
         push!(callbacks, diffeq.DiscreteCallback(condition_start, affect_start))
@@ -327,14 +327,14 @@ function ProportionalRelease(
         stage,
         gene,
         vcat(times, stop_times),
-        release,
+        proportion,
         callbacks,
         adult_counting,
     )
 end
 
 function release_value(current_size, value)
-    return clamp(current_size * value, 10, 100000)
+    return clamp(current_size * value, 0.01, 100000)
 end
 
 function get_effect_intervention_proportional(
