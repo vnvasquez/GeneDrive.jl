@@ -47,7 +47,7 @@ coordinates = (16.1820, 145.7210);
 node1 = Node(:YorkeysKnob, organisms, temperature, coordinates);
 ```
 
-If the desired spatial structure is a network, we must also define migration rates for subsets of the population that move from node to node within that network. Migration is defined as a nested dictionary wherein the rate at which each genotype and lifestage moves between locations can be optionally specified. When migration rates are not defined for adjacent nodes or specific life stages (e.g., eggs) and genotypes, the default rate is set to zero.
+If the desired spatial structure is a network, we must also define migration rates for subsets of the population that move from node to node within that network. [Migration](id migration) is defined as a nested dictionary wherein the rate at which each genotype and lifestage moves between locations can be optionally specified. When migration rates are not defined for adjacent nodes or specific life stages (e.g., eggs) and genotypes, the default rate is set to zero.
 ```@example data_example
 # Define a second node 
 coordinates2 = (17.0966, 145.7747);
@@ -75,5 +75,3 @@ migration_data = Dict( # node1 <-> node2
 # Add migration to the network object 
 assign_migration!(network, migration_data, species);
 ```
-
-For a graphical depiction of the `GeneDrive.jl` data model, see the [Features](@ref features) section of the documentation. 
