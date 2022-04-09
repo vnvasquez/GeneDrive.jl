@@ -17,4 +17,12 @@ makedocs(;
     ],
 )
 
-deploydocs(; repo="github.com/vnvasquez/GeneDrive.jl")
+deploydocs(
+    repo = "github.com/vnvasquez/GeneDrive.jl",
+    target = "build",
+    branch = "gh-pages",
+    devbranch = "main",
+    devurl = "dev",
+    push_preview=true,
+    versions = ["stable" => "v^", "v#.#"],
+)
