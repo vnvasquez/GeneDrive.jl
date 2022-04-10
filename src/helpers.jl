@@ -52,7 +52,12 @@ end
 
 Return ODE model solution for single node problem with releases.
 """
-function solve_dynamic_model(node::Node, releases::Union{Vector{Release},Vector{ProportionalRelease}}, algorithm, tspan)
+function solve_dynamic_model(
+    node::Node,
+    releases::Union{Vector{Release}, Vector{ProportionalRelease}},
+    algorithm,
+    tspan,
+)
     tstops = Vector()
     callbacks = Vector()
     collected_callback_set = []
@@ -169,7 +174,7 @@ Return ODE model solution for single node problem with releases and temperature 
 """
 function solve_dynamic_model(
     node::Node,
-    releases::Union{Vector{Release},Vector{ProportionalRelease}},
+    releases::Union{Vector{Release}, Vector{ProportionalRelease}},
     shocks::TemperatureShockData,
     algorithm,
     tspan,
@@ -287,7 +292,12 @@ end
 
 Return ODE model solution for network problem with releases.
 """
-function solve_dynamic_model(network::Network, releases::Union{Vector{Release},Vector{ProportionalRelease}}, algorithm, tspan)
+function solve_dynamic_model(
+    network::Network,
+    releases::Union{Vector{Release}, Vector{ProportionalRelease}},
+    algorithm,
+    tspan,
+)
     @info("Releases specified for the following nodes in the network: ")
     for release in releases
         println("$(release.node)")
@@ -349,7 +359,12 @@ end
 
 Return ODE model solution for network problem with temperature shocks.
 """
-function solve_dynamic_model(network::Network, shocks::Vector{TemperatureShockData}, algorithm, tspan)
+function solve_dynamic_model(
+    network::Network,
+    shocks::Vector{TemperatureShockData},
+    algorithm,
+    tspan,
+)
     @info("No releases specified for any node of the network $(get_name(network)).")
 
     @info("Temperature shocks specified for the following nodes in the network: ")
@@ -421,7 +436,7 @@ Return ODE model solution for network problem with releases and temperature shoc
 """
 function solve_dynamic_model(
     network::Network,
-    releases::Union{Vector{Release},Vector{ProportionalRelease}},
+    releases::Union{Vector{Release}, Vector{ProportionalRelease}},
     shocks::Vector{TemperatureShockData},
     algorithm,
     tspan,
@@ -690,7 +705,10 @@ function format_decision_model_results(sol)
                             col_symbol = Symbol(var_key, "_G$(g)")
                             if occursin("F", String(var_key))
                                 df[!, col_symbol] =
-                                    sum(JuMP.value.(var_val[n, o, g, :, :]).data, dims=1)[1, :]
+                                    sum(JuMP.value.(var_val[n, o, g, :, :]).data, dims=1)[
+                                        1,
+                                        :,
+                                    ]
                                 continue
                             end
                             df[!, col_symbol] =
