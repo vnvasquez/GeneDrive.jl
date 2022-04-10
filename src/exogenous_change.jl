@@ -148,8 +148,8 @@ Data for biological control interventions predicated on releasing modified organ
   - `organism::Type{<:Species}`: Species of organism being released.
   - `stage::Type{<:LifeStage}`: `Life stage` of organism being released.
   - `gene_index::Int64`: Genotype being released to implement the intervention.
-  - `times::Vector{Float64}`: Release time points. 
-  - `values::Vector{Float64}`: Number of modified organisms released during each time period. Variably sized releases permitted.
+  - `times::Vector{Float64}`: Release time points.
+  - `values::Union{Float64, Vector{Float64}}`: Number of modified organisms released during each time period. Variably sized releases permitted.
   - `callbacks::Vector`
 """
 mutable struct Release <: Intervention
@@ -258,8 +258,8 @@ Data for biological control interventions predicated on releasing modified organ
   - `organism::Type{<:Species}`: Species of organism being released.
   - `stage::Type{<:LifeStage}`: `LifeStage` of organism being released.
   - `gene_index::Int64`: Genotype being released to implement the intervention.
-  - `times::Vector{Float64}`: Release time points. 
-  - `proportion::Float64`: Proportion of modified organisms released during each time period. 
+  - `times::Vector{Float64}`: Release time points.
+  - `proportion::Float64`: Proportion of modified organisms released during each time period.
   - `callbacks::Vector`
   - `adults_to_count::String`: The `LifeStage` of the standing population against which to measure proportional release size. Choices include `Male`, `Female`, or `All`.
 """
@@ -289,7 +289,7 @@ function _get_adult_map(counting_string)
 end
 
 """
-    ProportionalRelease(node::Node, organism, stage::Type{T}, gene, times::Vector, release::Float64, adult_counting::String) where T <: LifeStage
+    ProportionalRelease(node::Node, organism, stage::Type{T}, gene_index, times::Vector, proportion::Float64, adult_counting::String) where T <: LifeStage
 
 Return `ProportionalRelease` object specifying details of biological control intervention where release size is predicated on real-time wild population level.
 """
