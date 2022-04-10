@@ -47,7 +47,7 @@ Beyond this, `Genetics` data includes information unique to modified genotypes i
 
 Connectivity between geographic locations informs population dynamics by allowing organisms to migrate and spatially propagate genetic material. Study species defined by the `GeneDrive.jl` data model may inhabit a `Node` - a single homogenous habitat - or a heterogeneous `Network`. The `Network` is a collection of interconnected `Node`s, each of which are geolocated by latitude/longitude coordinates and may exhibit [environmental differences](@ref climate). See the data model [tutorial](@ref data_model) for an example of how to construct both `Node` and `Network` geographies. 
 
-Movement between all `Node` locations in a `Network` is uniquely specified for each species, life stage, and genotype using `assign_migration!`. See the data model [Tutorial](@ref data_model) for an example implementation. This feature enables users to account for a diversity of demographic and genetic migration tendencies as well as exogenous factors, facilitating scientific investigation in an [important area](https://www.science.org/content/article/windborne-mosquitoes-may-carry-malaria-hundreds-kilometers). 
+Movement between all `Node` locations in a `Network` is uniquely specified for each species, life stage, and genotype using `assign_migration!`. See the data model [tutorial](@ref data_model) for an example implementation. This feature enables users to account for a diversity of demographic and genetic migration tendencies as well as exogenous factors, facilitating scientific investigation in an [important area](https://www.science.org/content/article/windborne-mosquitoes-may-carry-malaria-hundreds-kilometers). 
 
 ## Interventions
 
