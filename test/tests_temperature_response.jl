@@ -1,7 +1,7 @@
 @testset "Temp Response Functions" begin
 
     # NoTemp
-    test_notemp = NoResponse()
+    test_notemp = NoResponse(0.0)
     response = get_temperature_response(0.0, test_notemp)
     @test response == 0.0
 
