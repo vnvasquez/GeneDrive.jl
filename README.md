@@ -1,7 +1,7 @@
 # GeneDrive.jl
 
 [![Project Status: Active - The project has reached a stable, usable state and is being actively developed.](http://www.repostatus.org/badges/latest/active.svg)](http://www.repostatus.org/#active)
-![](https://github.com/vnvasquez/GeneDrive.jl/workflows/tests_temperature_response/badge.svg)
+[![Main - CI](https://github.com/vnvasquez/GeneDrive.jl/actions/workflows/main-tests.yml/badge.svg)](https://github.com/vnvasquez/GeneDrive.jl/actions/workflows/main-tests.yml)
 [![codecov](https://codecov.io/gh/vnvasquez/GeneDrive.jl/branch/main/graph/badge.svg?token=A1C8HACSIP)](https://codecov.io/gh/vnvasquez/GeneDrive.jl)
 [![Stable documentation](https://img.shields.io/badge/docs-stable-blue.svg)](https://vnvasquez.github.io/GeneDrive.jl/dev/)
 
