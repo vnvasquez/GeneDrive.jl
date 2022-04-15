@@ -1,5 +1,10 @@
 # GeneDrive.jl
 
+[![Project Status: Active - The project has reached a stable, usable state and is being actively developed.](http://www.repostatus.org/badges/latest/active.svg)](http://www.repostatus.org/#active)
+![](https://github.com/vnvasquez/GeneDrive.jl/workflows/tests_temperature_response/badge.svg)
+[![codecov](https://codecov.io/gh/vnvasquez/GeneDrive.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/GeneDrive.jl/GeneDrive.jl)
+[![Stable documentation](https://img.shields.io/badge/docs-stable-blue.svg)](https://vnvasquez.github.io/GeneDrive.jl/dev/)
+
 ## Overview 
 
 [`GeneDrive.jl`](https://vnvasquez.github.io/GeneDrive.jl/dev/) is a [Julia](https://julialang.org) package designed for simulating biological dynamics and control. The objectives of the package include: 
