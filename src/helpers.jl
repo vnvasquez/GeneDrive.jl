@@ -848,12 +848,10 @@ function plot_dynamic_wolbachia_females(node::Node, sol)
         k = string(k)
 
         wolbachia_base_F_1 =
-            results[k]["Female"]["WW"][1, :] .+
-            results[k]["Female"]["ww"][1, :]
+            results[k]["Female"]["WW"][1, :] .+ results[k]["Female"]["ww"][1, :]
         wolbachia_base_F_2 =
-            results[k]["Female"]["WW"][2, :] .+
-            results[k]["Female"]["ww"][2, :]
-    end 
+            results[k]["Female"]["WW"][2, :] .+ results[k]["Female"]["ww"][2, :]
+    end
 
     timesteps = sol.t[1:(end - 1)]
 
@@ -915,7 +913,6 @@ end
 Return visualization of adult female population dynamics across all genotypes.
 """
 function plot_dynamic_ridl_females(node::Node, sol)
-
     results = format_dynamic_model_results(node, sol)
 
     ridl_base_F_1 = []
@@ -923,24 +920,20 @@ function plot_dynamic_ridl_females(node::Node, sol)
     ridl_base_F_3 = []
 
     for k in keys(node.organisms)
-
         k = string(k)
 
         ridl_base_F_1 =
-            results[k]["Female"]["WW"][1, :] .+
-            results[k]["Female"]["WR"][1, :] .+
+            results[k]["Female"]["WW"][1, :] .+ results[k]["Female"]["WR"][1, :] .+
             results[k]["Female"]["RR"][1, :]
 
         ridl_base_F_2 =
-            results[k]["Female"]["WW"][2, :] .+
-            results[k]["Female"]["WR"][2, :] .+
+            results[k]["Female"]["WW"][2, :] .+ results[k]["Female"]["WR"][2, :] .+
             results[k]["Female"]["RR"][2, :]
 
         ridl_base_F_3 =
-            results[k]["Female"]["WW"][3, :] .+
-            results[k]["Female"]["WR"][3, :] .+
+            results[k]["Female"]["WW"][3, :] .+ results[k]["Female"]["WR"][3, :] .+
             results[k]["Female"]["RR"][3, :]
-    end 
+    end
 
     timesteps = sol.t[1:(end - 1)]
 
@@ -1092,7 +1085,6 @@ function plot_decision_ridl_females(sol)
         ),
     )
 end
-
 
 """
     plot_decision_mendelian_females(sol)
