@@ -689,6 +689,7 @@ Return dictionary containing optimization model results. Indexed per node, organ
 """
 function format_decision_model_results(sol)
     results_dict = Dict()
+    results_dict[:Time] = collect(sol.obj_dict[:Sets][:T])
     for (var_key, var_val) in sol.obj_dict
         if any(occursin("release_location", String(var_key)))
             @info("Excluding $(var_key) variable from results.")
@@ -743,20 +744,25 @@ Return visualization of adult female population dynamics across all genotypes.
 function plot_dynamic_mendelian_females(node::Node, sol)
     results = format_dynamic_model_results(node, sol)
 
-    mendelian_base_F_1 =
-        results["AedesAegypti"]["Female"]["AA"][1, :] .+
-        results["AedesAegypti"]["Female"]["Aa"][1, :] .+
-        results["AedesAegypti"]["Female"]["aa"][1, :]
+    mendelian_base_F_1 = []
+    mendelian_base_F_2 = []
+    mendelian_base_F_3 = []
 
-    mendelian_base_F_2 =
-        results["AedesAegypti"]["Female"]["AA"][2, :] .+
-        results["AedesAegypti"]["Female"]["Aa"][2, :] .+
-        results["AedesAegypti"]["Female"]["aa"][2, :]
+    for k in keys(node.organisms)
+        k = string(k)
 
-    mendelian_base_F_3 =
-        results["AedesAegypti"]["Female"]["AA"][3, :] .+
-        results["AedesAegypti"]["Female"]["Aa"][3, :] .+
-        results["AedesAegypti"]["Female"]["aa"][3, :]
+        mendelian_base_F_1 =
+            results[k]["Female"]["AA"][1, :] .+ results[k]["Female"]["Aa"][1, :] .+
+            results[k]["Female"]["aa"][1, :]
+
+        mendelian_base_F_2 =
+            results[k]["Female"]["AA"][2, :] .+ results[k]["Female"]["Aa"][2, :] .+
+            results[k]["Female"]["aa"][2, :]
+
+        mendelian_base_F_3 =
+            results[k]["Female"]["AA"][3, :] .+ results[k]["Female"]["Aa"][3, :] .+
+            results[k]["Female"]["aa"][3, :]
+    end
 
     timesteps = sol.t[1:(end - 1)]
 
@@ -806,7 +812,7 @@ function plot_dynamic_mendelian_females(node::Node, sol)
     p = PlotlyJS.plot(
         traces,
         PlotlyJS.Layout(
-            title=attr(text="Females", x=0.5, xanchor="center"),
+            title=PlotlyJS.attr(text="Females", x=0.5, xanchor="center"),
             xaxis_title="Time [Days]",
             yaxis_title="Population [Count]",
             width=800,
@@ -835,12 +841,20 @@ Return visualization of adult female population dynamics across all genotypes.
 function plot_dynamic_wolbachia_females(node::Node, sol)
     results = format_dynamic_model_results(node, sol)
 
-    wolbachia_base_F_1 =
-        results["AedesAegypti"]["Female"]["WW"][1, :] .+
-        results["AedesAegypti"]["Female"]["ww"][1, :]
-    wolbachia_base_F_2 =
-        results["AedesAegypti"]["Female"]["WW"][2, :] .+
-        results["AedesAegypti"]["Female"]["ww"][2, :]
+    wolbachia_base_F_1 = []
+    wolbachia_base_F_2 = []
+
+    for k in keys(node.organisms)
+        k = string(k)
+
+        wolbachia_base_F_1 =
+            results[k]["Female"]["WW"][1, :] .+
+            results[k]["Female"]["ww"][1, :]
+        wolbachia_base_F_2 =
+            results[k]["Female"]["WW"][2, :] .+
+            results[k]["Female"]["ww"][2, :]
+    end 
+
     timesteps = sol.t[1:(end - 1)]
 
     traces = PlotlyJS.GenericTrace{Dict{Symbol, Any}}[]
@@ -874,7 +888,7 @@ function plot_dynamic_wolbachia_females(node::Node, sol)
     p = PlotlyJS.plot(
         traces,
         PlotlyJS.Layout(
-            title=attr(text="Females", x=0.5, xanchor="center"),
+            title=PlotlyJS.attr(text="Females", x=0.5, xanchor="center"),
             xaxis_title="Time [Days]",
             yaxis_title="Population [Count]",
             width=800,
@@ -901,22 +915,32 @@ end
 Return visualization of adult female population dynamics across all genotypes.
 """
 function plot_dynamic_ridl_females(node::Node, sol)
+
     results = format_dynamic_model_results(node, sol)
 
-    ridl_base_F_1 =
-        results["AedesAegypti"]["Female"]["WW"][1, :] .+
-        results["AedesAegypti"]["Female"]["WR"][1, :] .+
-        results["AedesAegypti"]["Female"]["RR"][1, :]
+    ridl_base_F_1 = []
+    ridl_base_F_2 = []
+    ridl_base_F_3 = []
 
-    ridl_base_F_2 =
-        results["AedesAegypti"]["Female"]["WW"][2, :] .+
-        results["AedesAegypti"]["Female"]["WR"][2, :] .+
-        results["AedesAegypti"]["Female"]["RR"][2, :]
+    for k in keys(node.organisms)
 
-    ridl_base_F_3 =
-        results["AedesAegypti"]["Female"]["WW"][3, :] .+
-        results["AedesAegypti"]["Female"]["WR"][3, :] .+
-        results["AedesAegypti"]["Female"]["RR"][3, :]
+        k = string(k)
+
+        ridl_base_F_1 =
+            results[k]["Female"]["WW"][1, :] .+
+            results[k]["Female"]["WR"][1, :] .+
+            results[k]["Female"]["RR"][1, :]
+
+        ridl_base_F_2 =
+            results[k]["Female"]["WW"][2, :] .+
+            results[k]["Female"]["WR"][2, :] .+
+            results[k]["Female"]["RR"][2, :]
+
+        ridl_base_F_3 =
+            results[k]["Female"]["WW"][3, :] .+
+            results[k]["Female"]["WR"][3, :] .+
+            results[k]["Female"]["RR"][3, :]
+    end 
 
     timesteps = sol.t[1:(end - 1)]
 
@@ -966,7 +990,7 @@ function plot_dynamic_ridl_females(node::Node, sol)
     p = PlotlyJS.plot(
         traces,
         PlotlyJS.Layout(
-            title=attr(text="Females", x=0.5, xanchor="center"),
+            title=PlotlyJS.attr(text="Females", x=0.5, xanchor="center"),
             xaxis_title="Time [Days]",
             yaxis_title="Population [Count]",
             width=800,
@@ -987,6 +1011,10 @@ function plot_dynamic_ridl_females(node::Node, sol)
     )
 end
 
+########################################
+#     Plot Select Decision Results      #
+########################################
+
 """
     plot_decision_ridl_females(sol)
 
@@ -996,8 +1024,7 @@ function plot_decision_ridl_females(sol)
     results = format_decision_model_results(sol)
 
     df = results[:node_1_organism_1_F]
-
-    timesteps = sol.t[1:(end - 1)]
+    timesteps = results[:Time]
 
     traces = PlotlyJS.GenericTrace{Dict{Symbol, Any}}[]
     push!(
@@ -1045,7 +1072,86 @@ function plot_decision_ridl_females(sol)
     p = PlotlyJS.plot(
         traces,
         PlotlyJS.Layout(
-            title=attr(text="Females", x=0.5, xanchor="center"),
+            title=PlotlyJS.attr(text="Females", x=0.5, xanchor="center"),
+            xaxis_title="Time [Days]",
+            yaxis_title="Population [Count]",
+            width=800,
+            height=450,
+            font_size=12,
+            fillcolor="transparent",
+            xaxis=PlotlyJS.attr(tickfont_size=14),
+            yaxis=PlotlyJS.attr(tickfont_size=14),
+            legend=PlotlyJS.attr(
+                yanchor="bottom",
+                y=-0.3,
+                xanchor="center",
+                x=0.5,
+                orientation="h",
+                font_size=11.2,
+            ),
+        ),
+    )
+end
+
+
+"""
+    plot_decision_mendelian_females(sol)
+
+Return visualization of adult female population dynamics across all genotypes.
+"""
+function plot_decision_mendelian_females(sol)
+    results = format_decision_model_results(sol)
+
+    df = results[:node_1_organism_1_F]
+    timesteps = results[:Time]
+
+    traces = PlotlyJS.GenericTrace{Dict{Symbol, Any}}[]
+    push!(
+        traces,
+        PlotlyJS.scatter(;
+            name="AA",
+            x=timesteps,
+            y=df.F_G1,
+            mode="lines",
+            line_shape="linear",
+            line_color="green",
+            fillcolor="transparent",
+            line_width=2,
+        ),
+    )
+    push!(
+        traces,
+        PlotlyJS.scatter(;
+            name="Aa",
+            x=timesteps,
+            y=df.F_G2,
+            mode="lines",
+            line_shape="linear",
+            line_color="green",
+            fillcolor="transparent",
+            line_width=2,
+            line_dash="dashdot",
+        ),
+    )
+
+    push!(
+        traces,
+        PlotlyJS.scatter(;
+            name="aa",
+            x=timesteps,
+            y=df.F_G3,
+            mode="lines",
+            line_shape="linear",
+            line_color="green",
+            fillcolor="transparent",
+            line_width=2,
+            line_dash="dot",
+        ),
+    )
+    p = PlotlyJS.plot(
+        traces,
+        PlotlyJS.Layout(
+            title=PlotlyJS.attr(text="Females", x=0.5, xanchor="center"),
             xaxis_title="Time [Days]",
             yaxis_title="Population [Count]",
             width=800,

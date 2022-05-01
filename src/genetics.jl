@@ -41,10 +41,8 @@ Data for individual genotypes.
 mutable struct Drive{G <: Genotype}
     genotype::Type{G}
     likelihood_slice::Array{Float64, 2}
-    #likelihood_slice::TemperatureResponse
     s::Float64
     τ::Array{Float64, 2}
-    #τ::TemperatureResponse
     ϕ::Float64
     ξ_m::Float64
     ξ_f::Float64
@@ -129,10 +127,8 @@ Data for all genotypes in a population.
 mutable struct Genetics{C <: Construct}
     all_genotypes::Array{Drive{<:Genotype}}
     likelihood::Array{Float64, 3}
-    #likelihood::Array{TemperatureResponse}
     S::Vector{Float64}
     Τ::Array{Float64, 3}
-    #Τ::Array{TemperatureResponse}
     Φ::Vector{Float64}
     Ξ_m::Vector{Float64}
     Ξ_f::Vector{Float64}
