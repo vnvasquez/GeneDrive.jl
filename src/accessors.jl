@@ -741,3 +741,39 @@ function update_temperature(
     node.temperature = SinusoidalTemperature(a, b, c, d)
     return node
 end
+
+function _get_daily_temperature(temperature_model::SinusoidalTemperature, t)
+    return temperature_model.a * cos((temperature_model.b * π / temperature_model.c) * t) +
+           temperature_model.d
+end
+
+function _create_series(
+    node::Node,
+    tspan::Tuple,
+    shocks::Union{TemperatureShockData, Nothing}=nothing,
+)
+    series = zeros(length(1:tspan[2]))
+    inputs = zeros(length(1:tspan[2]))
+
+    if shocks !== nothing
+        times = shocks.times
+        values = shocks.values
+
+        if length(values) > 1
+            @assert length(times) == length(values)
+            for (index, time) in enumerate(times)
+                inputs[Int(time[1]):Int(time[2])] .= values[index]
+            end
+        elseif length(values) == 1
+            push!(inputs, fill(fixed_shock, length(times)))
+        end
+    end
+
+    for t in 1:tspan[end]
+        series[t] = _get_daily_temperature(node.temperature, t)
+    end
+
+    sinusoid_converted_to_timeseries = series .+ inputs
+
+    return sinusoid_converted_to_timeseries
+end
