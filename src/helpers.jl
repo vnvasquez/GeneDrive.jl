@@ -1004,9 +1004,270 @@ function plot_dynamic_ridl_females(node::Node, sol)
     )
 end
 
+
+"""
+    plot_dynamic_mcr_females(node::Node, sol)
+
+Return visualization of adult female population dynamics across all genotypes.
+"""
+function plot_dynamic_mcr_females(node::Node, sol)
+    results = format_dynamic_model_results(node, sol)
+
+    mcr_base_F_1 = []
+    mcr_base_F_2 = []
+    mcr_base_F_3 = []
+    mcr_base_F_4 = []
+    mcr_base_F_5 = []
+    mcr_base_F_6 = []
+
+    for k in keys(node.organisms)
+        k = string(k)
+
+        mcr_base_F_1 =
+            results[k]["Female"]["HH"][1, :] .+ 
+            results[k]["Female"]["Hh"][1, :] .+
+            results[k]["Female"]["HR"][1, :] .+
+            results[k]["Female"]["hh"][1, :] .+
+            results[k]["Female"]["hR"][1, :] .+
+            results[k]["Female"]["RR"][1, :] 
+
+        mcr_base_F_2 =
+            results[k]["Female"]["HH"][2, :] .+ 
+            results[k]["Female"]["Hh"][2, :] .+
+            results[k]["Female"]["HR"][2, :] .+
+            results[k]["Female"]["hh"][2, :] .+
+            results[k]["Female"]["hR"][2, :] .+
+            results[k]["Female"]["RR"][2, :]
+
+        mcr_base_F_3 =
+            results[k]["Female"]["HH"][3, :] .+ 
+            results[k]["Female"]["Hh"][3, :] .+
+            results[k]["Female"]["HR"][3, :] .+
+            results[k]["Female"]["hh"][3, :] .+
+            results[k]["Female"]["hR"][3, :] .+
+            results[k]["Female"]["RR"][3, :]
+
+        mcr_base_F_4 =
+            results[k]["Female"]["HH"][4, :] .+ 
+            results[k]["Female"]["Hh"][4, :] .+
+            results[k]["Female"]["HR"][4, :] .+
+            results[k]["Female"]["hh"][4, :] .+
+            results[k]["Female"]["hR"][4, :] .+
+            results[k]["Female"]["RR"][4, :]
+
+        mcr_base_F_5 =
+            results[k]["Female"]["HH"][5, :] .+ 
+            results[k]["Female"]["Hh"][5, :] .+
+            results[k]["Female"]["HR"][5, :] .+
+            results[k]["Female"]["hh"][5, :] .+
+            results[k]["Female"]["hR"][5, :] .+
+            results[k]["Female"]["RR"][5, :]
+
+        mcr_base_F_6 =
+            results[k]["Female"]["HH"][6, :] .+ 
+            results[k]["Female"]["Hh"][6, :] .+
+            results[k]["Female"]["HR"][6, :] .+
+            results[k]["Female"]["hh"][6, :] .+
+            results[k]["Female"]["hR"][6, :] .+
+            results[k]["Female"]["RR"][6, :]
+    end
+
+    timesteps = sol.t[1:(end - 1)]
+
+    traces = PlotlyJS.GenericTrace{Dict{Symbol, Any}}[]
+    push!(
+        traces,
+        PlotlyJS.scatter(;
+            name="HH",
+            x=timesteps,
+            y=mcr_base_F_1,
+            mode="lines",
+            line_shape="linear",
+            line_color="green",
+            fillcolor="transparent",
+            line_width=2,
+        ),
+    )
+    push!(
+        traces,
+        PlotlyJS.scatter(;
+            name="Hh",
+            x=timesteps,
+            y=mcr_base_F_2[1:(end - 1)],
+            mode="lines",
+            line_shape="linear",
+            line_color="green",
+            fillcolor="transparent",
+            line_width=2,
+            line_dash="dashdot",
+        ),
+    )
+
+    push!(
+        traces,
+        PlotlyJS.scatter(;
+            name="HR",
+            x=timesteps,
+            y=mcr_base_F_3[1:(end - 1)],
+            mode="lines",
+            line_shape="linear",
+            line_color="red",
+            fillcolor="transparent",
+            line_width=2,
+            line_dash="dashdot",
+        ),
+    )
+
+    push!(
+        traces,
+        PlotlyJS.scatter(;
+            name="hh",
+            x=timesteps,
+            y=mcr_base_F_4[1:(end - 1)],
+            mode="lines",
+            line_shape="linear",
+            line_color="green",
+            fillcolor="transparent",
+            line_width=2,
+            line_dash="dot",
+        ),
+    )
+
+    push!(
+        traces,
+        PlotlyJS.scatter(;
+            name="hR",
+            x=timesteps,
+            y=mcr_base_F_5[1:(end - 1)],
+            mode="lines",
+            line_shape="linear",
+            line_color="red",
+            fillcolor="transparent",
+            line_width=2,
+            line_dash="dot",
+        ),
+    )
+
+    push!(
+        traces,
+        PlotlyJS.scatter(;
+            name="RR",
+            x=timesteps,
+            y=mcr_base_F_6[1:(end - 1)],
+            mode="lines",
+            line_shape="linear",
+            line_color="red",
+            fillcolor="transparent",
+            line_width=2,
+        ),
+    )
+
+    p = PlotlyJS.plot(
+        traces,
+        PlotlyJS.Layout(
+            title=PlotlyJS.attr(text="Females", x=0.5, xanchor="center"),
+            xaxis_title="Time [Days]",
+            yaxis_title="Population [Count]",
+            width=800,
+            height=450,
+            font_size=12,
+            fillcolor="transparent",
+            xaxis=PlotlyJS.attr(tickfont_size=14),
+            yaxis=PlotlyJS.attr(tickfont_size=14),
+            legend=PlotlyJS.attr(
+                yanchor="bottom",
+                y=-0.3,
+                xanchor="center",
+                x=0.5,
+                orientation="h",
+                font_size=11.2,
+            ),
+        ),
+    )
+end
+
 ########################################
 #     Plot Select Decision Results      #
 ########################################
+
+"""
+    plot_decision_mendelian_females(sol)
+
+Return visualization of adult female population dynamics across all genotypes.
+"""
+function plot_decision_mendelian_females(sol)
+    results = format_decision_model_results(sol)
+
+    df = results[:node_1_organism_1_F]
+    timesteps = results[:Time]
+
+    traces = PlotlyJS.GenericTrace{Dict{Symbol, Any}}[]
+    push!(
+        traces,
+        PlotlyJS.scatter(;
+            name="AA",
+            x=timesteps,
+            y=df.F_G1,
+            mode="lines",
+            line_shape="linear",
+            line_color="green",
+            fillcolor="transparent",
+            line_width=2,
+        ),
+    )
+    push!(
+        traces,
+        PlotlyJS.scatter(;
+            name="Aa",
+            x=timesteps,
+            y=df.F_G2,
+            mode="lines",
+            line_shape="linear",
+            line_color="green",
+            fillcolor="transparent",
+            line_width=2,
+            line_dash="dashdot",
+        ),
+    )
+
+    push!(
+        traces,
+        PlotlyJS.scatter(;
+            name="aa",
+            x=timesteps,
+            y=df.F_G3,
+            mode="lines",
+            line_shape="linear",
+            line_color="green",
+            fillcolor="transparent",
+            line_width=2,
+            line_dash="dot",
+        ),
+    )
+    p = PlotlyJS.plot(
+        traces,
+        PlotlyJS.Layout(
+            title=PlotlyJS.attr(text="Females", x=0.5, xanchor="center"),
+            xaxis_title="Time [Days]",
+            yaxis_title="Population [Count]",
+            width=800,
+            height=450,
+            font_size=12,
+            fillcolor="transparent",
+            xaxis=PlotlyJS.attr(tickfont_size=14),
+            yaxis=PlotlyJS.attr(tickfont_size=14),
+            legend=PlotlyJS.attr(
+                yanchor="bottom",
+                y=-0.3,
+                xanchor="center",
+                x=0.5,
+                orientation="h",
+                font_size=11.2,
+            ),
+        ),
+    )
+end
+
 
 """
     plot_decision_ridl_females(sol)
@@ -1086,12 +1347,13 @@ function plot_decision_ridl_females(sol)
     )
 end
 
+
 """
-    plot_decision_mendelian_females(sol)
+    plot_decision_mcr_females(sol)
 
 Return visualization of adult female population dynamics across all genotypes.
 """
-function plot_decision_mendelian_females(sol)
+function plot_decision_mcr_females(sol)
     results = format_decision_model_results(sol)
 
     df = results[:node_1_organism_1_F]
@@ -1101,7 +1363,7 @@ function plot_decision_mendelian_females(sol)
     push!(
         traces,
         PlotlyJS.scatter(;
-            name="AA",
+            name="HH",
             x=timesteps,
             y=df.F_G1,
             mode="lines",
@@ -1114,7 +1376,7 @@ function plot_decision_mendelian_females(sol)
     push!(
         traces,
         PlotlyJS.scatter(;
-            name="Aa",
+            name="Hh",
             x=timesteps,
             y=df.F_G2,
             mode="lines",
@@ -1129,9 +1391,24 @@ function plot_decision_mendelian_females(sol)
     push!(
         traces,
         PlotlyJS.scatter(;
-            name="aa",
+            name="HR",
             x=timesteps,
             y=df.F_G3,
+            mode="lines",
+            line_shape="linear",
+            line_color="red",
+            fillcolor="transparent",
+            line_width=2,
+            line_dash="dashdot",
+        ),
+    )
+
+    push!(
+        traces,
+        PlotlyJS.scatter(;
+            name="hh",
+            x=timesteps,
+            y=df.F_G4,
             mode="lines",
             line_shape="linear",
             line_color="green",
@@ -1140,6 +1417,100 @@ function plot_decision_mendelian_females(sol)
             line_dash="dot",
         ),
     )
+
+    push!(
+        traces,
+        PlotlyJS.scatter(;
+            name="hR",
+            x=timesteps,
+            y=df.F_G5,
+            mode="lines",
+            line_shape="linear",
+            line_color="red",
+            fillcolor="transparent",
+            line_width=2,
+            line_dash="dot",
+        ),
+    )
+
+    push!(
+        traces,
+        PlotlyJS.scatter(;
+            name="RR",
+            x=timesteps,
+            y=df.F_G6,
+            mode="lines",
+            line_shape="linear",
+            line_color="red",
+            fillcolor="transparent",
+            line_width=2,
+        ),
+    )
+    p = PlotlyJS.plot(
+        traces,
+        PlotlyJS.Layout(
+            title=PlotlyJS.attr(text="Females", x=0.5, xanchor="center"),
+            xaxis_title="Time [Days]",
+            yaxis_title="Population [Count]",
+            width=800,
+            height=450,
+            font_size=12,
+            fillcolor="transparent",
+            xaxis=PlotlyJS.attr(tickfont_size=14),
+            yaxis=PlotlyJS.attr(tickfont_size=14),
+            legend=PlotlyJS.attr(
+                yanchor="bottom",
+                y=-0.3,
+                xanchor="center",
+                x=0.5,
+                orientation="h",
+                font_size=11.2,
+            ),
+        ),
+    )
+end
+
+
+"""
+    plot_decision_wolbachia_females(sol)
+
+Return visualization of adult female population dynamics across all genotypes.
+"""
+function plot_decision_wolbachia_females(sol)
+    results = format_decision_model_results(sol)
+
+    df = results[:node_1_organism_1_F]
+    timesteps = results[:Time]
+
+    traces = PlotlyJS.GenericTrace{Dict{Symbol, Any}}[]
+    push!(
+        traces,
+        PlotlyJS.scatter(;
+            name="WW",
+            x=timesteps,
+            y=df.F_G1,
+            mode="lines",
+            line_shape="linear",
+            line_color="green",
+            fillcolor="transparent",
+            line_width=2,
+        ),
+    )
+    push!(
+        traces,
+        PlotlyJS.scatter(;
+            name="ww",
+            x=timesteps,
+            y=df.F_G2,
+            mode="lines",
+            line_shape="linear",
+            line_color="green",
+            fillcolor="transparent",
+            line_width=2,
+            line_dash="dashdot",
+        ),
+    )
+
     p = PlotlyJS.plot(
         traces,
         PlotlyJS.Layout(

@@ -240,9 +240,12 @@ export init_network!
 
 export make_organisms
 
-export plot_decision_ridl_females
+export plot_decision_mcr_females
 export plot_decision_mendelian_females
+export plot_decision_ridl_females
+export plot_decision_wolbachia_females
 
+export plot_dynamic_mcr_females
 export plot_dynamic_mendelian_females
 export plot_dynamic_ridl_females
 export plot_dynamic_wolbachia_females
