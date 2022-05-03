@@ -19,7 +19,7 @@ function _create_default_solvers(do_binary::Bool)
 end
 
 """
-    create_decision_model(network::Network, tspan; node_strategy::Dict, do_binary::Bool=false, optimizer=nothing)
+    create_decision_model(network::Network, tspan; node_strategy::Dict, species::Type{<:Species}=AedesAegypti,do_binary::Bool=false, optimizer=nothing)
 
 Build mathematical program. Problem created as an NLP (do_binary=false) or MINLP (do_binary=true).
 """
@@ -27,6 +27,7 @@ function create_decision_model(
     network::Network,
     tspan;
     node_strategy::Dict,
+    species::Type{<:Species}=AedesAegypti,
     do_binary::Bool=false,
     optimizer=nothing,
 )
@@ -67,7 +68,7 @@ function create_decision_model(
     gene_count = data[1]["organism"][1]["gene_count"]
     homozygous_modified = data[1]["organism"][1]["homozygous_modified"]
     wildtype = data[1]["organism"][1]["wildtype"]
-    species = AedesAegypti
+    # species = AedesAegypti # TODO: fix 
 
     # TODO: fix
     densE = data[1]["organism"][1]["stage_density"][Egg]
@@ -526,19 +527,14 @@ function create_decision_model(
 end
 
 """
-    create_decision_model(node::Node, tspan; node_strategy::Dict, do_binary::Bool=false, optimizer=nothing)
+    create_decision_model(node::Node, tspan; node_strategy::Dict, species::Type{<:Species}=AedesAegypti,do_binary::Bool=false, optimizer=nothing)
 
 Build mathematical program. Problem created as an NLP (do_binary=false) or MINLP (do_binary=true). NB: `Node` is recreated as a `Network` object internally; this does not change the problem but is relevant for data exploration as it adds one index layer to the formatted results.
 """
-function create_decision_model(
-    node::Node,
-    tspan;
-    node_strategy::Dict,
-    do_binary::Bool=false,
-)
+function create_decision_model(node::Node, tspan; kwargs...)
     node_name = get_name(node)
     network = Network(node_name, node)
-    return create_decision_model(network, tspan; node_strategy, do_binary)
+    return create_decision_model(network, tspan; kwargs...)
 end
 
 ################################################################################
@@ -554,7 +550,6 @@ function solve_decision_model(
     objective_function::Nothing=nothing;
     kwargs...,
 )
-
     #Re-set constraints by fixing controls to zero
     control_M = model[:control_M]
     JuMP.fix.(control_M, 0.0; force=true)

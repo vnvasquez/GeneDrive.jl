@@ -1004,7 +1004,6 @@ function plot_dynamic_ridl_females(node::Node, sol)
     )
 end
 
-
 """
     plot_dynamic_mcr_females(node::Node, sol)
 
@@ -1024,52 +1023,34 @@ function plot_dynamic_mcr_females(node::Node, sol)
         k = string(k)
 
         mcr_base_F_1 =
-            results[k]["Female"]["HH"][1, :] .+ 
-            results[k]["Female"]["Hh"][1, :] .+
-            results[k]["Female"]["HR"][1, :] .+
-            results[k]["Female"]["hh"][1, :] .+
-            results[k]["Female"]["hR"][1, :] .+
-            results[k]["Female"]["RR"][1, :] 
+            results[k]["Female"]["HH"][1, :] .+ results[k]["Female"]["Hh"][1, :] .+
+            results[k]["Female"]["HR"][1, :] .+ results[k]["Female"]["hh"][1, :] .+
+            results[k]["Female"]["hR"][1, :] .+ results[k]["Female"]["RR"][1, :]
 
         mcr_base_F_2 =
-            results[k]["Female"]["HH"][2, :] .+ 
-            results[k]["Female"]["Hh"][2, :] .+
-            results[k]["Female"]["HR"][2, :] .+
-            results[k]["Female"]["hh"][2, :] .+
-            results[k]["Female"]["hR"][2, :] .+
-            results[k]["Female"]["RR"][2, :]
+            results[k]["Female"]["HH"][2, :] .+ results[k]["Female"]["Hh"][2, :] .+
+            results[k]["Female"]["HR"][2, :] .+ results[k]["Female"]["hh"][2, :] .+
+            results[k]["Female"]["hR"][2, :] .+ results[k]["Female"]["RR"][2, :]
 
         mcr_base_F_3 =
-            results[k]["Female"]["HH"][3, :] .+ 
-            results[k]["Female"]["Hh"][3, :] .+
-            results[k]["Female"]["HR"][3, :] .+
-            results[k]["Female"]["hh"][3, :] .+
-            results[k]["Female"]["hR"][3, :] .+
-            results[k]["Female"]["RR"][3, :]
+            results[k]["Female"]["HH"][3, :] .+ results[k]["Female"]["Hh"][3, :] .+
+            results[k]["Female"]["HR"][3, :] .+ results[k]["Female"]["hh"][3, :] .+
+            results[k]["Female"]["hR"][3, :] .+ results[k]["Female"]["RR"][3, :]
 
         mcr_base_F_4 =
-            results[k]["Female"]["HH"][4, :] .+ 
-            results[k]["Female"]["Hh"][4, :] .+
-            results[k]["Female"]["HR"][4, :] .+
-            results[k]["Female"]["hh"][4, :] .+
-            results[k]["Female"]["hR"][4, :] .+
-            results[k]["Female"]["RR"][4, :]
+            results[k]["Female"]["HH"][4, :] .+ results[k]["Female"]["Hh"][4, :] .+
+            results[k]["Female"]["HR"][4, :] .+ results[k]["Female"]["hh"][4, :] .+
+            results[k]["Female"]["hR"][4, :] .+ results[k]["Female"]["RR"][4, :]
 
         mcr_base_F_5 =
-            results[k]["Female"]["HH"][5, :] .+ 
-            results[k]["Female"]["Hh"][5, :] .+
-            results[k]["Female"]["HR"][5, :] .+
-            results[k]["Female"]["hh"][5, :] .+
-            results[k]["Female"]["hR"][5, :] .+
-            results[k]["Female"]["RR"][5, :]
+            results[k]["Female"]["HH"][5, :] .+ results[k]["Female"]["Hh"][5, :] .+
+            results[k]["Female"]["HR"][5, :] .+ results[k]["Female"]["hh"][5, :] .+
+            results[k]["Female"]["hR"][5, :] .+ results[k]["Female"]["RR"][5, :]
 
         mcr_base_F_6 =
-            results[k]["Female"]["HH"][6, :] .+ 
-            results[k]["Female"]["Hh"][6, :] .+
-            results[k]["Female"]["HR"][6, :] .+
-            results[k]["Female"]["hh"][6, :] .+
-            results[k]["Female"]["hR"][6, :] .+
-            results[k]["Female"]["RR"][6, :]
+            results[k]["Female"]["HH"][6, :] .+ results[k]["Female"]["Hh"][6, :] .+
+            results[k]["Female"]["HR"][6, :] .+ results[k]["Female"]["hh"][6, :] .+
+            results[k]["Female"]["hR"][6, :] .+ results[k]["Female"]["RR"][6, :]
     end
 
     timesteps = sol.t[1:(end - 1)]
@@ -1268,7 +1249,6 @@ function plot_decision_mendelian_females(sol)
     )
 end
 
-
 """
     plot_decision_ridl_females(sol)
 
@@ -1346,7 +1326,6 @@ function plot_decision_ridl_females(sol)
         ),
     )
 end
-
 
 """
     plot_decision_mcr_females(sol)
@@ -1469,7 +1448,6 @@ function plot_decision_mcr_females(sol)
         ),
     )
 end
-
 
 """
     plot_decision_wolbachia_females(sol)

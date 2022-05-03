@@ -13,8 +13,8 @@ function _optimization_info(network::Network, tspan::Tuple)
 
     for (ix, node) in enumerate(values(get_nodes(network)))
         optinfo_dict[ix] = Dict{String, Any}()
-        optinfo_dict[ix]["temperature"] = get_temperature(node).values
         optinfo_dict[ix]["organism"] = Dict()
+        optinfo_dict[ix]["temperature"] = get_temperature(node).values
 
         for (jx, organism) in enumerate(get_organisms(node))
             species_count = count_organisms(node)
@@ -40,14 +40,13 @@ function _optimization_info(network::Network, tspan::Tuple)
                     get_density(node, organism, key_lifestage)
 
                 for lx in 1:count_genotypes(network, get_name(node), organism)
-                    response = [
-                        temperature_effect(temp, life_stage) for
-                        temp in node.temperature.values
-                    ]
                     stage_dict = get!(spatialtempresponse_dict, key_lifestage, Dict())
                     node_dict = get!(stage_dict, ix, Dict())
                     org_response_dict = get!(node_dict, jx, Dict())
-                    org_response_dict[lx] = response
+                    org_response_dict[lx] = [
+                        temperature_effect(temp, life_stage) for
+                        temp in node.temperature.values
+                    ]
                     optinfo_dict[ix]["organism"][jx]["stage_temperature_response"] =
                         spatialtempresponse_dict
                 end
