@@ -696,6 +696,19 @@ function get_initial_temperature(node::Node)
 end
 
 """
+    perturb_temperature_timeseries(current_temperature::TimeSeriesTemperature, perturbation)
+
+Alter daily values across entire temperature timeseries by the size of `perturbation` input. Perturbation may be positive or negative.
+"""
+function perturb_temperature_timeseries(
+    current_temperature::TimeSeriesTemperature,
+    perturbation,
+)
+    new_temperature = TimeSeriesTemperature(current_temperature.values .+ perturbation)
+    return new_temperature
+end
+
+"""
     update_temperature(node::Node, temp_type::Type{<:ConstantTemperature}, new_temperature::Float64)
 
 Update the `type` and `values` of `Temperature` for `Node`.
@@ -776,4 +789,25 @@ function _create_series(
     sinusoid_converted_to_timeseries = series .+ inputs
 
     return sinusoid_converted_to_timeseries
+end
+
+########################################
+#              Releases                #
+########################################
+
+"""
+    get_release_data(optimized_schedule::Vector{Float64})
+
+Return re-formatted schedule of optimal release times and values produced by decision model, for simplified application in dynamic model.
+"""
+function get_release_data(optimized_schedule::Vector{Float64})
+    release = zeros(length(optimized_schedule))
+    for (i, v) in enumerate(optimized_schedule)
+        if v >= 1.0
+            release[i] = round(v)
+        end
+    end
+    times = findall(x -> x > 0, release)
+    values = release[times]
+    return Float64.(times), Int64.(values)
 end

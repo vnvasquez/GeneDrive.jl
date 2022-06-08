@@ -214,6 +214,8 @@ export get_genetics
 export get_genotypes
 export get_homozygous_modified
 
+export get_initial_temperature
+
 export get_lifestage
 export get_lifestages
 export get_location
@@ -227,8 +229,8 @@ export get_nodes
 export get_organisms
 
 export get_previous_lifestage
+export get_release_data
 
-export get_initial_temperature
 export get_temperature
 export get_temperature_response
 export get_temperature_value
@@ -239,6 +241,8 @@ export init_node!
 export init_network!
 
 export make_organisms
+
+export perturb_temperature_timeseries
 
 export plot_decision_mcr_females
 export plot_decision_mendelian_females
