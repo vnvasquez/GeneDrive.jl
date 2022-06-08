@@ -30,6 +30,8 @@ function create_decision_model(
     species::Type{<:Species}=AedesAegypti,
     do_binary::Bool=false,
     optimizer=nothing,
+    slack_small=false,
+    slack_large=false,
 )
     for (key_node, node) in enumerate(values(get_nodes(network)))
         if length(collect(tspan[1]:tspan[2])) !== length(node.temperature.values)
@@ -44,7 +46,7 @@ function create_decision_model(
     ##################
     initial_condition, density_net = init_network!(network)
 
-    ##################  
+    ##################
     # Solver
     ##################
     i = optimizer === nothing ? _create_default_solvers(do_binary) : optimizer
@@ -68,7 +70,7 @@ function create_decision_model(
     gene_count = data[1]["organism"][1]["gene_count"]
     homozygous_modified = data[1]["organism"][1]["homozygous_modified"]
     wildtype = data[1]["organism"][1]["wildtype"]
-    # species = AedesAegypti # TODO: fix 
+    # species = AedesAegypti # TODO: fix
 
     # TODO: fix
     densE = data[1]["organism"][1]["stage_density"][Egg]
@@ -120,6 +122,9 @@ function create_decision_model(
     JuMP.@variable(model, P[N, O, SP, G, T] >= 0)
     JuMP.@variable(model, M[N, O, SM, G, T] >= 0)
     JuMP.@variable(model, F[N, O, SF, G, T] >= 0)
+    JuMP.@variable(model, 0 <= P_slack_positive[N, O, G, T] <= 1)
+    JuMP.fix.(P_slack_positive[N, O, G, T[2:end]], 0.0; force=true)
+    #JuMP.@variable(model, P_slack_negative[N, O, G, T] == 0)
 
     # DECLARE VARIABLES_2: Binary nodes
     ###########################################
@@ -421,39 +426,78 @@ function create_decision_model(
     )
 
     #### MALES
-    JuMP.@constraint(
-        model,
-        M_con_0[n in N, o in O, s in SM, g in G, t in [T[1]]],
-        M[n, o, s, g, t] ==
-        initial_condition.x[n].x[o][SM_map[s], g] +
-        (1 - data[n]["organism"][o]["genetics"].Φ[g]) *
-        data[n]["organism"][o]["stage_temperature_response"][Pupa][n][o][g][t][2] *
-        nP *
-        P[n, o, end, g, t] *
-        data[n]["organism"][o]["genetics"].Ξ_m[g] -
-        (1 + data[n]["organism"][o]["genetics"].Ω[g]) *
-        data[n]["organism"][o]["stage_temperature_response"][Male][n][o][g][t][1] *
-        M[n, o, s, g, t] *
-        compute_density(densM, sum(M[n, o, :, :, t])) + migration_M[n, o, s, g, t]
-    )
+    if slack_small || slack_large
+        JuMP.@constraint(
+            model,
+            M_con_0[n in N, o in O, s in SM, g in G, t in [T[1]]],
+            M[n, o, s, g, t] ==
+            initial_condition.x[n].x[o][SM_map[s], g] +
+            (1 - data[n]["organism"][o]["genetics"].Φ[g]) *
+            data[n]["organism"][o]["stage_temperature_response"][Pupa][n][o][g][t][2] *
+            nP *
+            (P[n, o, end, g, t] + P_slack_positive[n, o, g, t]) * # - P_slack_negative[n, o, g, t])*
+            data[n]["organism"][o]["genetics"].Ξ_m[g] -
+            (1 + data[n]["organism"][o]["genetics"].Ω[g]) *
+            data[n]["organism"][o]["stage_temperature_response"][Male][n][o][g][t][1] *
+            M[n, o, s, g, t] *
+            compute_density(densM, sum(M[n, o, :, :, t])) + migration_M[n, o, s, g, t]
+        )
+    else
+        JuMP.@constraint(
+            model,
+            M_con_0[n in N, o in O, s in SM, g in G, t in [T[1]]],
+            M[n, o, s, g, t] ==
+            initial_condition.x[n].x[o][SM_map[s], g] +
+            (1 - data[n]["organism"][o]["genetics"].Φ[g]) *
+            data[n]["organism"][o]["stage_temperature_response"][Pupa][n][o][g][t][2] *
+            nP *
+            P[n, o, end, g, t] *
+            data[n]["organism"][o]["genetics"].Ξ_m[g] -
+            (1 + data[n]["organism"][o]["genetics"].Ω[g]) *
+            data[n]["organism"][o]["stage_temperature_response"][Male][n][o][g][t][1] *
+            M[n, o, s, g, t] *
+            compute_density(densM, sum(M[n, o, :, :, t])) + migration_M[n, o, s, g, t]
+        )
+    end
 
-    JuMP.@constraint(
-        model,
-        M_con_1[n in N, o in O, s in SM, g in G, t in T[2:end]],
-        M[n, o, s, g, t] ==
-        M[n, o, s, g, t - 1] +
-        (1 - data[n]["organism"][o]["genetics"].Φ[g]) *
-        data[n]["organism"][o]["stage_temperature_response"][Pupa][n][o][g][t][2] *
-        nP *
-        P[n, o, end, g, t] *
-        data[n]["organism"][o]["genetics"].Ξ_m[g] -
-        (1 + data[n]["organism"][o]["genetics"].Ω[g]) *
-        data[n]["organism"][o]["stage_temperature_response"][Male][n][o][g][t][1] *
-        M[n, o, s, g, t] *
-        compute_density(densM, sum(M[n, o, :, :, t])) +
-        control_M[n, o, s, g, t] +
-        migration_M[n, o, s, g, t]
-    )
+    if slack_large
+        JuMP.unfix.(P_slack_positive)
+        JuMP.@constraint(
+            model,
+            M_con_1[n in N, o in O, s in SM, g in G, t in T[2:end]],
+            M[n, o, s, g, t] ==
+            M[n, o, s, g, t - 1] +
+            (1 - data[n]["organism"][o]["genetics"].Φ[g]) *
+            data[n]["organism"][o]["stage_temperature_response"][Pupa][n][o][g][t][2] *
+            nP *
+            (P[n, o, end, g, t] + P_slack_positive[n, o, g, t]) * #- P_slack_negative[n, o, g, t]) *
+            data[n]["organism"][o]["genetics"].Ξ_m[g] -
+            (1 + data[n]["organism"][o]["genetics"].Ω[g]) *
+            data[n]["organism"][o]["stage_temperature_response"][Male][n][o][g][t][1] *
+            M[n, o, s, g, t] *
+            compute_density(densM, sum(M[n, o, :, :, t])) +
+            control_M[n, o, s, g, t] +
+            migration_M[n, o, s, g, t]
+        )
+    else
+        JuMP.@constraint(
+            model,
+            M_con_1[n in N, o in O, s in SM, g in G, t in T[2:end]],
+            M[n, o, s, g, t] ==
+            M[n, o, s, g, t - 1] +
+            (1 - data[n]["organism"][o]["genetics"].Φ[g]) *
+            data[n]["organism"][o]["stage_temperature_response"][Pupa][n][o][g][t][2] *
+            nP *
+            P[n, o, end, g, t] *
+            data[n]["organism"][o]["genetics"].Ξ_m[g] -
+            (1 + data[n]["organism"][o]["genetics"].Ω[g]) *
+            data[n]["organism"][o]["stage_temperature_response"][Male][n][o][g][t][1] *
+            M[n, o, s, g, t] *
+            compute_density(densM, sum(M[n, o, :, :, t])) +
+            control_M[n, o, s, g, t] +
+            migration_M[n, o, s, g, t]
+        )
+    end
 
     #### MATING
     JuMP.@constraint(
@@ -550,7 +594,7 @@ function solve_decision_model(
     objective_function::Nothing=nothing;
     kwargs...,
 )
-    #Re-set constraints by fixing controls to zero
+    # Re-set constraints by fixing controls to zero
     control_M = model[:control_M]
     JuMP.fix.(control_M, 0.0; force=true)
     control_F = model[:control_F]
