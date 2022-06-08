@@ -10,7 +10,7 @@ const genetics_key_map = Dict(
     "ww" => ww,
     # end Wolbachia
     "HH" => HH,
-    "Hr" => Hh,
+    "Hh" => Hh,
     "HR" => HR,
     "hh" => hh,
     "hR" => hR,
