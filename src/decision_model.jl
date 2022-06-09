@@ -122,9 +122,14 @@ function create_decision_model(
     JuMP.@variable(model, P[N, O, SP, G, T] >= 0)
     JuMP.@variable(model, M[N, O, SM, G, T] >= 0)
     JuMP.@variable(model, F[N, O, SF, G, T] >= 0)
-    JuMP.@variable(model, 0 <= P_slack_positive[N, O, G, T] <= 1)
-    JuMP.fix.(P_slack_positive[N, O, G, T[2:end]], 0.0; force=true)
     #JuMP.@variable(model, P_slack_negative[N, O, G, T] == 0)
+    if slack_small 
+        JuMP.@variable(model, 0 <= P_slack_positive[N, O, G, [1]] <= 1)
+    elseif slack_large
+        JuMP.@variable(model, 0 <= P_slack_positive[N, O, G, T] <= 1)
+    else
+        @info("No slack specified.")
+    end
 
     # DECLARE VARIABLES_2: Binary nodes
     ###########################################
@@ -460,8 +465,7 @@ function create_decision_model(
         )
     end
 
-    if slack_large
-        JuMP.unfix.(P_slack_positive)
+    if slack_large        
         JuMP.@constraint(
             model,
             M_con_1[n in N, o in O, s in SM, g in G, t in T[2:end]],
