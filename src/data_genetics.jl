@@ -41,7 +41,7 @@ wolb2 = [0.0 0.0; 0.0 1.0]
 tau1_wolb = [1.0 1.0; 0.0 1.0]
 tau2_wolb = [1.0 1.0; 0.0 1.0]
 
-drives_wolbachia = [
+drives_wolbachia = [ # NB: Midrange estimate for ω
     Drive(WW, wolb1, 1.0, tau1_wolb, 0.5, 1.0, 1.0, 0.1, 63.0, 1.0, 0, 1),
     Drive(ww, wolb2, 1.0, tau2_wolb, 0.5, 1.0, 1.0, 0.0, 63.0, 1.0, 1, 0),
 ]
@@ -101,7 +101,7 @@ mcr6 = [
     0 0 0.50 0 0.50 1.0
 ]
 
-drives_mcr = [ # NB: ∉ costs  
+drives_mcr = [ # NB: ∉ costs
     Drive(HH, mcr1, 1.0, ones(6, 6), 0.5, 1.0, 1.0, 0.0, 63.0, 1.0, 0, 1),
     Drive(Hh, mcr2, 1.0, ones(6, 6), 0.5, 1.0, 1.0, 0.0, 63.0, 1.0, 0, 0),
     Drive(HR, mcr3, 1.0, ones(6, 6), 0.5, 1.0, 1.0, 0.0, 63.0, 1.0, 0, 0),
