@@ -123,7 +123,7 @@ function create_decision_model(
     JuMP.@variable(model, M[N, O, SM, G, T] >= 0)
     JuMP.@variable(model, F[N, O, SF, G, T] >= 0)
     #JuMP.@variable(model, P_slack_negative[N, O, G, T] == 0)
-    if slack_small 
+    if slack_small
         JuMP.@variable(model, 0 <= P_slack_positive[N, O, G, [1]] <= 1)
     elseif slack_large
         JuMP.@variable(model, 0 <= P_slack_positive[N, O, G, T] <= 1)
@@ -131,19 +131,31 @@ function create_decision_model(
         @info("No slack specified.")
     end
 
-    # DECLARE VARIABLES_2: Binary nodes
-    ###########################################
-    if do_binary
-        JuMP.@variable(model, release_location[N], Bin)
-    else
-        JuMP.@variable(model, release_location[N])
-        JuMP.fix.(release_location, 1.0)
-    end
-
-    # DECLARE VARIABLES_3: Controls
+    # DECLARE VARIABLES_2: Controls
     ###########################################
     JuMP.@variable(model, 0.0 <= control_M[N, O, SM, G, T])
     JuMP.@variable(model, 0.0 <= control_F[N, O, SF, G, T])
+    JuMP.@variable(model, 0.0 <= release_location[N, T] <= 1.0)
+    if do_binary
+        JuMP.set_binary.(release_location)
+    end
+
+    model.obj_dict[:control_limit_schedule_upper_F] =
+        JuMP.Containers.DenseAxisArray{JuMP.ConstraintRef}(undef, N, O, SF, G, T)
+    model.obj_dict[:control_limit_schedule_lower_F] =
+        JuMP.Containers.DenseAxisArray{JuMP.ConstraintRef}(undef, N, O, SF, G, T)
+    model.obj_dict[:control_limit_total_F] =
+        JuMP.Containers.DenseAxisArray{JuMP.ConstraintRef}(undef, N, O, SF, G, T)
+
+    model.obj_dict[:control_limit_schedule_upper_M] =
+        JuMP.Containers.DenseAxisArray{JuMP.ConstraintRef}(undef, N, O, SM, G, T)
+    model.obj_dict[:control_limit_schedule_lower_M] =
+        JuMP.Containers.DenseAxisArray{JuMP.ConstraintRef}(undef, N, O, SM, G, T)
+    model.obj_dict[:control_limit_total_M] =
+        JuMP.Containers.DenseAxisArray{JuMP.ConstraintRef}(undef, N, O, SM, G, T)
+
+    model.obj_dict[:control_equivalence] =
+        JuMP.Containers.DenseAxisArray{JuMP.ConstraintRef}(undef, N, O, T)
 
     # WARMSTART VARIABLES_1: Lifestages
     ###########################################
@@ -465,7 +477,7 @@ function create_decision_model(
         )
     end
 
-    if slack_large        
+    if slack_large
         JuMP.@constraint(
             model,
             M_con_1[n in N, o in O, s in SM, g in G, t in T[2:end]],
@@ -554,6 +566,9 @@ function create_decision_model(
         (1 + data[n]["organism"][o]["genetics"].Ω[g]) *
         data[n]["organism"][o]["stage_temperature_response"][Female][n][o][g][t][1] *
         F[n, o, s, g, t] +
+        # original
+        #control_F[n, o, wildtype, homozygous_modified, t] +
+        # remember
         control_F[n, o, s, g, t] +
         sum(A[SF_map[s], g][n, i] * F[i, o, s, g, t] for i in N)
     )
