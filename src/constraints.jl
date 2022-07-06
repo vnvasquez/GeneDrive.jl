@@ -59,11 +59,12 @@ end
 """
     mutable struct ReleaseStrategy
         release_this_gene_index::Union{Nothing, Int64}=nothing
-        release_this_life_stage::Union{Nothing, Type{<:LifeStage}, Type{Female}}=nothing
+        release_this_life_stage=nothing
         release_location_force::Union{Nothing, Bool}=nothing
         release_start_time::Union{Nothing,Int64}=nothing
         release_end_time::Union{Nothing,Int64}=nothing
         release_time_interval::Int64=1
+        release_size_min_per_timestep::Union{Int64, Float64}=0.0
         release_size_max_per_timestep::Union{Int64,Float64}=9e9
         release_max_over_timehorizon::Union{Int64,Float64}=9e9
 
@@ -79,31 +80,38 @@ Data defining the operational constraints for each node.
   - `release_start_time`: Timestep (day) that releases are permitted to start.
   - `release_end_time`: Timestep (day) that releases are required to end.
   - `release_time_interval`: Minimum timestep interval (in days) permitted for releases.
+  - `release_size_min_per_timestep`: Minimum number of organisms that may be released on a single day.
   - `release_size_max_per_timestep`: Maximum number of organisms that may be released on a single day.
   - `release_max_over_timehorizon`: Maximum number of organisms that may be released over the problem horizon.
 """
 Base.@kwdef mutable struct ReleaseStrategy
     release_this_gene_index::Union{Nothing, Int64} = nothing
-    release_this_life_stage::Union{Nothing, Type{<:LifeStage}, Type{Female}} = nothing
+    release_this_life_stage = nothing
     release_location_force::Union{Nothing, Bool} = nothing
     release_start_time::Union{Nothing, Int64} = nothing
     release_end_time::Union{Nothing, Int64} = nothing
     release_time_interval::Int64 = 1
+    release_size_min_per_timestep::Union{Int64, Float64} = 0.0
     release_size_max_per_timestep::Union{Int64, Float64} = 9e9
     release_max_over_timehorizon::Union{Int64, Float64} = 9e9
 end
 
 function _add_constraint(
     model::JuMP.Model,
+    do_binary::Bool,
     optinfo_dict::Dict,
+    node_number::Int64,
     life_stage::Type{<:Male},
-    node_strategy::Dict,
+    node_strategy::ReleaseStrategy,
     homozygous_modified,
     wildtype,
 )
     data = optinfo_dict["constraints"]
-    max_overall = node_strategy[1].release_max_over_timehorizon #TODO: fix
+    #max_per_timestep = node_strategy.release_size_max_per_timestep
+    min_per_timestep = node_strategy.release_size_min_per_timestep
+    max_overall = node_strategy.release_max_over_timehorizon #TODO: fix
     control_M = model[:control_M]
+    release_location = model[:release_location]
     sets = model.obj_dict[:Sets]
     N = sets[:N]
     O = sets[:O]
@@ -111,36 +119,60 @@ function _add_constraint(
     G = sets[:G]
     T = sets[:T]
 
+    CONTAINER_control_limit_schedule_upper_M =
+        model.obj_dict[:control_limit_schedule_upper_M]
+    CONTAINER_control_limit_schedule_lower_M =
+        model.obj_dict[:control_limit_schedule_lower_M]
+    CONTAINER_control_limit_total_M = model.obj_dict[:control_limit_total_M]
+
     # SCHEDULE
-    JuMP.@constraint(
-        model,
-        control_limit_schedule[n in N, o in O, s in SM, g in G, t in T],
-        control_M[n, o, 1, g, t] <= data[n]["org_con"][o]["stage_con"][life_stage][g][t]
-    )
+    for n in node_number, o in O, s in SM, g in G, t in T
+        if data[n]["org_con"][o]["stage_con"][life_stage][g][t] > 0
+            CONTAINER_control_limit_schedule_upper_M[n, o, s, g, t] = JuMP.@constraint(
+                model,
+                # max
+                control_M[n, o, s, g, t] <=
+                release_location[n, t] *
+                data[n]["org_con"][o]["stage_con"][life_stage][g][t]
+            )
+            CONTAINER_control_limit_schedule_lower_M[n, o, s, g, t] = JuMP.@constraint(
+                model,
+                # min
+                control_M[n, o, s, g, t] >= release_location[n, t] * min_per_timestep
+            )
+        else
+            CONTAINER_control_limit_schedule_upper_M[n, o, s, g, t] =
+                JuMP.@constraint(model, control_M[n, o, s, g, t] <= 0)
+            CONTAINER_control_limit_schedule_lower_M[n, o, s, g, t] =
+                JuMP.@constraint(model, control_M[n, o, s, g, t] >= 0)
+        end
+    end
 
     # MAXIMUM
-    JuMP.@constraint(model, control_limit_total, sum(control_M) <= max_overall)
+    CONTAINER_control_limit_total_M = JuMP.@constraint(model, sum(control_M) <= max_overall)
 
-    # FIX ALTERNATIVE(S) 
     control_F = model[:control_F]
     JuMP.fix.(control_F, 0.0; force=true)
-    JuMP.fix.(control_F[:, :, wildtype, :, :], 0.0; force=true)
-    JuMP.fix.(control_F[:, :, :, homozygous_modified, :], 0.0; force=true)
 
     return
 end
 
 function _add_constraint(
     model::JuMP.Model,
+    do_binary::Bool,
     optinfo_dict::Dict,
+    node_number::Int64,
     life_stage::Type{<:Female},
-    node_strategy::Dict,
+    node_strategy::ReleaseStrategy,
     homozygous_modified,
     wildtype,
 )
     data = optinfo_dict["constraints"]
-    max_overall = node_strategy[1].release_max_over_timehorizon #TODO: fix
+    #max_per_timestep = node_strategy.release_size_max_per_timestep
+    min_per_timestep = node_strategy.release_size_min_per_timestep
+    max_overall = node_strategy.release_max_over_timehorizon #TODO: fix
     control_F = model[:control_F]
+    release_location = model[:release_location]
     sets = model.obj_dict[:Sets]
     N = sets[:N]
     O = sets[:O]
@@ -148,22 +180,242 @@ function _add_constraint(
     G = sets[:G]
     T = sets[:T]
 
+    CONTAINER_control_limit_schedule_upper_F =
+        model.obj_dict[:control_limit_schedule_upper_F]
+    CONTAINER_control_limit_schedule_lower_F =
+        model.obj_dict[:control_limit_schedule_lower_F]
+    CONTAINER_control_limit_total_F = model.obj_dict[:control_limit_total_F]
+
     # SCHEDULE
-    JuMP.@constraint(
-        model,
-        control_limit_schedule[n in N, o in O, s in SF, g in G, t in T],
-        control_F[n, o, wildtype, homozygous_modified, t] <=
-        data[n]["org_con"][o]["stage_con"][life_stage][g][t]
-    )
+    for n in node_number, o in O, s in SF, g in G, t in T
+        if data[n]["org_con"][o]["stage_con"][Female][g][t] > 0
+            CONTAINER_control_limit_schedule_upper_F[n, o, s, g, t] = JuMP.@constraint(
+                model,
+                # max
+                control_F[n, o, g, s, t] <=
+                release_location[n, t] * data[n]["org_con"][o]["stage_con"][Female][g][t]
+            )
+            CONTAINER_control_limit_schedule_lower_F[n, o, s, g, t] = JuMP.@constraint(
+                model,
+                # min
+                control_F[n, o, g, s, t] >= release_location[n, t] * min_per_timestep
+            )
+        else
+            CONTAINER_control_limit_schedule_upper_F[n, o, s, g, t] =
+                JuMP.@constraint(model, control_F[n, o, g, s, t] <= 0)
+            CONTAINER_control_limit_schedule_lower_F[n, o, s, g, t] =
+                JuMP.@constraint(model, control_F[n, o, g, s, t] >= 0)
+        end
+    end
 
     # MAXIMUM
-    JuMP.@constraint(model, control_limit_total, sum(control_F) <= max_overall)
+    CONTAINER_control_limit_total_F = JuMP.@constraint(model, sum(control_F) <= max_overall)
 
-    # FIX ALTERNATIVE(S)
     control_M = model[:control_M]
     JuMP.fix.(control_M, 0.0; force=true)
+    JuMP.fix.(control_F[:, :, wildtype, :, :], 0.0; force=true)
+    JuMP.fix.(control_F[:, :, :, homozygous_modified, :], 0.0; force=true)
 
     return
+end
+
+struct _MixedStrategy{T, U} end
+
+function _add_constraint(
+    model::JuMP.Model,
+    do_binary::Bool,
+    optinfo_dict::Dict,
+    node_number::Int64,
+    life_stage::Tuple,
+    node_strategy::ReleaseStrategy,
+    homozygous_modified,
+    wildtype,
+)
+    for entry in life_stage
+        if !(entry <: LifeStage)
+            error("$entry is not a LifeStage.")
+        end
+    end
+
+    life_stage = _MixedStrategy{life_stage[1], life_stage[2]}
+
+    if life_stage == _MixedStrategy{Male, Female} ||
+       life_stage == _MixedStrategy{Female, Male}
+        _add_constraint(
+            model,
+            do_binary::Bool,
+            optinfo_dict,
+            node_number,
+            _MixedStrategy{Male, Female},
+            node_strategy,
+            homozygous_modified,
+            wildtype,
+        )
+    else
+        error("The release strategy $(life_stage) is not functional.")
+    end
+end
+
+function _add_constraint(
+    model::JuMP.Model,
+    do_binary::Bool,
+    optinfo_dict::Dict,
+    node_number::Int64,
+    life_stage::Type{_MixedStrategy{Male, Female}},
+    node_strategy::ReleaseStrategy,
+    homozygous_modified,
+    wildtype,
+)
+    data = optinfo_dict["constraints"]
+    #max_per_timestep = node_strategy.release_size_max_per_timestep
+    min_per_timestep = node_strategy.release_size_min_per_timestep
+    max_overall = node_strategy.release_max_over_timehorizon #TODO: fix
+    control_F = model[:control_F]
+    control_M = model[:control_M]
+    release_location = model[:release_location]
+    sets = model.obj_dict[:Sets]
+    N = sets[:N]
+    O = sets[:O]
+    SF = sets[:SF]
+    SM = sets[:SM]
+    G = sets[:G]
+    T = sets[:T]
+
+    CONTAINER_control_limit_schedule_upper_F =
+        model.obj_dict[:control_limit_schedule_upper_F]
+    CONTAINER_control_limit_schedule_lower_F =
+        model.obj_dict[:control_limit_schedule_lower_F]
+    CONTAINER_control_limit_total_F = model.obj_dict[:control_limit_total_F]
+
+    CONTAINER_control_limit_schedule_upper_M =
+        model.obj_dict[:control_limit_schedule_upper_M]
+    CONTAINER_control_limit_schedule_lower_M =
+        model.obj_dict[:control_limit_schedule_lower_M]
+    CONTAINER_control_limit_total_M = model.obj_dict[:control_limit_total_M]
+
+    CONTAINER_control_equivalence = model.obj_dict[:control_equivalence]
+
+    # EQUIVALENCE
+    for n in node_number, o in O, t in T
+        CONTAINER_control_equivalence[n, o, t] = JuMP.@constraint(
+            model,
+            control_F[n, o, homozygous_modified, wildtype, t] ==
+            control_M[n, o, 1, homozygous_modified, t]
+        )
+    end
+
+    # SCHEDULE F
+    for n in node_number, o in O, s in SF, g in G, t in T
+        if data[n]["org_con"][o]["stage_con"][Female][g][t] > 0
+            CONTAINER_control_limit_schedule_upper_F[n, o, s, g, t] = JuMP.@constraint(
+                model,
+                # max 
+                control_F[n, o, g, s, t] <=
+                release_location[n, t] * data[n]["org_con"][o]["stage_con"][Female][g][t]
+            )
+            CONTAINER_control_limit_schedule_lower_F[n, o, s, g, t] = JuMP.@constraint(
+                model,
+                # min
+                control_F[n, o, g, s, t] >= release_location[n, t] * min_per_timestep
+            )
+        else
+            CONTAINER_control_limit_schedule_upper_F[n, o, s, g, t] =
+                JuMP.@constraint(model, control_F[n, o, g, s, t] <= 0)
+            CONTAINER_control_limit_schedule_lower_F[n, o, s, g, t] =
+                JuMP.@constraint(model, control_F[n, o, g, s, t] >= 0)
+        end
+    end
+
+    # MAXIMUM F
+    CONTAINER_control_limit_total_F = JuMP.@constraint(
+        model,
+        sum(control_F) <= max_overall * MALE_FEMALE_RELEASE_FRACTION
+    )
+
+    # SCHEDULE M
+    for n in node_number, o in O, s in SM, g in G, t in T
+        if data[n]["org_con"][o]["stage_con"][Male][g][t] > 0
+            CONTAINER_control_limit_schedule_upper_M[n, o, s, g, t] = JuMP.@constraint(
+                model,
+                # max
+                control_M[n, o, s, g, t] <=
+                release_location[n, t] * data[n]["org_con"][o]["stage_con"][Male][g][t]
+            )
+            CONTAINER_control_limit_schedule_lower_M[n, o, s, g, t] = JuMP.@constraint(
+                model,
+                # min
+                control_M[n, o, s, g, t] >= release_location[n, t] * min_per_timestep
+            )
+        else
+            CONTAINER_control_limit_schedule_upper_M[n, o, s, g, t] =
+                JuMP.@constraint(model, control_M[n, o, s, g, t] <= 0)
+            CONTAINER_control_limit_schedule_lower_M[n, o, s, g, t] =
+                JuMP.@constraint(model, control_M[n, o, s, g, t] >= 0)
+        end
+    end
+
+    # MAXIMUM M
+    CONTAINER_control_limit_total_M = JuMP.@constraint(
+        model,
+        sum(control_M) <= max_overall * MALE_FEMALE_RELEASE_FRACTION
+    )
+
+    JuMP.fix.(control_M[:, :, :, wildtype, :], 0.0; force=true)
+    JuMP.fix.(control_F[:, :, wildtype, :, :], 0.0; force=true)
+    JuMP.fix.(control_F[:, :, :, homozygous_modified, :], 0.0; force=true)
+
+    return
+end
+
+function _populate_constraints_dict(
+    releaseconstraints_dict,
+    node_number,
+    strategy,
+    life_stage::Type{<:LifeStage},
+)
+    for tx in
+        (strategy.release_start_time):(strategy.release_time_interval):(strategy.release_end_time)
+        releaseconstraints_dict[node_number]["org_con"][1]["stage_con"][life_stage][strategy.release_this_gene_index][tx] =
+            strategy.release_size_max_per_timestep
+    end
+    return
+end
+
+function _populate_constraints_dict(
+    releaseconstraints_dict,
+    node_number,
+    strategy,
+    life_stage::Tuple,
+)
+    for entry in life_stage
+        if !(entry <: LifeStage)
+            error("$entry is not a LifeStage.")
+        end
+    end
+
+    lifestage_entry = _MixedStrategy{life_stage[1], life_stage[2]}
+    _populate_constraints_dict(
+        releaseconstraints_dict,
+        node_number,
+        strategy,
+        lifestage_entry,
+    )
+end
+
+function _populate_constraints_dict(
+    releaseconstraints_dict,
+    node_number,
+    strategy,
+    ::Type{_MixedStrategy{Male, Female}},
+)
+    range =
+        (strategy.release_start_time):(strategy.release_time_interval):(strategy.release_end_time)
+    for tx in range
+        releaseconstraints_dict[node_number]["org_con"][1]["stage_con"][Male][strategy.release_this_gene_index][tx] =
+            strategy.release_size_max_per_timestep * MALE_FEMALE_RELEASE_FRACTION
+        releaseconstraints_dict[node_number]["org_con"][1]["stage_con"][Female][strategy.release_this_gene_index][tx] =
+            strategy.release_size_max_per_timestep * MALE_FEMALE_RELEASE_FRACTION
+    end
 end
 
 function _calculate_release_constraints(
@@ -176,6 +428,8 @@ function _calculate_release_constraints(
     optinfo_dict::Dict,
     node_strategy::Dict{Int64, ReleaseStrategy},
 )
+
+    # Create empty constraints dict
     releaseconstraints_dict = Dict()
 
     nodes = get_nodes(network)
@@ -214,12 +468,16 @@ function _calculate_release_constraints(
         end
 
         if strategy.release_end_time !== nothing && strategy.release_end_time > tspan[2]
-            @warn "Release end time specified in node $(entry[1]) occurs outside the time horizon (tspan = $(tspan))."
+            @warn "Release end time specified in node $(node_number) occurs outside the time horizon (tspan = $(tspan))."
+        end
+
+        if strategy.release_size_min_per_timestep >= strategy.release_size_max_per_timestep
+            @warn "Release size minimum per timestep specified in node $(node_number) is greater than or equal to release size maximum per timestep."
         end
 
         if all(
             isequal(
-                node_strategy[1].release_max_over_timehorizon,
+                node_strategy[node_number].release_max_over_timehorizon,
                 strategy.release_max_over_timehorizon,
             ),
         ) == false
@@ -230,28 +488,37 @@ function _calculate_release_constraints(
         strategy.release_start_time
         strategy.release_end_time === nothing ? (strategy.release_end_time = tspan[2]) :
         strategy.release_end_time
+
+        # Fill release dict
+        ####################
+        _populate_constraints_dict(
+            releaseconstraints_dict,
+            node_number,
+            node_strategy[node_number],
+            node_strategy[node_number].release_this_life_stage,
+        )
     end
 
-    for (node_number, strategy) in node_strategy
-
-        # TODO: fix
-        for tx in
-            (strategy.release_start_time):(strategy.release_time_interval):(strategy.release_end_time)
-            releaseconstraints_dict[node_number]["org_con"][1]["stage_con"][strategy.release_this_life_stage][strategy.release_this_gene_index][tx] =
-                strategy.release_size_max_per_timestep
-        end
-    end
-
+    # Include release dict
+    ####################
     optinfo_dict["constraints"] = releaseconstraints_dict
 
-    _add_constraint(
-        model,
-        optinfo_dict,
-        node_strategy[1].release_this_life_stage,
-        node_strategy,
-        homozygous_modified,
-        wildtype,
-    )
+    # Add constraints to model
+    ####################
+    for (node_number, strategy) in enumerate(node_strategy)
+        @show node_number, strategy
+        @show "making constraint $node_number"
+        _add_constraint(
+            model,
+            do_binary::Bool,
+            optinfo_dict,
+            node_number,
+            node_strategy[node_number].release_this_life_stage,
+            node_strategy[node_number],
+            homozygous_modified,
+            wildtype,
+        )
+    end
 
     return optinfo_dict
 end
