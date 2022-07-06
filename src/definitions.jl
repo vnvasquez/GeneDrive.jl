@@ -23,3 +23,5 @@ const genetics_key_map = Dict(
     "aa" => aa,
     # end Mendelian 
 )
+
+const MALE_FEMALE_RELEASE_FRACTION = 0.5
