@@ -136,9 +136,6 @@ function create_decision_model(
     JuMP.@variable(model, 0.0 <= control_M[N, O, SM, G, T])
     JuMP.@variable(model, 0.0 <= control_F[N, O, SF, G, T])
     JuMP.@variable(model, 0.0 <= release_location[N, T] <= 1.0)
-    if do_binary
-        JuMP.set_binary.(release_location)
-    end
 
     model.obj_dict[:control_limit_schedule_upper_F] =
         JuMP.Containers.DenseAxisArray{JuMP.ConstraintRef}(undef, N, O, SF, G, T)
@@ -566,9 +563,7 @@ function create_decision_model(
         (1 + data[n]["organism"][o]["genetics"].Ω[g]) *
         data[n]["organism"][o]["stage_temperature_response"][Female][n][o][g][t][1] *
         F[n, o, s, g, t] +
-        # original
-        #control_F[n, o, wildtype, homozygous_modified, t] +
-        # remember
+
         control_F[n, o, s, g, t] +
         sum(A[SF_map[s], g][n, i] * F[i, o, s, g, t] for i in N)
     )

@@ -107,7 +107,7 @@ function _add_constraint(
     wildtype,
 )
     data = optinfo_dict["constraints"]
-    #max_per_timestep = node_strategy.release_size_max_per_timestep
+    max_per_timestep = node_strategy.release_size_max_per_timestep
     min_per_timestep = node_strategy.release_size_min_per_timestep
     max_overall = node_strategy.release_max_over_timehorizon #TODO: fix
     control_M = model[:control_M]
@@ -125,26 +125,40 @@ function _add_constraint(
         model.obj_dict[:control_limit_schedule_lower_M]
     CONTAINER_control_limit_total_M = model.obj_dict[:control_limit_total_M]
 
+    range =
+        (node_strategy.release_start_time):(node_strategy.release_time_interval):(node_strategy.release_end_time)
+
     # SCHEDULE
-    for n in node_number, o in O, s in SM, g in G, t in T
-        if data[n]["org_con"][o]["stage_con"][life_stage][g][t] > 0
-            CONTAINER_control_limit_schedule_upper_M[n, o, s, g, t] = JuMP.@constraint(
-                model,
-                # max
-                control_M[n, o, s, g, t] <=
-                release_location[n, t] *
-                data[n]["org_con"][o]["stage_con"][life_stage][g][t]
-            )
-            CONTAINER_control_limit_schedule_lower_M[n, o, s, g, t] = JuMP.@constraint(
-                model,
-                # min
-                control_M[n, o, s, g, t] >= release_location[n, t] * min_per_timestep
-            )
+    for n in node_number, t in T
+        if t ∈ range
+            if do_binary
+                @info "made binary for node $n and time $t"
+                JuMP.set_binary(release_location[n, t])
+            end
+            for o in O, s in SM, g in G
+                max_v = g == homozygous_modified ? max_per_timestep : 0.0
+                min_v = g == homozygous_modified ? min_per_timestep : 0.0
+                @info "max limit used in $s, $g is $max_v"
+                CONTAINER_control_limit_schedule_upper_M[n, o, s, g, t] = JuMP.@constraint(
+                    model,
+                    # max
+                    control_M[n, o, s, g, t] <= release_location[n, t] * max_v
+                )
+                CONTAINER_control_limit_schedule_lower_M[n, o, s, g, t] = JuMP.@constraint(
+                    model,
+                    # min
+                    control_M[n, o, s, g, t] >= release_location[n, t] * min_v
+                )
+            end
         else
-            CONTAINER_control_limit_schedule_upper_M[n, o, s, g, t] =
-                JuMP.@constraint(model, control_M[n, o, s, g, t] <= 0)
-            CONTAINER_control_limit_schedule_lower_M[n, o, s, g, t] =
-                JuMP.@constraint(model, control_M[n, o, s, g, t] >= 0)
+            @info "fixed to 0.0 node $n and time $t"
+            JuMP.fix(release_location[n, t], 0.0; force=true)
+            for o in O, s in SM, g in G
+                CONTAINER_control_limit_schedule_upper_M[n, o, s, g, t] =
+                    JuMP.@constraint(model, control_M[n, o, s, g, t] <= 0)
+                CONTAINER_control_limit_schedule_lower_M[n, o, s, g, t] =
+                    JuMP.@constraint(model, control_M[n, o, s, g, t] >= 0)
+            end
         end
     end
 
@@ -168,7 +182,7 @@ function _add_constraint(
     wildtype,
 )
     data = optinfo_dict["constraints"]
-    #max_per_timestep = node_strategy.release_size_max_per_timestep
+    max_per_timestep = node_strategy.release_size_max_per_timestep
     min_per_timestep = node_strategy.release_size_min_per_timestep
     max_overall = node_strategy.release_max_over_timehorizon #TODO: fix
     control_F = model[:control_F]
@@ -186,30 +200,48 @@ function _add_constraint(
         model.obj_dict[:control_limit_schedule_lower_F]
     CONTAINER_control_limit_total_F = model.obj_dict[:control_limit_total_F]
 
+    range =
+        (node_strategy.release_start_time):(node_strategy.release_time_interval):(node_strategy.release_end_time)
+
     # SCHEDULE
-    for n in node_number, o in O, s in SF, g in G, t in T
-        if data[n]["org_con"][o]["stage_con"][Female][g][t] > 0
-            CONTAINER_control_limit_schedule_upper_F[n, o, s, g, t] = JuMP.@constraint(
-                model,
-                # max
-                control_F[n, o, g, s, t] <=
-                release_location[n, t] * data[n]["org_con"][o]["stage_con"][Female][g][t]
-            )
-            CONTAINER_control_limit_schedule_lower_F[n, o, s, g, t] = JuMP.@constraint(
-                model,
-                # min
-                control_F[n, o, g, s, t] >= release_location[n, t] * min_per_timestep
-            )
+    for n in node_number, t in T
+        if t ∈ range
+            if do_binary
+                @info "made FEMALES binary for node $n and time $t"
+                JuMP.set_binary(release_location[n, t])
+            end
+            for o in O, s in SF, g in G
+                max_v = g == homozygous_modified ? max_per_timestep : 0.0
+                min_v = g == homozygous_modified ? min_per_timestep : 0.0
+                @info "max limit used in $o, $s, $g is FEMALES = $max_v"
+                CONTAINER_control_limit_schedule_upper_F[n, o, s, g, t] = JuMP.@constraint(
+                    model,
+                    # max
+                    control_F[n, o, g, s, t] <= release_location[n, t] * max_v
+                )
+                CONTAINER_control_limit_schedule_lower_F[n, o, s, g, t] = JuMP.@constraint(
+                    model,
+                    # min
+                    control_F[n, o, g, s, t] >= release_location[n, t] * min_v
+                )
+            end
         else
-            CONTAINER_control_limit_schedule_upper_F[n, o, s, g, t] =
-                JuMP.@constraint(model, control_F[n, o, g, s, t] <= 0)
-            CONTAINER_control_limit_schedule_lower_F[n, o, s, g, t] =
-                JuMP.@constraint(model, control_F[n, o, g, s, t] >= 0)
+            @info "fixed FEMALES to 0.0 node $n and time $t"
+            JuMP.fix(release_location[n, t], 0.0; force=true)
+            for o in O, s in SF, g in G
+                CONTAINER_control_limit_schedule_upper_F[n, o, s, g, t] =
+                    JuMP.@constraint(model, control_F[n, o, g, s, t] <= 0)
+                CONTAINER_control_limit_schedule_lower_F[n, o, s, g, t] =
+                    JuMP.@constraint(model, control_F[n, o, g, s, t] >= 0)
+            end
         end
     end
 
     # MAXIMUM
-    CONTAINER_control_limit_total_F = JuMP.@constraint(model, sum(control_F) <= max_overall)
+    CONTAINER_control_limit_total_F = JuMP.@constraint(
+        model,
+        sum(control_F) <= max_overall * MALE_FEMALE_RELEASE_FRACTION
+    )
 
     control_M = model[:control_M]
     JuMP.fix.(control_M, 0.0; force=true)
@@ -267,7 +299,7 @@ function _add_constraint(
     wildtype,
 )
     data = optinfo_dict["constraints"]
-    #max_per_timestep = node_strategy.release_size_max_per_timestep
+    max_per_timestep = node_strategy.release_size_max_per_timestep
     min_per_timestep = node_strategy.release_size_min_per_timestep
     max_overall = node_strategy.release_max_over_timehorizon #TODO: fix
     control_F = model[:control_F]
@@ -295,6 +327,9 @@ function _add_constraint(
 
     CONTAINER_control_equivalence = model.obj_dict[:control_equivalence]
 
+    range =
+        (node_strategy.release_start_time):(node_strategy.release_time_interval):(node_strategy.release_end_time)
+
     # EQUIVALENCE
     for n in node_number, o in O, t in T
         CONTAINER_control_equivalence[n, o, t] = JuMP.@constraint(
@@ -304,57 +339,85 @@ function _add_constraint(
         )
     end
 
-    # SCHEDULE F
-    for n in node_number, o in O, s in SF, g in G, t in T
-        if data[n]["org_con"][o]["stage_con"][Female][g][t] > 0
-            CONTAINER_control_limit_schedule_upper_F[n, o, s, g, t] = JuMP.@constraint(
-                model,
-                # max 
-                control_F[n, o, g, s, t] <=
-                release_location[n, t] * data[n]["org_con"][o]["stage_con"][Female][g][t]
-            )
-            CONTAINER_control_limit_schedule_lower_F[n, o, s, g, t] = JuMP.@constraint(
-                model,
-                # min
-                control_F[n, o, g, s, t] >= release_location[n, t] * min_per_timestep
-            )
+    for n in node_number, t in T
+        if t ∈ range
+            if do_binary
+                @info "made binary for node $n and time $t"
+                JuMP.set_binary(release_location[n, t])
+            end
+
+            for o in O, g in G
+                max_v = g == homozygous_modified ? max_per_timestep : 0.0
+                min_v = g == homozygous_modified ? min_per_timestep : 0.0
+
+                # SCHEDULE F
+                for s in SF
+                    @info "max used in $s, $g is FEMALES = $max_v"
+                    @info "min used in $s, $g is FEMALES = $min_v"
+
+                    CONTAINER_control_limit_schedule_upper_F[n, o, s, g, t] =
+                        JuMP.@constraint(
+                            model,
+                            # max
+                            control_F[n, o, g, s, t] <= release_location[n, t] * max_v
+                        )
+                    CONTAINER_control_limit_schedule_lower_F[n, o, s, g, t] =
+                        JuMP.@constraint(
+                            model,
+                            # min
+                            control_F[n, o, g, s, t] >= release_location[n, t] * min_v
+                        )
+                end
+
+                # SCHEDULE M
+                for s in SM
+                    @info "max used in $s, $g is MALES = $max_v"
+                    @info "min used in $s, $g is MALES = $min_v"
+
+                    CONTAINER_control_limit_schedule_upper_M[n, o, s, g, t] =
+                        JuMP.@constraint(
+                            model,
+                            # max
+                            control_M[n, o, s, g, t] <= release_location[n, t] * max_v
+                        )
+                    CONTAINER_control_limit_schedule_lower_M[n, o, s, g, t] =
+                        JuMP.@constraint(
+                            model,
+                            # min
+                            control_M[n, o, s, g, t] >= release_location[n, t] * min_v
+                        )
+                end
+            end
         else
-            CONTAINER_control_limit_schedule_upper_F[n, o, s, g, t] =
-                JuMP.@constraint(model, control_F[n, o, g, s, t] <= 0)
-            CONTAINER_control_limit_schedule_lower_F[n, o, s, g, t] =
-                JuMP.@constraint(model, control_F[n, o, g, s, t] >= 0)
+            JuMP.fix(release_location[n, t], 0.0; force=true)
+            for o in O, g in G
+                for s in SF
+                    @info "fixed FEMALES to 0.0 in node $n, time $t"
+                    CONTAINER_control_limit_schedule_upper_F[n, o, s, g, t] =
+                        JuMP.@constraint(model, control_F[n, o, g, s, t] <= 0)
+                    CONTAINER_control_limit_schedule_lower_F[n, o, s, g, t] =
+                        JuMP.@constraint(model, control_F[n, o, g, s, t] >= 0)
+                end
+                for s in SM
+                    @info "fixed MALES to 0.0 in node $n, time $t"
+                    CONTAINER_control_limit_schedule_upper_M[n, o, s, g, t] =
+                        JuMP.@constraint(model, control_M[n, o, s, g, t] <= 0)
+                    CONTAINER_control_limit_schedule_lower_M[n, o, s, g, t] =
+                        JuMP.@constraint(model, control_M[n, o, s, g, t] >= 0)
+                end
+            end
         end
     end
 
     # MAXIMUM F
+    @info "overall max FEMALES = $(max_overall*MALE_FEMALE_RELEASE_FRACTION)"
     CONTAINER_control_limit_total_F = JuMP.@constraint(
         model,
         sum(control_F) <= max_overall * MALE_FEMALE_RELEASE_FRACTION
     )
 
-    # SCHEDULE M
-    for n in node_number, o in O, s in SM, g in G, t in T
-        if data[n]["org_con"][o]["stage_con"][Male][g][t] > 0
-            CONTAINER_control_limit_schedule_upper_M[n, o, s, g, t] = JuMP.@constraint(
-                model,
-                # max
-                control_M[n, o, s, g, t] <=
-                release_location[n, t] * data[n]["org_con"][o]["stage_con"][Male][g][t]
-            )
-            CONTAINER_control_limit_schedule_lower_M[n, o, s, g, t] = JuMP.@constraint(
-                model,
-                # min
-                control_M[n, o, s, g, t] >= release_location[n, t] * min_per_timestep
-            )
-        else
-            CONTAINER_control_limit_schedule_upper_M[n, o, s, g, t] =
-                JuMP.@constraint(model, control_M[n, o, s, g, t] <= 0)
-            CONTAINER_control_limit_schedule_lower_M[n, o, s, g, t] =
-                JuMP.@constraint(model, control_M[n, o, s, g, t] >= 0)
-        end
-    end
-
     # MAXIMUM M
+    @info "overall max MALES = $(max_overall*MALE_FEMALE_RELEASE_FRACTION)"
     CONTAINER_control_limit_total_M = JuMP.@constraint(
         model,
         sum(control_M) <= max_overall * MALE_FEMALE_RELEASE_FRACTION
@@ -506,8 +569,6 @@ function _calculate_release_constraints(
     # Add constraints to model
     ####################
     for (node_number, strategy) in enumerate(node_strategy)
-        @show node_number, strategy
-        @show "making constraint $node_number"
         _add_constraint(
             model,
             do_binary::Bool,
