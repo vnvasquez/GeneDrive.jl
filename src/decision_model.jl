@@ -563,7 +563,6 @@ function create_decision_model(
         (1 + data[n]["organism"][o]["genetics"].Ω[g]) *
         data[n]["organism"][o]["stage_temperature_response"][Female][n][o][g][t][1] *
         F[n, o, s, g, t] +
-
         control_F[n, o, s, g, t] +
         sum(A[SF_map[s], g][n, i] * F[i, o, s, g, t] for i in N)
     )
