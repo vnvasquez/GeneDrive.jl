@@ -7,11 +7,12 @@
     # Temperature: Timeseries, Genetics: Mendelian, Species: AnophelesGambiae, Releases: no, Shocks: no, Network: no
     test_anoph = update_population_size(stages_abiodun(), 500)
     test_mendelian = make_organisms(AnophelesGambiae, genetics_mendelian(), test_anoph)
-    test_node = Node(:TestNode, test_mendelian, example_temperature_timeseries, (1.0, 1.0))
-    test_sol = solve_dynamic_model(test_node, test_solver, test_tspan)
-    plot_dynamic_mendelian_females(test_node, test_sol)
+    test_short_timeseries = TimeSeriesTemperature([27.0,27.5,28.05,28.05,28.3,27.8,27.9,28.5,27.75,26.8])
+    test_short_tspan = (1, length(test_short_timeseries.values))
+    test_node = Node(:TestNode, test_mendelian, test_short_timeseries, (1.0, 1.0))
+    test_sol = solve_dynamic_model(test_node, test_solver, test_short_tspan)
+    format_dynamic_model_results(test_node, test_sol)
     @test test_sol.retcode == :Success
-    # @test LinearAlgebra.norm(realanswer - testanswer) < 1e-3
 
     ### Temperature: Sinusoid, Genetics: RIDL, Species: Aedes, Releases: yes, Shocks: yes, Network: no
     test_aedes = update_population_size(stages_rossi(), 500)
@@ -32,7 +33,7 @@
     test_shocks = TemperatureShockData(test_node, [(20.0, 30.0)], [2.0])
     test_sol =
         solve_dynamic_model(test_node, [test_release], test_shocks, test_solver, test_tspan)
-    plot_dynamic_ridl_females(test_node, test_sol)
+    format_dynamic_model_results(test_node, test_sol)
     @test test_sol.retcode == :Success
 
     ## Temperature: Constant, Genetics: HGD, Species: Aedes, Releases: no, Shocks: no, Network: no
@@ -40,7 +41,7 @@
     test_hgd = make_organisms(AedesAegypti, genetics_mcr(), test_aedes)
     test_node = Node(:TestNode, test_hgd, example_temperature_constant, (1.0, 1.0))
     test_sol = solve_dynamic_model(test_node, test_solver, test_tspan)
-    plot_dynamic_mcr_females(test_node, test_sol)
+    format_dynamic_model_results(test_node, test_sol)
     @test test_sol.retcode == :Success
 
     ## Temperature: Constant, Genetics: Wolbachia, Species: Aedes, Releases: no, Shocks: no, Network: yes
