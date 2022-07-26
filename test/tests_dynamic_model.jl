@@ -7,7 +7,18 @@
     # Temperature: Timeseries, Genetics: Mendelian, Species: AnophelesGambiae, Releases: no, Shocks: no, Network: no
     test_anoph = update_population_size(stages_abiodun(), 500)
     test_mendelian = make_organisms(AnophelesGambiae, genetics_mendelian(), test_anoph)
-    test_short_timeseries = TimeSeriesTemperature([27.0,27.5,28.05,28.05,28.3,27.8,27.9,28.5,27.75,26.8])
+    test_short_timeseries = TimeSeriesTemperature([
+        27.0,
+        27.5,
+        28.05,
+        28.05,
+        28.3,
+        27.8,
+        27.9,
+        28.5,
+        27.75,
+        26.8,
+    ])
     test_short_tspan = (1, length(test_short_timeseries.values))
     test_node = Node(:TestNode, test_mendelian, test_short_timeseries, (1.0, 1.0))
     test_sol = solve_dynamic_model(test_node, test_solver, test_short_tspan)
