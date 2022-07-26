@@ -76,7 +76,7 @@
     ## Constraints: Mixed && slack_large
     test_constraints = ReleaseStrategy(
         release_this_gene_index=test_release_gene,
-        release_this_life_stage=(Male,Female),
+        release_this_life_stage=(Male, Female),
     )
     test_strategy = Dict(1 => test_constraints)
 
