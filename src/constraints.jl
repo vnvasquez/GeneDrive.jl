@@ -132,13 +132,13 @@ function _add_constraint(
     for n in node_number, t in T
         if t ∈ range
             if do_binary
-                @info "made binary for node $n and time $t"
+                #@info "made binary for node $n and time $t"
                 JuMP.set_binary(release_location[n, t])
             end
             for o in O, s in SM, g in G
                 max_v = g == homozygous_modified ? max_per_timestep : 0.0
                 min_v = g == homozygous_modified ? min_per_timestep : 0.0
-                @info "max limit used in $s, $g is $max_v"
+                #@info "max limit used in $s, $g is $max_v"
                 CONTAINER_control_limit_schedule_upper_M[n, o, s, g, t] = JuMP.@constraint(
                     model,
                     # max
@@ -151,7 +151,7 @@ function _add_constraint(
                 )
             end
         else
-            @info "fixed to 0.0 node $n and time $t"
+            #@info "fixed to 0.0 node $n and time $t"
             JuMP.fix(release_location[n, t], 0.0; force=true)
             for o in O, s in SM, g in G
                 CONTAINER_control_limit_schedule_upper_M[n, o, s, g, t] =
