@@ -1,29 +1,27 @@
-name: Main - CI
+name: Test-CI
 
 on:
-  push:
-    branches:
-      - main
-    schedule:
-      - cron: 0 * * * *
+  pull_request:
+    types: [opened, synchronize, reopened]
+
 jobs:
   test:
     name: Julia ${{ matrix.julia-version }} - ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        julia-version: ['1', 'nightly']
+        julia-version: ['1']
         julia-arch: [x64]
         os: [ubuntu-latest, macOS-latest]
 
     steps:
       - uses: actions/checkout@v2
       - uses: julia-actions/setup-julia@latest
-        continue-on-error: true
         with:
           version: ${{ matrix.julia-version }}
           arch: ${{ matrix.julia-arch }}
       - uses: julia-actions/julia-buildpkg@latest
+        continue-on-error: ${{ matrix.julia-version == 'nightly' }}
         env:
           PYTHON: ""
       - uses: julia-actions/julia-runtest@latest

@@ -266,6 +266,8 @@ function solve_dynamic_model(network::Network, algorithm, tspan)
                 push!(callbacks, temp.set.discrete_callbacks...)
             end
             collected_callback_set = diffeq.CallbackSet((), tuple(callbacks...))
+        else
+            collected_callback_set = diffeq.CallbackSet((), tuple(callbacks...))
         end
     end
     inputs = ExogenousInputs(network)

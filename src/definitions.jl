@@ -15,13 +15,13 @@ const genetics_key_map = Dict(
     "hh" => hh,
     "hR" => hR,
     "RR" => RR,
-    ## end single-locus CRISPR homing ("MCR")
+    # end single-locus homing gene drive (HGD/MCR)
     "WR" => WR,
     # end RIDL (total = WW, WR, RR)
     "AA" => AA,
     "Aa" => Aa,
     "aa" => aa,
-    # end Mendelian 
+    # end Mendelian
 )
 
 const MALE_FEMALE_RELEASE_FRACTION = 0.5

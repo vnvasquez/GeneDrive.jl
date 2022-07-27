@@ -132,13 +132,13 @@ function _add_constraint(
     for n in node_number, t in T
         if t ∈ range
             if do_binary
-                @info "made binary for node $n and time $t"
+                #@info "made binary for node $n and time $t"
                 JuMP.set_binary(release_location[n, t])
             end
             for o in O, s in SM, g in G
                 max_v = g == homozygous_modified ? max_per_timestep : 0.0
                 min_v = g == homozygous_modified ? min_per_timestep : 0.0
-                @info "max limit used in $s, $g is $max_v"
+                #@info "max limit used in $s, $g is $max_v"
                 CONTAINER_control_limit_schedule_upper_M[n, o, s, g, t] = JuMP.@constraint(
                     model,
                     # max
@@ -151,7 +151,7 @@ function _add_constraint(
                 )
             end
         else
-            @info "fixed to 0.0 node $n and time $t"
+            #@info "fixed to 0.0 node $n and time $t"
             JuMP.fix(release_location[n, t], 0.0; force=true)
             for o in O, s in SM, g in G
                 CONTAINER_control_limit_schedule_upper_M[n, o, s, g, t] =
@@ -207,13 +207,13 @@ function _add_constraint(
     for n in node_number, t in T
         if t ∈ range
             if do_binary
-                @info "made FEMALES binary for node $n and time $t"
+                #@info "made FEMALES binary for node $n and time $t"
                 JuMP.set_binary(release_location[n, t])
             end
             for o in O, s in SF, g in G
                 max_v = g == homozygous_modified ? max_per_timestep : 0.0
                 min_v = g == homozygous_modified ? min_per_timestep : 0.0
-                @info "max limit used in $o, $s, $g is FEMALES = $max_v"
+                #@info "max limit used in $o, $s, $g is FEMALES = $max_v"
                 CONTAINER_control_limit_schedule_upper_F[n, o, s, g, t] = JuMP.@constraint(
                     model,
                     # max
@@ -226,7 +226,7 @@ function _add_constraint(
                 )
             end
         else
-            @info "fixed FEMALES to 0.0 node $n and time $t"
+            #@info "fixed FEMALES to 0.0 node $n and time $t"
             JuMP.fix(release_location[n, t], 0.0; force=true)
             for o in O, s in SF, g in G
                 CONTAINER_control_limit_schedule_upper_F[n, o, s, g, t] =
@@ -342,7 +342,7 @@ function _add_constraint(
     for n in node_number, t in T
         if t ∈ range
             if do_binary
-                @info "made binary for node $n and time $t"
+                #@info "made binary for node $n and time $t"
                 JuMP.set_binary(release_location[n, t])
             end
 
@@ -352,8 +352,8 @@ function _add_constraint(
 
                 # SCHEDULE F
                 for s in SF
-                    @info "max used in $s, $g is FEMALES = $max_v"
-                    @info "min used in $s, $g is FEMALES = $min_v"
+                    #@info "max used in $s, $g is FEMALES = $max_v"
+                    #@info "min used in $s, $g is FEMALES = $min_v"
 
                     CONTAINER_control_limit_schedule_upper_F[n, o, s, g, t] =
                         JuMP.@constraint(
@@ -371,8 +371,8 @@ function _add_constraint(
 
                 # SCHEDULE M
                 for s in SM
-                    @info "max used in $s, $g is MALES = $max_v"
-                    @info "min used in $s, $g is MALES = $min_v"
+                    #@info "max used in $s, $g is MALES = $max_v"
+                    #@info "min used in $s, $g is MALES = $min_v"
 
                     CONTAINER_control_limit_schedule_upper_M[n, o, s, g, t] =
                         JuMP.@constraint(
@@ -392,14 +392,14 @@ function _add_constraint(
             JuMP.fix(release_location[n, t], 0.0; force=true)
             for o in O, g in G
                 for s in SF
-                    @info "fixed FEMALES to 0.0 in node $n, time $t"
+                    #@info "fixed FEMALES to 0.0 in node $n, time $t"
                     CONTAINER_control_limit_schedule_upper_F[n, o, s, g, t] =
                         JuMP.@constraint(model, control_F[n, o, g, s, t] <= 0)
                     CONTAINER_control_limit_schedule_lower_F[n, o, s, g, t] =
                         JuMP.@constraint(model, control_F[n, o, g, s, t] >= 0)
                 end
                 for s in SM
-                    @info "fixed MALES to 0.0 in node $n, time $t"
+                    #@info "fixed MALES to 0.0 in node $n, time $t"
                     CONTAINER_control_limit_schedule_upper_M[n, o, s, g, t] =
                         JuMP.@constraint(model, control_M[n, o, s, g, t] <= 0)
                     CONTAINER_control_limit_schedule_lower_M[n, o, s, g, t] =

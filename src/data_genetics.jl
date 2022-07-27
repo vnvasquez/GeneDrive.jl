@@ -49,7 +49,7 @@ drives_wolbachia = [ # NB: Midrange estimate for ω
 genetics_wolbachia() = Genetics(Wolbachia, drives_wolbachia)
 
 ########################################
-#                 MCR                  #
+#              HGD/MCR                 #
 ########################################
 
 mcr1 = [
