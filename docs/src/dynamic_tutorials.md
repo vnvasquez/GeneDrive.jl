@@ -38,7 +38,7 @@ sol = solve_dynamic_model(node2, solver, tspan);
 # Format all results for analysis
 results = format_dynamic_model_results(node2, sol)
 ```
-To visualize a subet of the results, run `plot_dynamic_mendelian_females(node2, sol)`. For the `AedesAegypti` species modelled in this example, we are particularly interested in the dynamics of adult females because female mosquitoes are the vectors of disease.
+To visualize a subset of the results, run `plot_dynamic_mendelian_females(node2, sol)`. For the `AedesAegypti` species modelled in this example, we are particularly interested in the dynamics of adult females because female mosquitoes are the vectors of disease.
 
 Note that the solver is sourced from the robust DifferentialEquations.jl package (options [here](https://diffeq.sciml.ai/stable/solvers/ode_solve/#Full-List-of-Methods)). If that package is not already in your local environment, run the following to select your preferred solution method:
 
@@ -85,4 +85,4 @@ sol = solve_dynamic_model(node3, [releases_males],
 # Format all results for analysis
 results = format_dynamic_model_results(node3, sol)
 ```
-To visualize a subet of the results, run `plot_dynamic_ridl_females(node3, sol)`.
+To visualize a subset of the results, run `plot_dynamic_ridl_females(node3, sol)`.
