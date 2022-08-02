@@ -40,7 +40,7 @@ Beyond this, `Genetics` data includes information unique to modified genotypes i
 * `genetics_mendelian()`: For wildtypes.
 * `genetics_ridl()`: For the biocontrol technology RIDL (suppression), developed by Oxitec.
 * `genetics_wolbachia()`: For two biocontrol approaches (i.e., suppression and replacement) that infect organisms with *Wolbachia* (multiple existing strains).
-* `genetics_mcr()`: For a gene drive biocontrol technology (replacement) tested exclusively in laboratory environnments.
+* `genetics_mcr()`: For a gene drive biocontrol technology (replacement) tested exclusively in laboratory environments.
 
 ## Geography
 
