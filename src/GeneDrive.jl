@@ -120,6 +120,7 @@ export Release
 export ProportionalRelease
 export ReleaseStrategy
 
+export ScenarioTemperature
 export SinusoidalTemperature
 export Species
 export Stage
@@ -242,7 +243,7 @@ export init_network!
 
 export make_organisms
 
-export perturb_temperature_timeseries
+export perturb_temperature_timeseries!
 
 export plot_decision_mcr_females
 export plot_decision_mendelian_females
@@ -259,6 +260,7 @@ export population_model_network
 
 export solve_decision_model
 export solve_dynamic_model
+export solve_scenarios_dynamic_model
 
 export temperature_effect
 
@@ -289,7 +291,7 @@ export update_population_size
 export update_pupa_duration
 export update_pupa_mortality
 
-export update_temperature
+export update_temperature!
 
 # Data
 #####################
