@@ -13,12 +13,26 @@ function solve_dynamic_model(node::Node, algorithm, tspan)
     callbacks = Vector()
     collected_callback_set = []
 
-    if isa(node.temperature, TimeSeriesTemperature) == true
+    if isa(node.temperature, TimeSeriesTemperature)
         tempseries = [
             TemperatureSeriesData(
                 node,
                 collect(tspan[1]:tspan[2]),
                 node.temperature.values,
+            ),
+        ]
+        for temp in tempseries
+            push!(tstops, temp.times...)
+            push!(callbacks, temp.set.discrete_callbacks...)
+        end
+        collected_callback_set = diffeq.CallbackSet((), tuple(callbacks...))
+
+    elseif isa(node.temperature, ScenarioTemperature) # && selected_scenario !== nothing
+        tempseries = [
+            TemperatureSeriesData(
+                node,
+                collect(tspan[1]:tspan[2]),
+                node.temperature.values[:, node.temperature.selected_scenario],
             ),
         ]
 
@@ -27,9 +41,11 @@ function solve_dynamic_model(node::Node, algorithm, tspan)
             push!(callbacks, temp.set.discrete_callbacks...)
         end
         collected_callback_set = diffeq.CallbackSet((), tuple(callbacks...))
+
     else
         collected_callback_set = diffeq.CallbackSet((), tuple(callbacks...))
     end
+
     inputs = ExogenousInputs(node)
     u0, dens = init_node!(node)
     @info("Simulation initialized. Beginning model run with $(typeof(node.temperature)).")
@@ -62,7 +78,7 @@ function solve_dynamic_model(
     callbacks = Vector()
     collected_callback_set = []
 
-    if isa(node.temperature, TimeSeriesTemperature) == true
+    if isa(node.temperature, TimeSeriesTemperature)
         tempseries = [
             TemperatureSeriesData(
                 node,
@@ -70,6 +86,25 @@ function solve_dynamic_model(
                 node.temperature.values,
             ),
         ]
+        for release in releases
+            push!(tstops, release.times...)
+            push!(callbacks, release.callbacks...)
+        end
+        for temp in tempseries
+            push!(tstops, temp.times...)
+            push!(callbacks, temp.set.discrete_callbacks...)
+        end
+        collected_callback_set = diffeq.CallbackSet((), tuple(callbacks...))
+
+    elseif isa(node.temperature, ScenarioTemperature) # && selected_scenario !== nothing
+        tempseries = [
+            TemperatureSeriesData(
+                node,
+                collect(tspan[1]:tspan[2]),
+                node.temperature.values[:, node.temperature.selected_scenario],
+            ),
+        ]
+
         for release in releases
             push!(tstops, release.times...)
             push!(callbacks, release.callbacks...)
@@ -119,7 +154,7 @@ function solve_dynamic_model(node::Node, shocks::TemperatureShockData, algorithm
     callbacks = Vector()
     collected_callback_set = []
 
-    if isa(node.temperature, TimeSeriesTemperature) == true
+    if isa(node.temperature, TimeSeriesTemperature)
         shock_data = zeros(length(node.temperature.values))
         for (ix, t) in enumerate(tspan[1]:tspan[2])
             for (jx, t_range) in enumerate(shocks.times)
@@ -183,7 +218,7 @@ function solve_dynamic_model(
     callbacks = Vector()
     collected_callback_set = []
 
-    if isa(node.temperature, TimeSeriesTemperature) == true
+    if isa(node.temperature, TimeSeriesTemperature)
         shock_data = zeros(length(node.temperature.values))
         for (ix, t) in enumerate(tspan[1]:tspan[2])
             for (jx, t_range) in enumerate(shocks.times)
@@ -252,7 +287,7 @@ function solve_dynamic_model(network::Network, algorithm, tspan)
     collected_callback_set = []
 
     for (key, node) in network.nodes
-        if isa(node.temperature, TimeSeriesTemperature) == true
+        if isa(node.temperature, TimeSeriesTemperature)
             tempseries = [
                 TemperatureSeriesData(
                     node,
@@ -266,6 +301,21 @@ function solve_dynamic_model(network::Network, algorithm, tspan)
                 push!(callbacks, temp.set.discrete_callbacks...)
             end
             collected_callback_set = diffeq.CallbackSet((), tuple(callbacks...))
+
+        elseif isa(node.temperature, ScenarioTemperature)
+            tempseries = [
+                TemperatureSeriesData(
+                    node,
+                    collect(tspan[1]:tspan[2]),
+                    node.temperature.values[:, node.temperature.selected_scenario],
+                ),
+            ]
+            for temp in tempseries
+                push!(tstops, temp.times...)
+                push!(callbacks, temp.set.discrete_callbacks...)
+            end
+            collected_callback_set = diffeq.CallbackSet((), tuple(callbacks...))
+
         else
             collected_callback_set = diffeq.CallbackSet((), tuple(callbacks...))
         end
@@ -290,7 +340,7 @@ function solve_dynamic_model(network::Network, algorithm, tspan)
 end
 
 """
-    solve_dynamic_model(network::Network, releases::Union{Vector{Release},Vector{ProportionalRelease}}, algorithm, tspan)
+    solve_dynamic_model(network::Network, releases::Union{Vector{Release}, Vector{ProportionalRelease}}, algorithm, tspan)
 
 Return ODE model solution for network problem with releases.
 """
@@ -310,7 +360,7 @@ function solve_dynamic_model(
     collected_callback_set = []
 
     for (key, node) in network.nodes
-        if isa(node.temperature, TimeSeriesTemperature) == true
+        if isa(node.temperature, TimeSeriesTemperature)
             tempseries = [
                 TemperatureSeriesData(
                     node,
@@ -319,6 +369,24 @@ function solve_dynamic_model(
                 ),
             ]
 
+            for temp in tempseries
+                push!(tstops, temp.times...)
+                push!(callbacks, temp.set.discrete_callbacks...)
+            end
+            for release in releases
+                push!(tstops, release.times...)
+                push!(callbacks, release.callbacks...)
+            end
+            collected_callback_set = diffeq.CallbackSet((), tuple(callbacks...))
+
+        elseif isa(node.temperature, ScenarioTemperature)
+            tempseries = [
+                TemperatureSeriesData(
+                    node,
+                    collect(tspan[1]:tspan[2]),
+                    node.temperature.values[:, node.temperature.selected_scenario],
+                ),
+            ]
             for temp in tempseries
                 push!(tstops, temp.times...)
                 push!(callbacks, temp.set.discrete_callbacks...)
@@ -379,7 +447,7 @@ function solve_dynamic_model(
     collected_callback_set = []
 
     for (key, node) in network.nodes
-        if isa(node.temperature, TimeSeriesTemperature) == true
+        if isa(node.temperature, TimeSeriesTemperature)
             shock_data = zeros(length(node.temperature.values))
             for (ix, t) in enumerate(tspan[1]:tspan[2])
                 for shock in shocks
@@ -458,7 +526,7 @@ function solve_dynamic_model(
     collected_callback_set = []
 
     for (key, node) in network.nodes
-        if isa(node.temperature, TimeSeriesTemperature) == true
+        if isa(node.temperature, TimeSeriesTemperature)
             shock_data = zeros(length(node.temperature.values))
             for (ix, t) in enumerate(tspan[1]:tspan[2])
                 for shock in shocks
@@ -516,6 +584,101 @@ function solve_dynamic_model(
     @info(" Model run complete.")
 
     return sol_net
+end
+
+"""
+    solve_scenarios_dynamic_model(node::Node, algorithm, tspan, scenarios_of_interest::Vector{Int})
+
+Return ODE model solution for node problem with scenarios and no releases.
+"""
+function solve_scenarios_dynamic_model(
+    node::Node,
+    algorithm,
+    tspan,
+    scenarios_of_interest::Vector{Int},
+)
+    solutions = []
+    for scenario in scenarios_of_interest
+        set_scenario!(node, scenario)
+        @info "Solving temperature scenario #$(node.temperature.selected_scenario)..."
+        sol = solve_dynamic_model(node, algorithm, tspan)
+        push!(solutions, sol)
+    end
+
+    return solutions
+end
+
+"""
+    solve_scenarios_dynamic_model(node::Node, releases, algorithm, tspan, scenarios_of_interest::Vector{Int})
+
+Return ODE model solution for node problem with scenarios and releases.
+"""
+function solve_scenarios_dynamic_model(
+    node::Node,
+    releases::Union{Vector{Release}, Vector{ProportionalRelease}},
+    algorithm,
+    tspan,
+    scenarios_of_interest::Vector{Int},
+)
+    solutions = []
+    for scenario in scenarios_of_interest
+        set_scenario!(node, scenario)
+        @info "Solving temperature scenario #$(node.temperature.selected_scenario)..."
+        sol = solve_dynamic_model(node, releases, algorithm, tspan)
+        push!(solutions, sol)
+    end
+
+    return solutions
+end
+
+"""
+    solve_scenarios_dynamic_model(network::Network, algorithm, tspan, scenarios_of_interest::Vector{Int})
+
+Return ODE model solution for network problem with scenarions and no releases.
+"""
+function solve_scenarios_dynamic_model(
+    network::Network,
+    algorithm,
+    tspan,
+    scenarios_of_interest::Vector{Int}
+    )
+
+    solutions = []
+    for scenario in scenarios_of_interest
+        for (key, node) in network.nodes
+            set_scenario!(node, scenario)
+        end
+        @info "Solving temperature scenario #$(scenario)..."
+        sol = solve_dynamic_model(network, algorithm, tspan);
+        push!(solutions, sol)
+    end
+
+    return solutions
+end
+
+"""
+    solve_scenarios_dynamic_model(network::Netowkr, releases, algorithm, tspan, scenarios_of_interest::Vector{Int})
+
+Return ODE model solution for node problem with scenarios and releases.
+"""
+function solve_scenarios_dynamic_model(
+    network::Network,
+    releases::Union{Vector{Release}, Vector{ProportionalRelease}},
+    algorithm,
+    tspan,
+    scenarios_of_interest::Vector{Int})
+
+    solutions = []
+    for scenario in scenarios_of_interest
+        for (key, node) in network.nodes
+            set_scenario!(node, scenario)
+        end
+        @info "Solving temperature scenario #$(scenario)..."
+        sol = solve_dynamic_model(network, releases, algorithm, tspan);
+        push!(solutions, sol)
+    end
+
+    return solutions
 end
 
 ########################################
