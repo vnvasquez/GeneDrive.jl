@@ -154,17 +154,18 @@ mutable struct ScenarioTemperature <: Temperature
     probability::Vector{Float64}
     selected_scenario::Union{Nothing, Int}
 
-   # function ScenarioTemperature(
-   #     values::Matrix{Float64},
-   #     probability::Vector{Float64})
-   #    new(values, probability, nothing)
-   # end
+    # function ScenarioTemperature(
+    #     values::Matrix{Float64},
+    #     probability::Vector{Float64})
+    #    new(values, probability, nothing)
+    # end
 end
 
 function ScenarioTemperature(
     values::Matrix{Float64},
     probability::Vector{Float64};
-    selected_scenario=nothing)
+    selected_scenario=nothing,
+)
     return ScenarioTemperature(values, probability, selected_scenario)
 end
 

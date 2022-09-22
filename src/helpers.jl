@@ -640,16 +640,15 @@ function solve_scenarios_dynamic_model(
     network::Network,
     algorithm,
     tspan,
-    scenarios_of_interest::Vector{Int}
-    )
-
+    scenarios_of_interest::Vector{Int},
+)
     solutions = []
     for scenario in scenarios_of_interest
         for (key, node) in network.nodes
             set_scenario!(node, scenario)
         end
         @info "Solving temperature scenario #$(scenario)..."
-        sol = solve_dynamic_model(network, algorithm, tspan);
+        sol = solve_dynamic_model(network, algorithm, tspan)
         push!(solutions, sol)
     end
 
@@ -666,15 +665,15 @@ function solve_scenarios_dynamic_model(
     releases::Union{Vector{Release}, Vector{ProportionalRelease}},
     algorithm,
     tspan,
-    scenarios_of_interest::Vector{Int})
-
+    scenarios_of_interest::Vector{Int},
+)
     solutions = []
     for scenario in scenarios_of_interest
         for (key, node) in network.nodes
             set_scenario!(node, scenario)
         end
         @info "Solving temperature scenario #$(scenario)..."
-        sol = solve_dynamic_model(network, releases, algorithm, tspan);
+        sol = solve_dynamic_model(network, releases, algorithm, tspan)
         push!(solutions, sol)
     end
 
