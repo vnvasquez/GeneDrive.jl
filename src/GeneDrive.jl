@@ -201,6 +201,7 @@ export count_nodes
 
 export count_organisms
 export count_substages
+export count_temperature_scenarios
 
 export create_decision_model
 export format_decision_model_results
@@ -230,10 +231,12 @@ export get_nodes
 export get_organisms
 
 export get_previous_lifestage
+export get_probability
 export get_release_data
 
 export get_temperature
 export get_temperature_response
+export get_temperature_scenarios
 export get_temperature_value
 
 export get_wildtype
@@ -257,6 +260,8 @@ export plot_dynamic_wolbachia_females
 
 export population_model_node
 export population_model_network
+
+export set_scenario!
 
 export solve_decision_model
 export solve_dynamic_model
