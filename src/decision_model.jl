@@ -60,30 +60,30 @@ function create_decision_model(
     # Parameters
     ##################
     data = _optimization_info(network, tspan)
+    organism_data = data[1]["scenario"][1]
+    # TODO: fix
+    nE = organism_data["organism"][1]["substage_count"][Egg]
+    nL = organism_data["organism"][1]["substage_count"][Larva]
+    nP = organism_data["organism"][1]["substage_count"][Pupa]
+    nM = organism_data["organism"][1]["substage_count"][Male]
+    nF = organism_data["organism"][1]["substage_count"][Female]
+    gene_count = organism_data["organism"][1]["gene_count"]
+    homozygous_modified = organism_data["organism"][1]["homozygous_modified"]
+    wildtype = organism_data["organism"][1]["wildtype"]
 
     # TODO: fix
-    nE = data[1]["organism"][1]["substage_count"][Egg]
-    nL = data[1]["organism"][1]["substage_count"][Larva]
-    nP = data[1]["organism"][1]["substage_count"][Pupa]
-    nM = data[1]["organism"][1]["substage_count"][Male]
-    nF = data[1]["organism"][1]["substage_count"][Female]
-    gene_count = data[1]["organism"][1]["gene_count"]
-    homozygous_modified = data[1]["organism"][1]["homozygous_modified"]
-    wildtype = data[1]["organism"][1]["wildtype"]
-    # species = AedesAegypti # TODO: fix
-
-    # TODO: fix
-    densE = data[1]["organism"][1]["stage_density"][Egg]
-    densL = data[1]["organism"][1]["stage_density"][Larva]
-    densP = data[1]["organism"][1]["stage_density"][Pupa]
-    densM = data[1]["organism"][1]["stage_density"][Male]
-    densF = data[1]["organism"][1]["stage_density"][Female]
+    densE = organism_data["organism"][1]["stage_density"][Egg]
+    densL = organism_data["organism"][1]["stage_density"][Larva]
+    densP = organism_data["organism"][1]["stage_density"][Pupa]
+    densM = organism_data["organism"][1]["stage_density"][Male]
+    densF = organism_data["organism"][1]["stage_density"][Female]
 
     # SETS
     ##################
     T = 1:tspan[end]
     N = 1:data["total_node_count"]
-    O = 1:data[1]["node_organism_count"] #TODO: fix
+    C = 1:data["total_scenario_count"]
+    O = 1:organism_data["node_organism_count"] #TODO: fix
 
     # Stage/substage sets TODO: fix
     SE = 1:nE
@@ -105,6 +105,7 @@ function create_decision_model(
     # Add sets to model object TODO: fix
     model.obj_dict[:Sets] = Dict(
         :N => N,
+        :C => C,
         :O => O,
         :SE => SE,
         :SL => SL,
@@ -115,18 +116,28 @@ function create_decision_model(
         :T => T,
     )
 
+    # Add probabilities to model ext (because not optimizing, using as extension)
+    model.ext[:Probabilities] = Dict(n => Dict{Int, Float64}(c => 0.0 for c in C) for n in N)
+       
+    #for (cx, prob) in enumerate(get_probability(node.temperature))
+    for (node_number, node) in model.ext[:Probabilities]
+       for cx in keys(node)
+            node[cx] = data[node_number]["scenario"][cx]["probability"]
+        end 
+    end
+
     # DECLARE VARIABLES_1: Life Stages
     ###########################################
-    JuMP.@variable(model, E[N, O, SE, G, T] >= 0)
-    JuMP.@variable(model, L[N, O, SL, G, T] >= 0)
-    JuMP.@variable(model, P[N, O, SP, G, T] >= 0)
-    JuMP.@variable(model, M[N, O, SM, G, T] >= 0)
-    JuMP.@variable(model, F[N, O, SF, G, T] >= 0)
+    JuMP.@variable(model, E[N, C, O, SE, G, T] >= 0)
+    JuMP.@variable(model, L[N, C, O, SL, G, T] >= 0)
+    JuMP.@variable(model, P[N, C, O, SP, G, T] >= 0)
+    JuMP.@variable(model, M[N, C, O, SM, G, T] >= 0)
+    JuMP.@variable(model, F[N, C, O, SF, G, T] >= 0)
     #JuMP.@variable(model, P_slack_negative[N, O, G, T] == 0)
     if slack_small
-        JuMP.@variable(model, 0 <= P_slack_positive[N, O, G, [1]] <= 1)
+        JuMP.@variable(model, 0 <= P_slack_positive[N, C, O, G, [1]] <= 1)
     elseif slack_large
-        JuMP.@variable(model, 0 <= P_slack_positive[N, O, G, T] <= 1)
+        JuMP.@variable(model, 0 <= P_slack_positive[N, C, O, G, T] <= 1)
     else
         @info("No slack specified.")
     end
@@ -158,42 +169,45 @@ function create_decision_model(
     ###########################################
     stages = [Egg, Larva, Pupa, Male, Female]
     initialcond_dict = Dict(
-        s => Dict(n => Dict{Int, Any}(o => nothing for o in O) for n in N) for s in stages
+        s => Dict(n => Dict{Int, Any}(c => Dict{Int, Matrix}(o => Matrix{Float64}(undef, 1, 1) for o in O) 
+        for c in C) for n in N) for s in stages
     )
     for (ix, node_name) in enumerate(N)
-        for (jx, organism) in enumerate(O)
-            initialcond_dict[Egg][node_name][organism] =
-                initial_condition.x[ix].x[jx][SE, :]
-            initialcond_dict[Larva][node_name][organism] =
-                initial_condition.x[ix].x[jx][(nE + 1):(nL + nE), :]
-            initialcond_dict[Pupa][node_name][organism] =
-                initial_condition.x[ix].x[jx][(nE + nL + 1):(nE + nL + nP), :]
-            initialcond_dict[Male][node_name][organism] =
-                initial_condition.x[ix].x[jx][nE + nL + nP + 1, :]'
-            initialcond_dict[Female][node_name][organism] =
-                initial_condition.x[ix].x[jx][(nE + nL + nP + 2):end, :]
-        end
+        for (cx, scenario) in enumerate(C)
+            for (jx, organism) in enumerate(O)
+                initialcond_dict[Egg][node_name][scenario][organism] =
+                    initial_condition.x[ix].x[jx][SE, :]
+                initialcond_dict[Larva][node_name][scenario][organism] =
+                    initial_condition.x[ix].x[jx][(nE + 1):(nL + nE), :]
+                initialcond_dict[Pupa][node_name][scenario][organism] =
+                    initial_condition.x[ix].x[jx][(nE + nL + 1):(nE + nL + nP), :]
+                initialcond_dict[Male][node_name][scenario][organism] =
+                    initial_condition.x[ix].x[jx][nE + nL + nP + 1, :]'
+                initialcond_dict[Female][node_name][scenario][organism] =
+                    initial_condition.x[ix].x[jx][(nE + nL + nP + 2):end, :]
+            end
+        end 
     end
-    for node_name in N, organism in O, t in T
+    for node_name in N, scenario in C, organism in O, t in T
         JuMP.set_start_value.(
-            E[node_name, organism, :, :, t].data,
-            initialcond_dict[Egg][node_name][organism],
+            E[node_name, scenario, organism, :, :, t].data,
+            initialcond_dict[Egg][node_name][scenario][organism],
         )
         JuMP.set_start_value.(
-            L[node_name, organism, :, :, t].data,
-            initialcond_dict[Larva][node_name][organism],
+            L[node_name, scenario, organism, :, :, t].data,
+            initialcond_dict[Larva][node_name][scenario][organism],
         )
         JuMP.set_start_value.(
-            P[node_name, organism, :, :, t].data,
-            initialcond_dict[Pupa][node_name][organism],
+            P[node_name, scenario, organism, :, :, t].data,
+            initialcond_dict[Pupa][node_name][scenario][organism],
         )
         JuMP.set_start_value.(
-            M[node_name, organism, :, :, t].data,
-            initialcond_dict[Male][node_name][organism],
+            M[node_name, scenario, organism, :, :, t].data,
+            initialcond_dict[Male][node_name][scenario][organism],
         )
         JuMP.set_start_value.(
-            F[node_name, organism, :, :, t].data,
-            initialcond_dict[Female][node_name][organism],
+            F[node_name, scenario, organism, :, :, t].data,
+            initialcond_dict[Female][node_name][scenario][organism],
         )
     end
 
@@ -202,23 +216,23 @@ function create_decision_model(
     A = get_migration(network, species)
     JuMP.@expression(
         model,
-        migration_E[n in N, o in O, s in SE, g in G, t in T],
-        A[SE_map[s], g][n, :]' * E[:, o, s, g, t]
+        migration_E[n in N, c in C, o in O, s in SE, g in G, t in T],
+        A[SE_map[s], g][n, :]' * E[:, c, o, s, g, t]
     )
     JuMP.@expression(
         model,
-        migration_L[n in N, o in O, s in SL, g in G, t in T],
-        A[SL_map[s], g][n, :]' * L[:, o, s, g, t]
+        migration_L[n in N, c in C, o in O, s in SL, g in G, t in T],
+        A[SL_map[s], g][n, :]' * L[:, c, o, s, g, t]
     )
     JuMP.@expression(
         model,
-        migration_P[n in N, o in O, s in SP, g in G, t in T],
-        A[SP_map[s], g][n, :]' * P[:, o, s, g, t]
+        migration_P[n in N, c in C, o in O, s in SP, g in G, t in T],
+        A[SP_map[s], g][n, :]' * P[:, c, o, s, g, t]
     )
     JuMP.@expression(
         model,
-        migration_M[n in N, o in O, s in SM, g in G, t in T],
-        A[SM_map[s], g][n, :]' * M[:, o, s, g, t]
+        migration_M[n in N, c in C, o in O, s in SM, g in G, t in T],
+        A[SM_map[s], g][n, :]' * M[:, c, o, s, g, t]
     )
 
     # CONSTRAINTS_A: Life Stages
@@ -227,19 +241,20 @@ function create_decision_model(
     #### EGGS
     JuMP.@constraint(
         model,
-        E_con_A0[n in N, o in O, s in [SE[1]], g in G, t in [T[1]]],
-        E[n, o, s, g, t] ==
-        initialcond_dict[Egg][n][o][SE_map[s], g] + sum(
-            (data[n]["organism"][o]["genetics"].likelihood[
+        E_con_A0[n in N, c in C, o in O, s in [SE[1]], g in G, t in [T[1]]],
+        E[n, c, o, s, g, t] ==
+        initialcond_dict[Egg][n][c][o][SE_map[s], g] + sum(
+            (data[n]["scenario"][c]["organism"][o]["genetics"].likelihood[
                 :,
                 :,
                 g,
-            ] .* data[n]["organism"][o]["genetics"].Τ[
+            ] .* data[n]["scenario"][c]["organism"][o]["genetics"].Τ[
                 :,
                 :,
                 g,
-            ] .* data[n]["organism"][o]["genetics"].S[g] * data[n]["organism"][o]["genetics"].Β[g] .* F[
+            ] .* data[n]["scenario"][c]["organism"][o]["genetics"].S[g] * data[n]["scenario"][c]["organism"][o]["genetics"].Β[g] .* F[
                 n,
+                c,
                 o,
                 :,
                 :,
@@ -249,28 +264,30 @@ function create_decision_model(
                 :,
             ],
         ) -
-        E[n, o, s, g, t] * (
-            data[n]["organism"][o]["stage_temperature_response"][Egg][n][o][g][t][1] *
-            compute_density(densE, sum(E[n, o, :, :, t])) +
-            data[n]["organism"][o]["stage_temperature_response"][Egg][n][o][g][t][2] * nE
-        ) + migration_E[n, o, s, g, t]
+        E[n, c, o, s, g, t] * (
+            data[n]["scenario"][c]["organism"][o]["stage_temperature_response"][Egg][n][c][o][g][t][1] *
+            compute_density(densE, sum(E[n, c, o, :, :, t])) +
+            data[n]["scenario"][c]["organism"][o]["stage_temperature_response"][Egg][n][c][o][g][t][2] *
+            nE
+        ) + migration_E[n, c, o, s, g, t]
     )
 
     JuMP.@constraint(
         model,
-        E_con_A1[n in N, o in O, s in [SE[1]], g in G, t in T[2:end]],
-        E[n, o, s, g, t] ==
-        E[n, o, s, g, t - 1] + sum(
-            (data[n]["organism"][o]["genetics"].likelihood[
+        E_con_A1[n in N, c in C, o in O, s in [SE[1]], g in G, t in T[2:end]],
+        E[n, c, o, s, g, t] ==
+        E[n, c, o, s, g, t - 1] + sum(
+            (data[n]["scenario"][c]["organism"][o]["genetics"].likelihood[
                 :,
                 :,
                 g,
-            ] .* data[n]["organism"][o]["genetics"].Τ[
+            ] .* data[n]["scenario"][c]["organism"][o]["genetics"].Τ[
                 :,
                 :,
                 g,
-            ] .* data[n]["organism"][o]["genetics"].S[g] * data[n]["organism"][o]["genetics"].Β[g] .* F[
+            ] .* data[n]["scenario"][c]["organism"][o]["genetics"].S[g] * data[n]["scenario"][c]["organism"][o]["genetics"].Β[g] .* F[
                 n,
+                c,
                 o,
                 :,
                 :,
@@ -280,291 +297,308 @@ function create_decision_model(
                 :,
             ],
         ) -
-        E[n, o, s, g, t] * (
-            data[n]["organism"][o]["stage_temperature_response"][Egg][n][o][g][t][1] *
-            compute_density(densE, sum(E[n, o, :, :, t])) +
-            data[n]["organism"][o]["stage_temperature_response"][Egg][n][o][g][t][2] * nE
-        ) + migration_E[n, o, s, g, t]
+        E[n, c, o, s, g, t] * (
+            data[n]["scenario"][c]["organism"][o]["stage_temperature_response"][Egg][n][c][o][g][t][1] *
+            compute_density(densE, sum(E[n, c, o, :, :, t])) +
+            data[n]["scenario"][c]["organism"][o]["stage_temperature_response"][Egg][n][c][o][g][t][2] *
+            nE
+        ) + migration_E[n, c, o, s, g, t]
     )
 
     JuMP.@constraint(
         model,
-        E_con_B0[n in N, o in O, s in SE[2:end], g in G, t in [T[1]]],
-        E[n, o, s, g, t] ==
+        E_con_B0[n in N, c in C, o in O, s in SE[2:end], g in G, t in [T[1]]],
+        E[n, c, o, s, g, t] ==
         initial_condition.x[n].x[o][SE_map[s], g] +
-        data[n]["organism"][o]["stage_temperature_response"][Egg][n][o][g][t][2] *
+        data[n]["scenario"][c]["organism"][o]["stage_temperature_response"][Egg][n][c][o][g][t][2] *
         nE *
-        E[n, o, s - 1, g, t] -
-        E[n, o, s, g, t] * (
-            data[n]["organism"][o]["stage_temperature_response"][Egg][n][o][g][t][1] *
-            compute_density(densE, sum(E[n, o, :, :, t])) +
-            data[n]["organism"][o]["stage_temperature_response"][Egg][n][o][g][t][2] * nE
-        ) + migration_E[n, o, s, g, t]
+        E[n, c, o, s - 1, g, t] -
+        E[n, c, o, s, g, t] * (
+            data[n]["scenario"][c]["organism"][o]["stage_temperature_response"][Egg][n][c][o][g][t][1] *
+            compute_density(densE, sum(E[n, c, o, :, :, t])) +
+            data[n]["scenario"][c]["organism"][o]["stage_temperature_response"][Egg][n][c][o][g][t][2] *
+            nE
+        ) + migration_E[n, c, o, s, g, t]
     )
 
     JuMP.@constraint(
         model,
-        E_con_B1[n in N, o in O, s in SE[2:end], g in G, t in T[2:end]],
-        E[n, o, s, g, t] ==
-        E[n, o, s, g, t - 1] +
-        data[n]["organism"][o]["stage_temperature_response"][Egg][n][o][g][t][2] *
+        E_con_B1[n in N, c in C, o in O, s in SE[2:end], g in G, t in T[2:end]],
+        E[n, c, o, s, g, t] ==
+        E[n, c, o, s, g, t - 1] +
+        data[n]["scenario"][c]["organism"][o]["stage_temperature_response"][Egg][n][c][o][g][t][2] *
         nE *
-        E[n, o, s - 1, g, t] -
-        E[n, o, s, g, t] * (
-            data[n]["organism"][o]["stage_temperature_response"][Egg][n][o][g][t][1] *
-            compute_density(densE, sum(E[n, o, :, :, t])) +
-            data[n]["organism"][o]["stage_temperature_response"][Egg][n][o][g][t][2] * nE
-        ) + migration_E[n, o, s, g, t]
+        E[n, c, o, s - 1, g, t] -
+        E[n, c, o, s, g, t] * (
+            data[n]["scenario"][c]["organism"][o]["stage_temperature_response"][Egg][n][c][o][g][t][1] *
+            compute_density(densE, sum(E[n, c, o, :, :, t])) +
+            data[n]["scenario"][c]["organism"][o]["stage_temperature_response"][Egg][n][c][o][g][t][2] *
+            nE
+        ) + migration_E[n, c, o, s, g, t]
     )
 
     #### LARVAE
     JuMP.@constraint(
         model,
-        L_con_A0[n in N, o in O, s in [SL[1]], g in G, t in [T[1]]],
-        L[n, o, s, g, t] ==
+        L_con_A0[n in N, c in C, o in O, s in [SL[1]], g in G, t in [T[1]]],
+        L[n, c, o, s, g, t] ==
         initial_condition.x[n].x[o][SL_map[s], g] +
-        data[n]["organism"][o]["stage_temperature_response"][Egg][n][o][g][t][2] *
+        data[n]["scenario"][c]["organism"][o]["stage_temperature_response"][Egg][n][c][o][g][t][2] *
         nE *
-        E[n, o, end, g, t] -
-        L[n, o, s, g, t] * (
-            data[n]["organism"][o]["stage_temperature_response"][Larva][n][o][g][t][1] *
-            compute_density(densL, sum(L[n, o, :, :, t])) +
-            data[n]["organism"][o]["stage_temperature_response"][Larva][n][o][g][t][2] * nL
-        ) + migration_L[n, o, s, g, t]
+        E[n, c, o, end, g, t] -
+        L[n, c, o, s, g, t] * (
+            data[n]["scenario"][c]["organism"][o]["stage_temperature_response"][Larva][n][c][o][g][t][1] *
+            compute_density(densL, sum(L[n, c, o, :, :, t])) +
+            data[n]["scenario"][c]["organism"][o]["stage_temperature_response"][Larva][n][c][o][g][t][2] *
+            nL
+        ) + migration_L[n, c, o, s, g, t]
     )
 
     JuMP.@constraint(
         model,
-        L_con_A1[n in N, o in O, s in [SL[1]], g in G, t in T[2:end]],
-        L[n, o, s, g, t] ==
-        L[n, o, s, g, t - 1] +
-        data[n]["organism"][o]["stage_temperature_response"][Egg][n][o][g][t][2] *
+        L_con_A1[n in N, c in C, o in O, s in [SL[1]], g in G, t in T[2:end]],
+        L[n, c, o, s, g, t] ==
+        L[n, c, o, s, g, t - 1] +
+        data[n]["scenario"][c]["organism"][o]["stage_temperature_response"][Egg][n][c][o][g][t][2] *
         nE *
-        E[n, o, end, g, t] -
-        L[n, o, s, g, t] * (
-            data[n]["organism"][o]["stage_temperature_response"][Larva][n][o][g][t][1] *
-            compute_density(densL, sum(L[n, o, :, :, t])) +
-            data[n]["organism"][o]["stage_temperature_response"][Larva][n][o][g][t][2] * nL
-        ) + migration_L[n, o, s, g, t]
+        E[n, c, o, end, g, t] -
+        L[n, c, o, s, g, t] * (
+            data[n]["scenario"][c]["organism"][o]["stage_temperature_response"][Larva][n][c][o][g][t][1] *
+            compute_density(densL, sum(L[n, c, o, :, :, t])) +
+            data[n]["scenario"][c]["organism"][o]["stage_temperature_response"][Larva][n][c][o][g][t][2] *
+            nL
+        ) + migration_L[n, c, o, s, g, t]
     )
 
     JuMP.@constraint(
         model,
-        L_con_B0[n in N, o in O, s in SL[2:end], g in G, t in [T[1]]],
-        L[n, o, s, g, t] ==
+        L_con_B0[n in N, c in C, o in O, s in SL[2:end], g in G, t in [T[1]]],
+        L[n, c, o, s, g, t] ==
         initial_condition.x[n].x[o][SL_map[s], g] +
-        data[n]["organism"][o]["stage_temperature_response"][Larva][n][o][g][t][2] *
+        data[n]["scenario"][c]["organism"][o]["stage_temperature_response"][Larva][n][c][o][g][t][2] *
         nL *
-        L[n, o, s - 1, g, t] -
-        L[n, o, s, g, t] * (
-            data[n]["organism"][o]["stage_temperature_response"][Larva][n][o][g][t][1] *
-            compute_density(densL, sum(L[n, o, :, :, t])) +
-            data[n]["organism"][o]["stage_temperature_response"][Larva][n][o][g][t][2] * nL
-        ) + migration_L[n, o, s, g, t]
+        L[n, c, o, s - 1, g, t] -
+        L[n, c, o, s, g, t] * (
+            data[n]["scenario"][c]["organism"][o]["stage_temperature_response"][Larva][n][c][o][g][t][1] *
+            compute_density(densL, sum(L[n, c, o, :, :, t])) +
+            data[n]["scenario"][c]["organism"][o]["stage_temperature_response"][Larva][n][c][o][g][t][2] *
+            nL
+        ) + migration_L[n, c, o, s, g, t]
     )
 
     JuMP.@constraint(
         model,
-        L_con_B1[n in N, o in O, s in SL[2:end], g in G, t in T[2:end]],
-        L[n, o, s, g, t] ==
-        L[n, o, s, g, t - 1] +
-        data[n]["organism"][o]["stage_temperature_response"][Larva][n][o][g][t][2] *
+        L_con_B1[n in N, c in C, o in O, s in SL[2:end], g in G, t in T[2:end]],
+        L[n, c, o, s, g, t] ==
+        L[n, c, o, s, g, t - 1] +
+        data[n]["scenario"][c]["organism"][o]["stage_temperature_response"][Larva][n][c][o][g][t][2] *
         nL *
-        L[n, o, s - 1, g, t] -
-        L[n, o, s, g, t] * (
-            data[n]["organism"][o]["stage_temperature_response"][Larva][n][o][g][t][1] *
-            compute_density(densL, sum(L[n, o, :, :, t])) +
-            data[n]["organism"][o]["stage_temperature_response"][Larva][n][o][g][t][2] * nL
-        ) + migration_L[n, o, s, g, t]
+        L[n, c, o, s - 1, g, t] -
+        L[n, c, o, s, g, t] * (
+            data[n]["scenario"][c]["organism"][o]["stage_temperature_response"][Larva][n][c][o][g][t][1] *
+            compute_density(densL, sum(L[n, c, o, :, :, t])) +
+            data[n]["scenario"][c]["organism"][o]["stage_temperature_response"][Larva][n][c][o][g][t][2] *
+            nL
+        ) + migration_L[n, c, o, s, g, t]
     )
 
     #### PUPAE
     JuMP.@constraint(
         model,
-        P_con_A0[n in N, o in O, s in [SP[1]], g in G, t in [T[1]]],
-        P[n, o, s, g, t] ==
+        P_con_A0[n in N, c in C, o in O, s in [SP[1]], g in G, t in [T[1]]],
+        P[n, c, o, s, g, t] ==
         initial_condition.x[n].x[o][SP_map[s], g] +
-        data[n]["organism"][o]["stage_temperature_response"][Larva][n][o][g][t][2] *
+        data[n]["scenario"][c]["organism"][o]["stage_temperature_response"][Larva][n][c][o][g][t][2] *
         nL *
-        L[n, o, end, g, t] -
-        P[n, o, s, g, t] * (
-            data[n]["organism"][o]["stage_temperature_response"][Pupa][n][o][g][t][1] *
-            compute_density(densP, sum(P[n, o, :, :, t])) +
-            data[n]["organism"][o]["stage_temperature_response"][Pupa][n][o][g][t][2] * nP
-        ) + migration_P[n, o, s, g, t]
+        L[n, c, o, end, g, t] -
+        P[n, c, o, s, g, t] * (
+            data[n]["scenario"][c]["organism"][o]["stage_temperature_response"][Pupa][n][c][o][g][t][1] *
+            compute_density(densP, sum(P[n, c, o, :, :, t])) +
+            data[n]["scenario"][c]["organism"][o]["stage_temperature_response"][Pupa][n][c][o][g][t][2] *
+            nP
+        ) + migration_P[n, c, o, s, g, t]
     )
 
     JuMP.@constraint(
         model,
-        P_con_A1[n in N, o in O, s in [SP[1]], g in G, t in T[2:end]],
-        P[n, o, s, g, t] ==
-        P[n, o, s, g, t - 1] +
-        data[n]["organism"][o]["stage_temperature_response"][Larva][n][o][g][t][2] *
+        P_con_A1[n in N, c in C, o in O, s in [SP[1]], g in G, t in T[2:end]],
+        P[n, c, o, s, g, t] ==
+        P[n, c, o, s, g, t - 1] +
+        data[n]["scenario"][c]["organism"][o]["stage_temperature_response"][Larva][n][c][o][g][t][2] *
         nL *
-        L[n, o, end, g, t] -
-        P[n, o, s, g, t] * (
-            data[n]["organism"][o]["stage_temperature_response"][Pupa][n][o][g][t][1] *
-            compute_density(densP, sum(P[n, o, :, :, t])) +
-            data[n]["organism"][o]["stage_temperature_response"][Pupa][n][o][g][t][2] * nP
-        ) + migration_P[n, o, s, g, t]
+        L[n, c, o, end, g, t] -
+        P[n, c, o, s, g, t] * (
+            data[n]["scenario"][c]["organism"][o]["stage_temperature_response"][Pupa][n][c][o][g][t][1] *
+            compute_density(densP, sum(P[n, c, o, :, :, t])) +
+            data[n]["scenario"][c]["organism"][o]["stage_temperature_response"][Pupa][n][c][o][g][t][2] *
+            nP
+        ) + migration_P[n, c, o, s, g, t]
     )
 
     JuMP.@constraint(
         model,
-        P_con_B0[n in N, o in O, s in SP[2:end], g in G, t in [T[1]]],
-        P[n, o, s, g, t] ==
+        P_con_B0[n in N, c in C, o in O, s in SP[2:end], g in G, t in [T[1]]],
+        P[n, c, o, s, g, t] ==
         initial_condition.x[n].x[o][SP_map[s], g] +
-        data[n]["organism"][o]["stage_temperature_response"][Pupa][n][o][g][t][2] *
+        data[n]["scenario"][c]["organism"][o]["stage_temperature_response"][Pupa][n][c][o][g][t][2] *
         nP *
-        P[n, o, s - 1, g, t] -
-        P[n, o, s, g, t] * (
-            data[n]["organism"][o]["stage_temperature_response"][Pupa][n][o][g][t][1] *
-            compute_density(densP, sum(P[n, o, :, :, t])) +
-            data[n]["organism"][o]["stage_temperature_response"][Pupa][n][o][g][t][2] * nP
-        ) + migration_P[n, o, s, g, t]
+        P[n, c, o, s - 1, g, t] -
+        P[n, c, o, s, g, t] * (
+            data[n]["scenario"][c]["organism"][o]["stage_temperature_response"][Pupa][n][c][o][g][t][1] *
+            compute_density(densP, sum(P[n, c, o, :, :, t])) +
+            data[n]["scenario"][c]["organism"][o]["stage_temperature_response"][Pupa][n][c][o][g][t][2] *
+            nP
+        ) + migration_P[n, c, o, s, g, t]
     )
 
     JuMP.@constraint(
         model,
-        P_con_B1[n in N, o in O, s in SP[2:end], g in G, t in T[2:end]],
-        P[n, o, s, g, t] ==
-        P[n, o, s, g, t - 1] +
-        data[n]["organism"][o]["stage_temperature_response"][Pupa][n][o][g][t][2] *
+        P_con_B1[n in N, c in C, o in O, s in SP[2:end], g in G, t in T[2:end]],
+        P[n, c, o, s, g, t] ==
+        P[n, c, o, s, g, t - 1] +
+        data[n]["scenario"][c]["organism"][o]["stage_temperature_response"][Pupa][n][c][o][g][t][2] *
         nP *
-        P[n, o, s - 1, g, t] -
-        P[n, o, s, g, t] * (
-            data[n]["organism"][o]["stage_temperature_response"][Pupa][n][o][g][t][1] *
-            compute_density(densP, sum(P[n, o, :, :, t])) +
-            data[n]["organism"][o]["stage_temperature_response"][Pupa][n][o][g][t][2] * nP
-        ) + migration_P[n, o, s, g, t]
+        P[n, c, o, s - 1, g, t] -
+        P[n, c, o, s, g, t] * (
+            data[n]["scenario"][c]["organism"][o]["stage_temperature_response"][Pupa][n][c][o][g][t][1] *
+            compute_density(densP, sum(P[n, c, o, :, :, t])) +
+            data[n]["scenario"][c]["organism"][o]["stage_temperature_response"][Pupa][n][c][o][g][t][2] *
+            nP
+        ) + migration_P[n, c, o, s, g, t]
     )
 
     #### MALES
     if slack_small || slack_large
         JuMP.@constraint(
             model,
-            M_con_0[n in N, o in O, s in SM, g in G, t in [T[1]]],
-            M[n, o, s, g, t] ==
+            M_con_0[n in N, c in C, o in O, s in SM, g in G, t in [T[1]]],
+            M[n, c, o, s, g, t] ==
             initial_condition.x[n].x[o][SM_map[s], g] +
-            (1 - data[n]["organism"][o]["genetics"].Φ[g]) *
-            data[n]["organism"][o]["stage_temperature_response"][Pupa][n][o][g][t][2] *
+            (1 - data[n]["scenario"][c]["organism"][o]["genetics"].Φ[g]) *
+            data[n]["scenario"][c]["organism"][o]["stage_temperature_response"][Pupa][n][c][o][g][t][2] *
             nP *
-            (P[n, o, end, g, t] + P_slack_positive[n, o, g, t]) * # - P_slack_negative[n, o, g, t])*
-            data[n]["organism"][o]["genetics"].Ξ_m[g] -
-            (1 + data[n]["organism"][o]["genetics"].Ω[g]) *
-            data[n]["organism"][o]["stage_temperature_response"][Male][n][o][g][t][1] *
-            M[n, o, s, g, t] *
-            compute_density(densM, sum(M[n, o, :, :, t])) + migration_M[n, o, s, g, t]
+            (P[n, c, o, end, g, t] + P_slack_positive[n, c, o, g, t]) * # - P_slack_negative[n, c, o, g, t])*
+            data[n]["scenario"][c]["organism"][o]["genetics"].Ξ_m[g] -
+            (1 + data[n]["scenario"][c]["organism"][o]["genetics"].Ω[g]) *
+            data[n]["scenario"][c]["organism"][o]["stage_temperature_response"][Male][n][c][o][g][t][1] *
+            M[n, c, o, s, g, t] *
+            compute_density(densM, sum(M[n, c, o, :, :, t])) + migration_M[n, c, o, s, g, t]
         )
     else
         JuMP.@constraint(
             model,
-            M_con_0[n in N, o in O, s in SM, g in G, t in [T[1]]],
-            M[n, o, s, g, t] ==
+            M_con_0[n in N, c in C, o in O, s in SM, g in G, t in [T[1]]],
+            M[n, c, o, s, g, t] ==
             initial_condition.x[n].x[o][SM_map[s], g] +
-            (1 - data[n]["organism"][o]["genetics"].Φ[g]) *
-            data[n]["organism"][o]["stage_temperature_response"][Pupa][n][o][g][t][2] *
+            (1 - data[n]["scenario"][c]["organism"][o]["genetics"].Φ[g]) *
+            data[n]["scenario"][c]["organism"][o]["stage_temperature_response"][Pupa][n][c][o][g][t][2] *
             nP *
-            P[n, o, end, g, t] *
-            data[n]["organism"][o]["genetics"].Ξ_m[g] -
-            (1 + data[n]["organism"][o]["genetics"].Ω[g]) *
-            data[n]["organism"][o]["stage_temperature_response"][Male][n][o][g][t][1] *
-            M[n, o, s, g, t] *
-            compute_density(densM, sum(M[n, o, :, :, t])) + migration_M[n, o, s, g, t]
+            P[n, c, o, end, g, t] *
+            data[n]["scenario"][c]["organism"][o]["genetics"].Ξ_m[g] -
+            (1 + data[n]["scenario"][c]["organism"][o]["genetics"].Ω[g]) *
+            data[n]["scenario"][c]["organism"][o]["stage_temperature_response"][Male][n][c][o][g][t][1] *
+            M[n, c, o, s, g, t] *
+            compute_density(densM, sum(M[n, c, o, :, :, t])) + migration_M[n, c, o, s, g, t]
         )
     end
 
     if slack_large
         JuMP.@constraint(
             model,
-            M_con_1[n in N, o in O, s in SM, g in G, t in T[2:end]],
-            M[n, o, s, g, t] ==
-            M[n, o, s, g, t - 1] +
-            (1 - data[n]["organism"][o]["genetics"].Φ[g]) *
-            data[n]["organism"][o]["stage_temperature_response"][Pupa][n][o][g][t][2] *
+            M_con_1[n in N, c in C, o in O, s in SM, g in G, t in T[2:end]],
+            M[n, c, o, s, g, t] ==
+            M[n, c, o, s, g, t - 1] +
+            (1 - data[n]["scenario"][c]["organism"][o]["genetics"].Φ[g]) *
+            data[n]["scenario"][c]["organism"][o]["stage_temperature_response"][Pupa][n][c][o][g][t][2] *
             nP *
-            (P[n, o, end, g, t] + P_slack_positive[n, o, g, t]) * #- P_slack_negative[n, o, g, t]) *
-            data[n]["organism"][o]["genetics"].Ξ_m[g] -
-            (1 + data[n]["organism"][o]["genetics"].Ω[g]) *
-            data[n]["organism"][o]["stage_temperature_response"][Male][n][o][g][t][1] *
-            M[n, o, s, g, t] *
-            compute_density(densM, sum(M[n, o, :, :, t])) +
+            (P[n, c, o, end, g, t] + P_slack_positive[n, c, o, g, t]) * #- P_slack_negative[n, c, o, g, t]) *
+            data[n]["scenario"][c]["organism"][o]["genetics"].Ξ_m[g] -
+            (1 + data[n]["scenario"][c]["organism"][o]["genetics"].Ω[g]) *
+            data[n]["scenario"][c]["organism"][o]["stage_temperature_response"][Male][n][c][o][g][t][1] *
+            M[n, c, o, s, g, t] *
+            compute_density(densM, sum(M[n, c, o, :, :, t])) +
             control_M[n, o, s, g, t] +
-            migration_M[n, o, s, g, t]
+            migration_M[n, c, o, s, g, t]
         )
     else
         JuMP.@constraint(
             model,
-            M_con_1[n in N, o in O, s in SM, g in G, t in T[2:end]],
-            M[n, o, s, g, t] ==
-            M[n, o, s, g, t - 1] +
-            (1 - data[n]["organism"][o]["genetics"].Φ[g]) *
-            data[n]["organism"][o]["stage_temperature_response"][Pupa][n][o][g][t][2] *
+            M_con_1[n in N, c in C, o in O, s in SM, g in G, t in T[2:end]],
+            M[n, c, o, s, g, t] ==
+            M[n, c, o, s, g, t - 1] +
+            (1 - data[n]["scenario"][c]["organism"][o]["genetics"].Φ[g]) *
+            data[n]["scenario"][c]["organism"][o]["stage_temperature_response"][Pupa][n][c][o][g][t][2] *
             nP *
-            P[n, o, end, g, t] *
-            data[n]["organism"][o]["genetics"].Ξ_m[g] -
-            (1 + data[n]["organism"][o]["genetics"].Ω[g]) *
-            data[n]["organism"][o]["stage_temperature_response"][Male][n][o][g][t][1] *
-            M[n, o, s, g, t] *
-            compute_density(densM, sum(M[n, o, :, :, t])) +
-            control_M[n, o, s, g, t] +
-            migration_M[n, o, s, g, t]
+            P[n, c, o, end, g, t] *
+            data[n]["scenario"][c]["organism"][o]["genetics"].Ξ_m[g] -
+            (1 + data[n]["scenario"][c]["organism"][o]["genetics"].Ω[g]) *
+            data[n]["scenario"][c]["organism"][o]["stage_temperature_response"][Male][n][c][o][g][t][1] *
+            M[n, c, o, s, g, t] *
+            compute_density(densM, sum(M[n, c, o, :, :, t])) +
+            control_M[n, o, s, g, t] + 
+            migration_M[n, c, o, s, g, t]
         )
     end
 
     #### MATING
     JuMP.@constraint(
         model,
-        mate_bound[n in N, o in O, g in G, t in T],
-        M[n, o, 1, g, t] * data[n]["organism"][o]["genetics"].Η[g] <=
-        (sum(M[n, o, 1, i, t] * data[n]["organism"][o]["genetics"].Η[i] for i in G))
+        mate_bound[n in N, c in C, o in O, g in G, t in T],
+        M[n, c, o, 1, g, t] * data[n]["scenario"][c]["organism"][o]["genetics"].Η[g] <= (sum(
+            M[n, c, o, 1, i, t] * data[n]["scenario"][c]["organism"][o]["genetics"].Η[i] for
+            i in G
+        ))
     )
 
     #### FEMALES:
     JuMP.@NLconstraint(
         model,
-        F_con_0[n in N, o in O, s in SF, g in G, t in [T[1]]],
-        F[n, o, s, g, t] ==
+        F_con_0[n in N, c in C, o in O, s in SF, g in G, t in [T[1]]],
+        F[n, c, o, s, g, t] ==
         initial_condition.x[n].x[o][SF_map[s], g] +
         (
-            M[n, o, 1, g, t] * data[n]["organism"][o]["genetics"].Η[g] / (
-                1e-6 +
-                sum(M[n, o, 1, i, t] * data[n]["organism"][o]["genetics"].Η[i] for i in G)
+            M[n, c, o, 1, g, t] * data[n]["scenario"][c]["organism"][o]["genetics"].Η[g] / (
+                1e-6 + sum(
+                    M[n, c, o, 1, i, t] *
+                    data[n]["scenario"][c]["organism"][o]["genetics"].Η[i] for i in G
+                )
             )
         ) * (
-            data[n]["organism"][o]["genetics"].Φ[s] *
-            data[n]["organism"][o]["stage_temperature_response"][Pupa][n][o][g][t][2] *
+            data[n]["scenario"][c]["organism"][o]["genetics"].Φ[s] *
+            data[n]["scenario"][c]["organism"][o]["stage_temperature_response"][Pupa][n][c][o][g][t][2] *
             nP *
-            P[n, o, end, s, t] *
-            data[n]["organism"][o]["genetics"].Ξ_f[s]
+            P[n, c, o, end, s, t] *
+            data[n]["scenario"][c]["organism"][o]["genetics"].Ξ_f[s]
         ) -
-        (1 + data[n]["organism"][o]["genetics"].Ω[g]) *
-        data[n]["organism"][o]["stage_temperature_response"][Female][n][o][g][t][1] *
-        F[n, o, s, g, t] + sum(A[SF_map[s], g][n, i] * F[i, o, s, g, t] for i in N)
+        (1 + data[n]["scenario"][c]["organism"][o]["genetics"].Ω[g]) *
+        data[n]["scenario"][c]["organism"][o]["stage_temperature_response"][Female][n][c][o][g][t][1] *
+        F[n, c, o, s, g, t] + sum(A[SF_map[s], g][n, i] * F[i, c, o, s, g, t] for i in N)
     )
 
     JuMP.@NLconstraint(
         model,
-        F_con_1[n in N, o in O, s in SF, g in G, t in T[2:end]],
-        F[n, o, s, g, t] ==
-        F[n, o, s, g, t - 1] +
+        F_con_1[n in N, c in C, o in O, s in SF, g in G, t in T[2:end]],
+        F[n, c, o, s, g, t] ==
+        F[n, c, o, s, g, t - 1] +
         (
-            M[n, o, 1, g, t] * data[n]["organism"][o]["genetics"].Η[g] / (
-                1e-6 +
-                sum(M[n, o, 1, i, t] * data[n]["organism"][o]["genetics"].Η[i] for i in G)
+            M[n, c, o, 1, g, t] * data[n]["scenario"][c]["organism"][o]["genetics"].Η[g] / (
+                1e-6 + sum(
+                    M[n, c, o, 1, i, t] *
+                    data[n]["scenario"][c]["organism"][o]["genetics"].Η[i] for i in G
+                )
             )
         ) * (
-            data[n]["organism"][o]["genetics"].Φ[s] *
-            data[n]["organism"][o]["stage_temperature_response"][Pupa][n][o][g][t][2] *
+            data[n]["scenario"][c]["organism"][o]["genetics"].Φ[s] *
+            data[n]["scenario"][c]["organism"][o]["stage_temperature_response"][Pupa][n][c][o][g][t][2] *
             nP *
-            P[n, o, end, s, t] *
-            data[n]["organism"][o]["genetics"].Ξ_f[s]
+            P[n, c, o, end, s, t] *
+            data[n]["scenario"][c]["organism"][o]["genetics"].Ξ_f[s]
         ) -
-        (1 + data[n]["organism"][o]["genetics"].Ω[g]) *
-        data[n]["organism"][o]["stage_temperature_response"][Female][n][o][g][t][1] *
-        F[n, o, s, g, t] +
+        (1 + data[n]["scenario"][c]["organism"][o]["genetics"].Ω[g]) *
+        data[n]["scenario"][c]["organism"][o]["stage_temperature_response"][Female][n][c][o][g][t][1] *
+        F[n, c, o, s, g, t] +
         control_F[n, o, s, g, t] +
-        sum(A[SF_map[s], g][n, i] * F[i, o, s, g, t] for i in N)
+        sum(A[SF_map[s], g][n, i] * F[i, c, o, s, g, t] for i in N)
     )
 
     # CONSTRAINTS_B: Controls
