@@ -656,7 +656,7 @@ function solve_scenarios_dynamic_model(
 end
 
 """
-    solve_scenarios_dynamic_model(network::Netowkr, releases, algorithm, tspan, scenarios_of_interest::Vector{Int})
+    solve_scenarios_dynamic_model(network::Network, releases, algorithm, tspan, scenarios_of_interest::Vector{Int})
 
 Return ODE model solution for node problem with scenarios and releases.
 """
@@ -857,40 +857,73 @@ function format_decision_model_results(sol)
     for (var_key, var_val) in sol.obj_dict
         if any(occursin("release_location", String(var_key)))
             @info("Excluding $(var_key) variable from results.")
-            @info("FYI, $(var_key) is a $(var_val)")
             continue
         end
 
         if eltype(var_val) == JuMP.VariableRef
             for n in axes(var_val)[1]
-                for o in axes(var_val)[2]
-                    df = DataFrames.DataFrame()
-                    if length(axes(var_val)) == 5
+                if length(axes(var_val)) == 6 # bc scenarios
+                    for c in axes(var_val)[2]
+                        for o in axes(var_val)[3]
+                            df = DataFrames.DataFrame()
+                            for g in axes(var_val[n, c, o, :, :, :])[2]
+                                col_symbol = Symbol(var_key, "_G$(g)")
+                                if occursin("F", String(var_key))
+                                    df[!, col_symbol] =
+                                        sum(JuMP.value.(var_val[n, c, o, g, :, :]).data, dims=1)[1,:,]
+                                    key_symbol = Symbol("node_$(n)_scenario_$(c)_organism_$(o)_$(var_key)")
+                                    results_dict[key_symbol] = df
+                                    continue
+                                end
+                                df[!, col_symbol] =
+                                    sum(JuMP.value.(var_val[n, c, o, :, g, :]).data, dims=1)[1, :]
+                                key_symbol = Symbol("node_$(n)_scenario_$(c)_organism_$(o)_$(var_key)")
+                                results_dict[key_symbol] = df
+                            end
+                        end
+                    end
+
+                elseif length(axes(var_val)) == 5 && occursin("slack", String(var_key))
+                    for c in axes(var_val)[2]
+                        for o in axes(var_val)[3]
+                            df = DataFrames.DataFrame()
+                            for g in axes(var_val[n, c, o, :, :])[2]
+                                col_symbol = Symbol(var_key, "_G$(g)")
+                                df[!, col_symbol] =
+                                        sum(JuMP.value.(var_val[n, c, o, g, :]).data, dims=1)[1, :]
+                                key_symbol = Symbol("node_$(n)_scenario_$(c)_organism_$(o)_$(var_key)")
+                                results_dict[key_symbol] = df
+                            end
+                        end
+                    end
+
+                #elseif length(axes(var_val)) == 5 && occursin("control", String(var_key))
+                else#if occursin("control", String(var_key))
+                    for o in axes(var_val)[2]
+                        df = DataFrames.DataFrame()
                         for g in axes(var_val[n, o, :, :, :])[2]
                             col_symbol = Symbol(var_key, "_G$(g)")
                             if occursin("F", String(var_key))
                                 df[!, col_symbol] =
-                                    sum(JuMP.value.(var_val[n, o, g, :, :]).data, dims=1)[
-                                        1,
-                                        :,
-                                    ]
+                                    sum(JuMP.value.(var_val[n, o, g, :, :]).data, dims=1)[1,:]
+                                key_symbol = Symbol("node_$(n)_organism_$(o)_$(var_key)")
+                                results_dict[key_symbol] = df
                                 continue
                             end
                             df[!, col_symbol] =
                                 sum(JuMP.value.(var_val[n, o, :, g, :]).data, dims=1)[1, :]
+                            key_symbol = Symbol("node_$(n)_organism_$(o)_$(var_key)")
+                            @show key_symbol
+                            results_dict[key_symbol] = df
                         end
-                    end
-                    if length(axes(var_val)) == 4
-                        for g in axes(var_val)[3]
-                            col_symbol = Symbol(var_key, "_G$(g)")
-                        end
-                    end
-                    results_dict[Symbol("node_$(n)_organism_$(o)_$(var_key)")] = df
-                    if any(occursin("release_location", String(var_key)))
-                        return release_locations .= release_location
                     end
                 end
             end
+
+            if any(occursin("release_location", String(var_key)))
+                # return release_locations .= release_location
+            end
+
         end
     end
     return results_dict
