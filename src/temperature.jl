@@ -107,9 +107,21 @@ Data for simulation that uses temperature time series in °C.
 # Arguments
 
   - `value::Float64`: Time series of temperature values in °C.
+  - `probability::Float64`: Probability with which timeseries expected to be observed.
+  - `selected_scenario::Int`
 """
 mutable struct TimeSeriesTemperature <: Temperature
     values::Vector{Float64}
+    probability::Float64
+    selected_scenario::Int
+end
+
+function TimeSeriesTemperature(
+    values::Vector{Float64},
+    probability=1.0,
+    selected_scenario=1,
+)
+    return TimeSeriesTemperature(values, probability, selected_scenario)
 end
 
 """
@@ -153,12 +165,6 @@ mutable struct ScenarioTemperature <: Temperature
     values::Matrix{Float64}
     probability::Vector{Float64}
     selected_scenario::Union{Nothing, Int}
-
-    # function ScenarioTemperature(
-    #     values::Matrix{Float64},
-    #     probability::Vector{Float64})
-    #    new(values, probability, nothing)
-    # end
 end
 
 function ScenarioTemperature(
@@ -188,5 +194,6 @@ end
 Return first value of temperature in °C for selected scenario. Used for simulation initialization.
 """
 function initialize_temperature_model(data::ScenarioTemperature)
-    return data.values[data.selected_scenario][1]
+    sx = data.selected_scenario === nothing ? 1 : data.selected_scenario
+    return data.values[sx][1]
 end
