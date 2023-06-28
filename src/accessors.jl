@@ -797,8 +797,7 @@ end
 Update the `selected_scenario` of `Temperature` for `ScenarioTemperature`.
 """
 function set_scenario!(data::ScenarioTemperature, selected_scenario::Int)
-    data.selected_scenario = selected_scenario
-    return
+    return data.selected_scenario = selected_scenario
 end
 
 """
@@ -807,8 +806,35 @@ end
 Update the `selected_scenario` of `Temperature` for `ScenarioTemperature` in `Node`.
 """
 function set_scenario!(data::Node, selected_scenario::Int)
-    data.temperature.selected_scenario = selected_scenario
-    return
+    return data.temperature.selected_scenario = selected_scenario
+end
+
+"""
+    get_temperature_scenarios(temperature_model::ScenarioTemperature)
+
+Return the values of all temperature scenarios in `ScenarioTemperature` or `TimeSeriesTemperature` object.
+"""
+function get_temperature_scenarios(temperature_model::Union{ScenarioTemperature, TimeSeriesTemperature})
+    return temperature_model.values
+end
+
+"""
+    count_temperature_scenarios(temperature_model::ScenarioTemperature)
+
+Return the total count of temperature scenarios in `ScenarioTemperature` or `TimeSeriesTemperature` object.
+"""
+function count_temperature_scenarios(temperature_model::Union{ScenarioTemperature, TimeSeriesTemperature})
+    #return size(temperature_model.values)[2]
+    return length(temperature_model.probability)
+end
+
+"""
+    get_probability(temperature_model::ScenarioTemperature)
+
+Return the probability with which each temperature scenario occurs from `ScenarioTemperature` or `TimeSeriesTemperature` object.
+"""
+function get_probability(temperature_model::Union{ScenarioTemperature, TimeSeriesTemperature})
+    return temperature_model.probability
 end
 
 ########################################
