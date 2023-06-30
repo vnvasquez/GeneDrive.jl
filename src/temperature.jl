@@ -80,8 +80,8 @@ function get_temperature_value(
     temp_value_from_inputs::Float64,
     t,
 )
-    # NB: temperature_model.d sets initial value; 
-    # inputs used thereafter to account for mean because allows for temperature_model.d + shocks as needed  
+    # NB: temperature_model.d sets initial value;
+    # inputs used thereafter to account for mean because allows for temperature_model.d + shocks as needed
     return temperature_model.a * cos((temperature_model.b * π / temperature_model.c) * t) +
            temp_value_from_inputs
 end
@@ -107,9 +107,21 @@ Data for simulation that uses temperature time series in °C.
 # Arguments
 
   - `value::Float64`: Time series of temperature values in °C.
+  - `probability::Float64`: Probability with which timeseries expected to be observed.
+  - `selected_scenario::Int`
 """
 mutable struct TimeSeriesTemperature <: Temperature
     values::Vector{Float64}
+    probability::Float64
+    selected_scenario::Int
+end
+
+function TimeSeriesTemperature(
+    values::Vector{Float64},
+    probability=1.0,
+    selected_scenario=1,
+)
+    return TimeSeriesTemperature(values, probability, selected_scenario)
 end
 
 """
@@ -133,4 +145,55 @@ Return first value of temperature in °C. Used for simulation initialization.
 function initialize_temperature_model(data::TimeSeriesTemperature)
     # value[1] = time[0]
     return data.values[1]
+end
+
+########################################
+#         ScenarioTemperature          #
+########################################
+"""
+    mutable struct ScenarioTemperature <: Temperature end
+
+Data for simulation that uses ensembles of temperature time series in °C.
+
+# Arguments
+
+  - `data::Matrix{Float64}`: Array of ensemble members, each column of which is a time series of temperature values in °C.
+  - `probability::Vector{Float64}`: Vector of probabilities with which given scenarios are expected to occur (one probability applicable per ensemble member).
+  - `selected_scenario::Int`: Index to run dynamic model over selected scenarios; `Int` argument required. For decision model, use `nothing`.
+"""
+mutable struct ScenarioTemperature <: Temperature
+    values::Matrix{Float64}
+    probability::Vector{Float64}
+    selected_scenario::Union{Nothing, Int}
+end
+
+function ScenarioTemperature(
+    values::Matrix{Float64},
+    probability::Vector{Float64};
+    selected_scenario=nothing,
+)
+    return ScenarioTemperature(values, probability, selected_scenario)
+end
+
+"""
+    get_temperature_value(temperature_model::ScenarioTemperature, temp_value_from_inputs::Float64, t)
+
+Return value of temperature in °C for selected scenario and specifed time step. Perturbations to baseline temperature, where applicable, should be directly added to time series prior to running model.
+"""
+function get_temperature_value(
+    temperature_model::ScenarioTemperature,
+    temp_value_from_inputs::Float64,
+    t,
+)
+    return temp_value_from_inputs
+end
+
+"""
+    initialize_temperature_model(data::ScenarioTemperature)
+
+Return first value of temperature in °C for selected scenario. Used for simulation initialization.
+"""
+function initialize_temperature_model(data::ScenarioTemperature)
+    sx = data.selected_scenario === nothing ? 1 : data.selected_scenario
+    return data.values[sx][1]
 end

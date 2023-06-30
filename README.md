@@ -17,8 +17,8 @@
 `GeneDrive.jl` will work with Julia [version 1.7 and above](https://julialang.org/downloads/). Add the package with:
 
 ```julia
-julia> ]
-(v1.7) pkg> add GeneDrive
+julia> 
+(v1.9) pkg> add GeneDrive
 ```
 
 Begin using the package with: 
@@ -32,4 +32,4 @@ The [documentation](https://vnvasquez.github.io/GeneDrive.jl/dev/) features exam
 
 ## License
 
-`GeneDrive.jl` is released under an MIT [License](https://opensource.org/licenses/MIT). This package has been developed in partial fufillment of the requirements for a Master of Science in Electrical Engineering and Computer Science ([EECS](https://eecs.berkeley.edu/research)) at the University of California, Berkeley. 
+`GeneDrive.jl` is released under an MIT [License](https://opensource.org/licenses/MIT). This package has been developed in partial fulfillment of the requirements for a Master of Science in Electrical Engineering and Computer Science ([EECS](https://eecs.berkeley.edu/research)) at the University of California, Berkeley. 

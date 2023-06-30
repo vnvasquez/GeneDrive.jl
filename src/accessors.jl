@@ -700,7 +700,7 @@ end
 
 Alter daily values across entire temperature timeseries by the size of `perturbation` input. Perturbation may be positive or negative.
 """
-function perturb_temperature_timeseries(
+function perturb_temperature_timeseries!(
     current_temperature::TimeSeriesTemperature,
     perturbation,
 )
@@ -709,11 +709,11 @@ function perturb_temperature_timeseries(
 end
 
 """
-    update_temperature(node::Node, temp_type::Type{<:ConstantTemperature}, new_temperature::Float64)
+    update_temperature!(node::Node, temp_type::Type{<:ConstantTemperature}, new_temperature::Float64)
 
-Update the `type` and `values` of `Temperature` for `Node`.
+Update the `values` of `ConstantTemperature` for `Node`.
 """
-function update_temperature(
+function update_temperature!(
     node::Node,
     temp_type::Type{<:ConstantTemperature},
     new_temperature::Float64,
@@ -723,11 +723,11 @@ function update_temperature(
 end
 
 """
-    update_temperature(node::Node, temp_type::Type{<:TimeSeriesTemperature}, new_temperature::Vector{Float64})
+    update_temperature!(node::Node, temp_type::Type{<:TimeSeriesTemperature}, new_temperature::Vector{Float64})
 
-Update the `type` and `values` of `Temperature` for `TimeSeriesTemperature` in `Node`.
+Update the `values` of `Temperature` for `TimeSeriesTemperature` in `Node`.
 """
-function update_temperature(
+function update_temperature!(
     node::Node,
     temp_type::Type{<:TimeSeriesTemperature},
     new_temperature::Vector{Float64},
@@ -737,11 +737,11 @@ function update_temperature(
 end
 
 """
-    update_temperature(node::Node, temp_type::Type{<:SinusoidalTemperature}, new_temperature::Vector{Float64})
+    update_temperature!(node::Node, temp_type::Type{<:SinusoidalTemperature}, new_temperature::Vector{Float64})
 
-Update the `type` and `values` of `Temperature` for `SinusoidalTemperature` in `Node`.
+Update the `values` of `Temperature` for `SinusoidalTemperature` in `Node`.
 """
-function update_temperature(
+function update_temperature!(
     node::Node,
     temp_type::Type{<:SinusoidalTemperature},
     new_temperature::Vector{Float64},
@@ -789,6 +789,58 @@ function _create_series(
     sinusoid_converted_to_timeseries = series .+ inputs
 
     return sinusoid_converted_to_timeseries
+end
+
+"""
+    set_scenario!(data::ScenarioTemperature, selected_scenario::Int)
+
+Update the `selected_scenario` of `Temperature` for `ScenarioTemperature`.
+"""
+function set_scenario!(data::ScenarioTemperature, selected_scenario::Int)
+    return data.selected_scenario = selected_scenario
+end
+
+"""
+    set_scenario!(data::ScenarioTemperature, selected_scenario::Int)
+
+Update the `selected_scenario` of `Temperature` for `ScenarioTemperature` in `Node`.
+"""
+function set_scenario!(data::Node, selected_scenario::Int)
+    return data.temperature.selected_scenario = selected_scenario
+end
+
+"""
+    get_temperature_scenarios(temperature_model::ScenarioTemperature)
+
+Return the values of all temperature scenarios in `ScenarioTemperature` or `TimeSeriesTemperature` object.
+"""
+function get_temperature_scenarios(
+    temperature_model::Union{ScenarioTemperature, TimeSeriesTemperature},
+)
+    return temperature_model.values
+end
+
+"""
+    count_temperature_scenarios(temperature_model::ScenarioTemperature)
+
+Return the total count of temperature scenarios in `ScenarioTemperature` or `TimeSeriesTemperature` object.
+"""
+function count_temperature_scenarios(
+    temperature_model::Union{ScenarioTemperature, TimeSeriesTemperature},
+)
+    #return size(temperature_model.values)[2]
+    return length(temperature_model.probability)
+end
+
+"""
+    get_probability(temperature_model::ScenarioTemperature)
+
+Return the probability with which each temperature scenario occurs from `ScenarioTemperature` or `TimeSeriesTemperature` object.
+"""
+function get_probability(
+    temperature_model::Union{ScenarioTemperature, TimeSeriesTemperature},
+)
+    return temperature_model.probability
 end
 
 ########################################

@@ -9,46 +9,67 @@ function _optimization_info(network::Network, tspan::Tuple)
     optinfo_dict["time_horizon"] = tspan
     optinfo_dict["network_name"] = get_name(network)
     optinfo_dict["total_node_count"] = count_nodes(network)
+    optinfo_dict["total_scenario_count"] = 0
     optinfo_dict["network_total_organism_count"] = 0
 
     for (ix, node) in enumerate(values(get_nodes(network)))
         optinfo_dict[ix] = Dict{String, Any}()
-        optinfo_dict[ix]["organism"] = Dict()
-        optinfo_dict[ix]["temperature"] = get_temperature(node).values
+        optinfo_dict[ix]["scenario"] = Dict()
 
-        for (jx, organism) in enumerate(get_organisms(node))
-            species_count = count_organisms(node)
-            optinfo_dict["network_total_organism_count"] += species_count
-            optinfo_dict[ix]["node_organism_count"] = species_count
-            optinfo_dict[ix]["organism"][jx] = Dict{String, Any}()
-            optinfo_dict[ix]["organism"][jx]["genetics"] = get_genetics(node, organism)
-            optinfo_dict[ix]["organism"][jx]["gene_count"] = count_genotypes(node, organism)
-            optinfo_dict[ix]["organism"][jx]["homozygous_modified"] =
-                get_homozygous_modified(node, organism)
-            optinfo_dict[ix]["organism"][jx]["wildtype"] = get_wildtype(node, organism)
-            optinfo_dict[ix]["organism"][jx]["total_stage_count"] = 0
-            optinfo_dict[ix]["organism"][jx]["substage_count"] = Dict()
-            optinfo_dict[ix]["organism"][jx]["stage_density"] = Dict()
+        for (cx, prob) in enumerate(get_probability(node.temperature))
+            optinfo_dict[ix]["scenario"][cx] = Dict()
+            optinfo_dict[ix]["scenario"][cx]["organism"] = Dict()
 
-            for (key_lifestage, life_stage) in get_lifestages(node, organism)
-                substage_count = count_substages(node, organism, key_lifestage)
-                optinfo_dict[ix]["organism"][jx]["substage_count"][key_lifestage] =
-                    substage_count
-                optinfo_dict[ix]["organism"][jx]["total_stage_count"] += substage_count
-                optinfo_dict[ix]["organism"][jx]["stage_temperature_response"] = Dict()
-                optinfo_dict[ix]["organism"][jx]["stage_density"][key_lifestage] =
-                    get_density(node, organism, key_lifestage)
+            temperature_vals = get_temperature_scenarios(node.temperature)[:, cx]
+            optinfo_dict["total_scenario_count"] =
+                count_temperature_scenarios(node.temperature)
+            optinfo_dict[ix]["scenario"][cx]["temperature"] = temperature_vals
+            optinfo_dict[ix]["scenario"][cx]["probability"] = prob
 
-                for lx in 1:count_genotypes(network, get_name(node), organism)
-                    stage_dict = get!(spatialtempresponse_dict, key_lifestage, Dict())
-                    node_dict = get!(stage_dict, ix, Dict())
-                    org_response_dict = get!(node_dict, jx, Dict())
-                    org_response_dict[lx] = [
-                        temperature_effect(temp, life_stage) for
-                        temp in node.temperature.values
-                    ]
-                    optinfo_dict[ix]["organism"][jx]["stage_temperature_response"] =
-                        spatialtempresponse_dict
+            for (jx, organism) in enumerate(get_organisms(node))
+                species_count = count_organisms(node)
+                optinfo_dict["network_total_organism_count"] += species_count
+                optinfo_dict[ix]["scenario"][cx]["node_organism_count"] = species_count
+
+                optinfo_dict[ix]["scenario"][cx]["organism"][jx] = Dict()
+                optinfo_dict[ix]["scenario"][cx]["organism"][jx]["genetics"] =
+                    get_genetics(node, organism)
+                optinfo_dict[ix]["scenario"][cx]["organism"][jx]["gene_count"] =
+                    count_genotypes(node, organism)
+                optinfo_dict[ix]["scenario"][cx]["organism"][jx]["homozygous_modified"] =
+                    get_homozygous_modified(node, organism)
+                optinfo_dict[ix]["scenario"][cx]["organism"][jx]["wildtype"] =
+                    get_wildtype(node, organism)
+                optinfo_dict[ix]["scenario"][cx]["organism"][jx]["total_stage_count"] = 0
+                optinfo_dict[ix]["scenario"][cx]["organism"][jx]["substage_count"] = Dict()
+                optinfo_dict[ix]["scenario"][cx]["organism"][jx]["stage_density"] = Dict()
+
+                for (key_lifestage, life_stage) in get_lifestages(node, organism)
+                    substage_count = count_substages(node, organism, key_lifestage)
+                    optinfo_dict[ix]["scenario"][cx]["organism"][jx]["substage_count"][key_lifestage] =
+                        substage_count
+                    optinfo_dict[ix]["scenario"][cx]["organism"][jx]["total_stage_count"] +=
+                        substage_count
+                    optinfo_dict[ix]["scenario"][cx]["organism"][jx]["stage_temperature_response"] =
+                        Dict()
+                    optinfo_dict[ix]["scenario"][cx]["organism"][jx]["stage_density"][key_lifestage] =
+                        get_density(node, organism, key_lifestage)
+
+                    #@show optinfo_dict[ix]["scenario"][cx]["organism"][jx]["stage_density"][key_lifestage]
+                    for lx in 1:count_genotypes(network, get_name(node), organism)
+                        stage_dict = get!(spatialtempresponse_dict, key_lifestage, Dict())
+                        node_dict = get!(stage_dict, ix, Dict())
+                        scenario_dict = get!(node_dict, cx, Dict())
+                        org_response_dict = get!(scenario_dict, jx, Dict())
+
+                        org_response_dict[lx] = [
+                            temperature_effect(temp, life_stage) for
+                            temp in temperature_vals
+                        ]
+
+                        optinfo_dict[ix]["scenario"][cx]["organism"][jx]["stage_temperature_response"] =
+                            spatialtempresponse_dict
+                    end
                 end
             end
         end
