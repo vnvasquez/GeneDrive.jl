@@ -23,7 +23,7 @@
     test_node = Node(:TestNode, test_mendelian, test_short_timeseries, (1.0, 1.0))
     test_sol = solve_dynamic_model(test_node, test_solver, test_short_tspan)
     format_dynamic_model_results(test_node, test_sol)
-    @test test_sol.retcode == :Success
+    @test test_sol.retcode == SciMLBase.ReturnCode.Success
 
     ### Temperature: Sinusoid, Genetics: RIDL, Species: Aedes, Releases: yes, Shocks: yes, Network: no
     test_aedes = update_population_size(stages_rossi(), 500)
@@ -45,7 +45,7 @@
     test_sol =
         solve_dynamic_model(test_node, [test_release], test_shocks, test_solver, test_tspan)
     format_dynamic_model_results(test_node, test_sol)
-    @test test_sol.retcode == :Success
+    @test test_sol.retcode == SciMLBase.ReturnCode.Success
 
     ## Temperature: Constant, Genetics: HGD, Species: Aedes, Releases: no, Shocks: no, Network: no
     test_aedes = update_population_size(stages_rossi(), 500)
@@ -53,7 +53,7 @@
     test_node = Node(:TestNode, test_hgd, example_temperature_constant, (1.0, 1.0))
     test_sol = solve_dynamic_model(test_node, test_solver, test_tspan)
     format_dynamic_model_results(test_node, test_sol)
-    @test test_sol.retcode == :Success
+    @test test_sol.retcode == SciMLBase.ReturnCode.Success
 
     ## Temperature: Constant, Genetics: Wolbachia, Species: Aedes, Releases: no, Shocks: no, Network: yes
     test_aedes = update_population_size(stages_rossi(), 500)
@@ -82,5 +82,5 @@
     )
     assign_migration!(test_net, test_migration, AedesAegypti)
     test_sol = solve_dynamic_model(test_net, test_solver, test_tspan)
-    @test test_sol.retcode == :Success
+    @test test_sol.retcode == SciMLBase.ReturnCode.Success
 end
