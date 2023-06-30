@@ -814,7 +814,9 @@ end
 
 Return the values of all temperature scenarios in `ScenarioTemperature` or `TimeSeriesTemperature` object.
 """
-function get_temperature_scenarios(temperature_model::Union{ScenarioTemperature, TimeSeriesTemperature})
+function get_temperature_scenarios(
+    temperature_model::Union{ScenarioTemperature, TimeSeriesTemperature},
+)
     return temperature_model.values
 end
 
@@ -823,7 +825,9 @@ end
 
 Return the total count of temperature scenarios in `ScenarioTemperature` or `TimeSeriesTemperature` object.
 """
-function count_temperature_scenarios(temperature_model::Union{ScenarioTemperature, TimeSeriesTemperature})
+function count_temperature_scenarios(
+    temperature_model::Union{ScenarioTemperature, TimeSeriesTemperature},
+)
     #return size(temperature_model.values)[2]
     return length(temperature_model.probability)
 end
@@ -833,7 +837,9 @@ end
 
 Return the probability with which each temperature scenario occurs from `ScenarioTemperature` or `TimeSeriesTemperature` object.
 """
-function get_probability(temperature_model::Union{ScenarioTemperature, TimeSeriesTemperature})
+function get_probability(
+    temperature_model::Union{ScenarioTemperature, TimeSeriesTemperature},
+)
     return temperature_model.probability
 end
 

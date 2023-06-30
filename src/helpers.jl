@@ -869,15 +869,27 @@ function format_decision_model_results(sol)
                             for g in axes(var_val[n, c, o, :, :, :])[2]
                                 col_symbol = Symbol(var_key, "_G$(g)")
                                 if occursin("F", String(var_key))
-                                    df[!, col_symbol] =
-                                        sum(JuMP.value.(var_val[n, c, o, g, :, :]).data, dims=1)[1,:,]
-                                    key_symbol = Symbol("node_$(n)_scenario_$(c)_organism_$(o)_$(var_key)")
+                                    df[!, col_symbol] = sum(
+                                        JuMP.value.(var_val[n, c, o, g, :, :]).data,
+                                        dims=1,
+                                    )[
+                                        1,
+                                        :,
+                                    ]
+                                    key_symbol = Symbol(
+                                        "node_$(n)_scenario_$(c)_organism_$(o)_$(var_key)",
+                                    )
                                     results_dict[key_symbol] = df
                                     continue
                                 end
                                 df[!, col_symbol] =
-                                    sum(JuMP.value.(var_val[n, c, o, :, g, :]).data, dims=1)[1, :]
-                                key_symbol = Symbol("node_$(n)_scenario_$(c)_organism_$(o)_$(var_key)")
+                                    sum(JuMP.value.(var_val[n, c, o, :, g, :]).data, dims=1)[
+                                        1,
+                                        :,
+                                    ]
+                                key_symbol = Symbol(
+                                    "node_$(n)_scenario_$(c)_organism_$(o)_$(var_key)",
+                                )
                                 results_dict[key_symbol] = df
                             end
                         end
@@ -890,14 +902,19 @@ function format_decision_model_results(sol)
                             for g in axes(var_val[n, c, o, :, :])[2]
                                 col_symbol = Symbol(var_key, "_G$(g)")
                                 df[!, col_symbol] =
-                                        sum(JuMP.value.(var_val[n, c, o, g, :]).data, dims=1)[1, :]
-                                key_symbol = Symbol("node_$(n)_scenario_$(c)_organism_$(o)_$(var_key)")
+                                    sum(JuMP.value.(var_val[n, c, o, g, :]).data, dims=1)[
+                                        1,
+                                        :,
+                                    ]
+                                key_symbol = Symbol(
+                                    "node_$(n)_scenario_$(c)_organism_$(o)_$(var_key)",
+                                )
                                 results_dict[key_symbol] = df
                             end
                         end
                     end
 
-                #elseif length(axes(var_val)) == 5 && occursin("control", String(var_key))
+                    #elseif length(axes(var_val)) == 5 && occursin("control", String(var_key))
                 else#if occursin("control", String(var_key))
                     for o in axes(var_val)[2]
                         df = DataFrames.DataFrame()
@@ -905,7 +922,10 @@ function format_decision_model_results(sol)
                             col_symbol = Symbol(var_key, "_G$(g)")
                             if occursin("F", String(var_key))
                                 df[!, col_symbol] =
-                                    sum(JuMP.value.(var_val[n, o, g, :, :]).data, dims=1)[1,:]
+                                    sum(JuMP.value.(var_val[n, o, g, :, :]).data, dims=1)[
+                                        1,
+                                        :,
+                                    ]
                                 key_symbol = Symbol("node_$(n)_organism_$(o)_$(var_key)")
                                 results_dict[key_symbol] = df
                                 continue
@@ -923,7 +943,6 @@ function format_decision_model_results(sol)
             if any(occursin("release_location", String(var_key)))
                 # return release_locations .= release_location
             end
-
         end
     end
     return results_dict

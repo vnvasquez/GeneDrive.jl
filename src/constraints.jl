@@ -57,7 +57,6 @@ function _optimization_info(network::Network, tspan::Tuple)
 
                     #@show optinfo_dict[ix]["scenario"][cx]["organism"][jx]["stage_density"][key_lifestage]
                     for lx in 1:count_genotypes(network, get_name(node), organism)
-
                         stage_dict = get!(spatialtempresponse_dict, key_lifestage, Dict())
                         node_dict = get!(stage_dict, ix, Dict())
                         scenario_dict = get!(node_dict, cx, Dict())

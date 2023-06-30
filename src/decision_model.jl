@@ -117,13 +117,14 @@ function create_decision_model(
     )
 
     # Add probabilities to model ext (because not optimizing, using as extension)
-    model.ext[:Probabilities] = Dict(n => Dict{Int, Float64}(c => 0.0 for c in C) for n in N)
-       
+    model.ext[:Probabilities] =
+        Dict(n => Dict{Int, Float64}(c => 0.0 for c in C) for n in N)
+
     #for (cx, prob) in enumerate(get_probability(node.temperature))
     for (node_number, node) in model.ext[:Probabilities]
-       for cx in keys(node)
+        for cx in keys(node)
             node[cx] = data[node_number]["scenario"][cx]["probability"]
-        end 
+        end
     end
 
     # DECLARE VARIABLES_1: Life Stages
@@ -169,8 +170,11 @@ function create_decision_model(
     ###########################################
     stages = [Egg, Larva, Pupa, Male, Female]
     initialcond_dict = Dict(
-        s => Dict(n => Dict{Int, Any}(c => Dict{Int, Matrix}(o => Matrix{Float64}(undef, 1, 1) for o in O) 
-        for c in C) for n in N) for s in stages
+        s => Dict(
+            n => Dict{Int, Any}(
+                c => Dict{Int, Matrix}(o => Matrix{Float64}(undef, 1, 1) for o in O) for c in C
+            ) for n in N
+        ) for s in stages
     )
     for (ix, node_name) in enumerate(N)
         for (cx, scenario) in enumerate(C)
@@ -186,7 +190,7 @@ function create_decision_model(
                 initialcond_dict[Female][node_name][scenario][organism] =
                     initial_condition.x[ix].x[jx][(nE + nL + nP + 2):end, :]
             end
-        end 
+        end
     end
     for node_name in N, scenario in C, organism in O, t in T
         JuMP.set_start_value.(
@@ -482,7 +486,8 @@ function create_decision_model(
             (1 + data[n]["scenario"][c]["organism"][o]["genetics"].Ω[g]) *
             data[n]["scenario"][c]["organism"][o]["stage_temperature_response"][Male][n][c][o][g][t][1] *
             M[n, c, o, s, g, t] *
-            compute_density(densM, sum(M[n, c, o, :, :, t])) + migration_M[n, c, o, s, g, t]
+            compute_density(densM, sum(M[n, c, o, :, :, t])) +
+            migration_M[n, c, o, s, g, t]
         )
     else
         JuMP.@constraint(
@@ -498,7 +503,8 @@ function create_decision_model(
             (1 + data[n]["scenario"][c]["organism"][o]["genetics"].Ω[g]) *
             data[n]["scenario"][c]["organism"][o]["stage_temperature_response"][Male][n][c][o][g][t][1] *
             M[n, c, o, s, g, t] *
-            compute_density(densM, sum(M[n, c, o, :, :, t])) + migration_M[n, c, o, s, g, t]
+            compute_density(densM, sum(M[n, c, o, :, :, t])) +
+            migration_M[n, c, o, s, g, t]
         )
     end
 
@@ -535,7 +541,7 @@ function create_decision_model(
             data[n]["scenario"][c]["organism"][o]["stage_temperature_response"][Male][n][c][o][g][t][1] *
             M[n, c, o, s, g, t] *
             compute_density(densM, sum(M[n, c, o, :, :, t])) +
-            control_M[n, o, s, g, t] + 
+            control_M[n, o, s, g, t] +
             migration_M[n, c, o, s, g, t]
         )
     end
@@ -544,7 +550,8 @@ function create_decision_model(
     JuMP.@constraint(
         model,
         mate_bound[n in N, c in C, o in O, g in G, t in T],
-        M[n, c, o, 1, g, t] * data[n]["scenario"][c]["organism"][o]["genetics"].Η[g] <= (sum(
+        M[n, c, o, 1, g, t] * data[n]["scenario"][c]["organism"][o]["genetics"].Η[g] <=
+        (sum(
             M[n, c, o, 1, i, t] * data[n]["scenario"][c]["organism"][o]["genetics"].Η[i] for
             i in G
         ))
@@ -557,7 +564,8 @@ function create_decision_model(
         F[n, c, o, s, g, t] ==
         initial_condition.x[n].x[o][SF_map[s], g] +
         (
-            M[n, c, o, 1, g, t] * data[n]["scenario"][c]["organism"][o]["genetics"].Η[g] / (
+            M[n, c, o, 1, g, t] * data[n]["scenario"][c]["organism"][o]["genetics"].Η[g] /
+            (
                 1e-6 + sum(
                     M[n, c, o, 1, i, t] *
                     data[n]["scenario"][c]["organism"][o]["genetics"].Η[i] for i in G
@@ -581,7 +589,8 @@ function create_decision_model(
         F[n, c, o, s, g, t] ==
         F[n, c, o, s, g, t - 1] +
         (
-            M[n, c, o, 1, g, t] * data[n]["scenario"][c]["organism"][o]["genetics"].Η[g] / (
+            M[n, c, o, 1, g, t] * data[n]["scenario"][c]["organism"][o]["genetics"].Η[g] /
+            (
                 1e-6 + sum(
                     M[n, c, o, 1, i, t] *
                     data[n]["scenario"][c]["organism"][o]["genetics"].Η[i] for i in G
