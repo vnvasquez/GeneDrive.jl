@@ -17,8 +17,8 @@
 `GeneDrive.jl` will work with Julia [version 1.7 and above](https://julialang.org/downloads/). Add the package with:
 
 ```julia
-julia> ]
-(v1.7) pkg> add GeneDrive
+julia> 
+(v1.9) pkg> add GeneDrive
 ```
 
 Begin using the package with: 
