@@ -130,7 +130,6 @@ export TemperatureResponse
 export TemperatureSeriesData
 export TemperatureShockData
 export TimeSeriesTemperature
-export ScenarioTemperature
 
 # Genetic structs
 #####################
