@@ -4,6 +4,7 @@
 [![Main - CI](https://github.com/vnvasquez/GeneDrive.jl/actions/workflows/main-tests.yml/badge.svg)](https://github.com/vnvasquez/GeneDrive.jl/actions/workflows/main-tests.yml)
 [![codecov](https://codecov.io/gh/vnvasquez/GeneDrive.jl/branch/main/graph/badge.svg?token=A1C8HACSIP)](https://codecov.io/gh/vnvasquez/GeneDrive.jl)
 [![Stable documentation](https://img.shields.io/badge/docs-stable-blue.svg)](https://vnvasquez.github.io/GeneDrive.jl/dev/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## Overview 
 
