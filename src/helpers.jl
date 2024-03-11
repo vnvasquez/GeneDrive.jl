@@ -704,7 +704,7 @@ function format_dynamic_model_results(node::Node, sol)
     node_results = sol.prob.p[1]
 
     organisms = get_organisms(node)
-    gN = count_genotypes(node_results, get_organisms(node_results)[1])
+    gN = count_genotypes(node_results, get_organisms(node_results)[1]) #TODO: FIX 
     timesteps = length(sol.t)
 
     results = Dict{String, Dict{String, Dict{String, Matrix{Float64}}}}()

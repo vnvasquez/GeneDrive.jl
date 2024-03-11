@@ -83,7 +83,7 @@ function create_decision_model(
     T = 1:tspan[end]
     N = 1:data["total_node_count"]
     C = 1:data["total_scenario_count"]
-    O = 1:organism_data["node_organism_count"] #TODO: fix
+    O = 1:organism_data["node_organism_count"] 
 
     # Stage/substage sets TODO: fix
     SE = 1:nE
