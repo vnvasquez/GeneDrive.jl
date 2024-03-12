@@ -26,7 +26,7 @@ Build mathematical program. Problem created as an NLP (do_binary=false) or MINLP
 function create_decision_model(
     network::Network,
     tspan;
-    node_strategy::Union{Dict, DataStructures.OrderedDict},#DataStructures.OrderedDict, #Dict,
+    node_strategy,#::Union{Dict, DataStructures.OrderedDict},#DataStructures.OrderedDict, #Dict,
     species::Type{<:Species}=AedesAegypti,
     do_binary::Bool=false,
     optimizer=nothing,

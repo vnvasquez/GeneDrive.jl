@@ -518,7 +518,7 @@ function _calculate_release_constraints(
     do_binary::Bool,
     model::JuMP.Model,
     optinfo_dict::Dict,
-    node_strategy::Union{Dict, DataStructures.OrderedDict},#DataStructures.OrderedDict, #Dict,#{Int64, ReleaseStrategy},
+    node_strategy,#::Union{Dict, DataStructures.OrderedDict},#DataStructures.OrderedDict, #Dict,#{Int64, ReleaseStrategy},
 )
 
     # Create empty constraints dict
