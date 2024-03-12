@@ -617,6 +617,7 @@ function _calculate_release_constraints(
             homozygous_modified,
             wildtype,
         )
+        end 
     end
 
     return optinfo_dict
