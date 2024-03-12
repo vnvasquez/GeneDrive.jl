@@ -19,14 +19,14 @@ function _create_default_solvers(do_binary::Bool)
 end
 
 """
-    create_decision_model(network::Network, tspan; node_strategy::OrderedDict, species::Type{<:Species}=AedesAegypti,do_binary::Bool=false, optimizer=nothing)
+    create_decision_model(network::Network, tspan; node_strategy::DataStructures.OrderedDict, species::Type{<:Species}=AedesAegypti,do_binary::Bool=false, optimizer=nothing)
 
 Build mathematical program. Problem created as an NLP (do_binary=false) or MINLP (do_binary=true).
 """
 function create_decision_model(
     network::Network,
     tspan;
-    node_strategy::Union{Dict, OrderedDict},#OrderedDict, #Dict,
+    node_strategy::Union{Dict, DataStructures.OrderedDict},#DataStructures.OrderedDict, #Dict,
     species::Type{<:Species}=AedesAegypti,
     do_binary::Bool=false,
     optimizer=nothing,
@@ -635,7 +635,7 @@ function create_decision_model(
 end
 
 """
-    create_decision_model(node::Node, tspan; node_strategy::OrderedDict, species::Type{<:Species}=AedesAegypti,do_binary::Bool=false, optimizer=nothing)
+    create_decision_model(node::Node, tspan; node_strategy::DataStructures.OrderedDict, species::Type{<:Species}=AedesAegypti,do_binary::Bool=false, optimizer=nothing)
 
 Build mathematical program. Problem created as an NLP (do_binary=false) or MINLP (do_binary=true). NB: `Node` is recreated as a `Network` object internally; this does not change the problem but is relevant for data exploration as it adds one index layer to the formatted results.
 """
