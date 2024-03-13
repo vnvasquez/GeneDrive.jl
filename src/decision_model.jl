@@ -215,7 +215,8 @@ function create_decision_model(
             initialcond_dict[Female][node_name][scenario][organism],
         )
     end
-
+@show "I got here 218"
+@show species 
     # EXPRESSIONS: Migration
     ###########################################
     A = get_migration(network, species)
