@@ -27,7 +27,7 @@ function create_decision_model(
     network::Network,
     tspan;
     node_strategy,#::Union{Dict, DataStructures.OrderedDict},#DataStructures.OrderedDict, #Dict,
-    species::Type{<:Species}=AedesAegypti,
+    node_species, #::Type{<:Species}=AedesAegypti,
     do_binary::Bool=false,
     optimizer=nothing,
     slack_small=false,
@@ -40,7 +40,7 @@ function create_decision_model(
             )
         end
     end
-    @show "I got here 43"
+
     ##################
     # Initialization
     ##################
@@ -81,7 +81,7 @@ function create_decision_model(
     N = 1:data["total_node_count"]
     C = 1:data["total_scenario_count"]
     O = 1:organism_data["node_organism_count"] 
-
+@show "organism keys include" O
     # Stage/substage sets TODO: fix
     SE = 1:nE
     SL = 1:nL
@@ -130,11 +130,14 @@ function create_decision_model(
 
     # DECLARE VARIABLES_1: Life Stages
     ###########################################
-    JuMP.@variable(model, E[N, C, O, SE, G, T] >= 0)
+    JuMP.@variable(model, E[N, C, O, SE, G, T] >= 0) # original 
+    #JuMP.@variable(model, E[N, C, O, SE, G[O], T] >= 0) # no 
+    #JuMP.@variable(model, E[N, C, o in O, SE, g in G[o], T] >= 0) # maybe?
     JuMP.@variable(model, L[N, C, O, SL, G, T] >= 0)
     JuMP.@variable(model, P[N, C, O, SP, G, T] >= 0)
     JuMP.@variable(model, M[N, C, O, SM, G, T] >= 0)
     JuMP.@variable(model, F[N, C, O, SF, G, T] >= 0)
+    @show typeof(E)
     #JuMP.@variable(model, P_slack_negative[N, O, G, T] == 0)
     if slack_small
         JuMP.@variable(model, 0 <= P_slack_positive[N, C, O, G, [1]] <= 1)
@@ -180,8 +183,10 @@ function create_decision_model(
     for (ix, node_name) in enumerate(N)
         for (cx, scenario) in enumerate(C)
             for (jx, organism) in enumerate(O)
+                @show organism
                 initialcond_dict[Egg][node_name][scenario][organism] =
                     initial_condition.x[ix].x[jx][SE, :]
+                    @show initial_condition.x[ix].x[jx][SE, :]
                 initialcond_dict[Larva][node_name][scenario][organism] =
                     initial_condition.x[ix].x[jx][(nE + 1):(nL + nE), :]
                 initialcond_dict[Pupa][node_name][scenario][organism] =
@@ -193,7 +198,11 @@ function create_decision_model(
             end
         end
     end
-    for node_name in N, scenario in C, organism in O, t in T
+    for node_name in N, scenario in C, organism in O, t in T #G[o]?
+       # for genotype in G#[organism]
+       println("E dimensions: ", size(E[node_name, scenario, organism, :, :, t].data))
+       println("Initial condition dimensions: ", size(initialcond_dict[Egg][node_name][scenario][organism]))
+   
         JuMP.set_start_value.(
             E[node_name, scenario, organism, :, :, t].data,
             initialcond_dict[Egg][node_name][scenario][organism],
@@ -214,15 +223,17 @@ function create_decision_model(
             F[node_name, scenario, organism, :, :, t].data,
             initialcond_dict[Female][node_name][scenario][organism],
         )
+       # end 
     end
 @show "I got here 218"
-@show species 
     # EXPRESSIONS: Migration
     ###########################################
+    @show node_species 
+    for species in node_species 
     A = get_migration(network, species)
     JuMP.@expression(
         model,
-        migration_E[n in N, c in C, o in O, s in SE, g in G[o], t in T],
+        migration_E[n in N, c in C, o in O, s in SE, g in G[o], t in T], # add G[o] or brackets [G[o]]?
         A[SE_map[s], g][n, :]' * E[:, c, o, s, g, t]
     )
     JuMP.@expression(
@@ -240,14 +251,14 @@ function create_decision_model(
         migration_M[n in N, c in C, o in O, s in SM, g in G[o], t in T],
         A[SM_map[s], g][n, :]' * M[:, c, o, s, g, t]
     )
-
+    end 
     # CONSTRAINTS_A: Life Stages
     ###########################################
 
     #### EGGS
     JuMP.@constraint(
         model,
-        E_con_A0[n in N, c in C, o in O, s in [SE[1]], g in G[o], t in [T[1]]],
+        E_con_A0[n in N, c in C, o in O, s in [SE[1]], g in G[o], t in [T[1]]], # add brackets [G[o]]?
         E[n, c, o, s, g, t] ==
         initialcond_dict[Egg][n][c][o][SE_map[s], g] + sum(
             (data[n]["scenario"][c]["organism"][o]["genetics"].likelihood[
