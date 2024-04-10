@@ -127,17 +127,23 @@ function create_decision_model(
             node[cx] = data[node_number]["scenario"][cx]["probability"]
         end
     end
-
+  #=
+    for n in N, o in O, s in SE, t in T
+        for g in G
+            JuMP.set_start_value(E[n, o ,s,g, t], ini_cond[....])
+        end
+    end
+    =# 
+    G = 1:3
     # DECLARE VARIABLES_1: Life Stages
     ###########################################
-    JuMP.@variable(model, E[N, C, O, SE, G, T] >= 0) # original 
-    #JuMP.@variable(model, E[N, C, O, SE, G[O], T] >= 0) # no 
-    #JuMP.@variable(model, E[N, C, o in O, SE, g in G[o], T] >= 0) # maybe?
+    #JuMP.@variable(model, E[N, C, o in O, SE, g in G[o], T] >= 0) 
+    JuMP.@variable(model, E[N, C, O, SE, G, T] >= 0) # maybe?
+    #error()
     JuMP.@variable(model, L[N, C, O, SL, G, T] >= 0)
     JuMP.@variable(model, P[N, C, O, SP, G, T] >= 0)
     JuMP.@variable(model, M[N, C, O, SM, G, T] >= 0)
     JuMP.@variable(model, F[N, C, O, SF, G, T] >= 0)
-    @show typeof(E)
     #JuMP.@variable(model, P_slack_negative[N, O, G, T] == 0)
     if slack_small
         JuMP.@variable(model, 0 <= P_slack_positive[N, C, O, G, [1]] <= 1)
@@ -200,11 +206,10 @@ function create_decision_model(
     end
     for node_name in N, scenario in C, organism in O, t in T #G[o]?
        # for genotype in G#[organism]
-       println("E dimensions: ", size(E[node_name, scenario, organism, :, :, t].data))
-       println("Initial condition dimensions: ", size(initialcond_dict[Egg][node_name][scenario][organism]))
-   
+
         JuMP.set_start_value.(
-            E[node_name, scenario, organism, :, :, t].data,
+            E[node_name, scenario, organism, :, :, t].data, # no longer broadcasting over matrix, rather dict -> have to write as a loop (for x, set_start_value()) because now sparse 
+            # make genes a matrix not a dict 
             initialcond_dict[Egg][node_name][scenario][organism],
         )
         JuMP.set_start_value.(
@@ -228,37 +233,36 @@ function create_decision_model(
 @show "I got here 218"
     # EXPRESSIONS: Migration
     ###########################################
-    @show node_species 
-    for species in node_species 
-    A = get_migration(network, species)
+   # @show [G for o in O]
+    #for species in node_species 
+    # = get_migration(network, node_species)
     JuMP.@expression(
         model,
-        migration_E[n in N, c in C, o in O, s in SE, g in G[o], t in T], # add G[o] or brackets [G[o]]?
-        A[SE_map[s], g][n, :]' * E[:, c, o, s, g, t]
+        migration_E[n in N, c in C, o in O, s in SE, g in G, t in T], # add  or brackets [G]?
+        get_migration(network, node_species[o])[SE_map[s], g][n, :]' * E[:, c, o, s, g, t]
     )
     JuMP.@expression(
         model,
-        migration_L[n in N, c in C, o in O, s in SL, g in G[o], t in T],
-        A[SL_map[s], g][n, :]' * L[:, c, o, s, g, t]
+        migration_L[n in N, c in C, o in O, s in SL, g in G, t in T],
+        get_migration(network, node_species[o])[SL_map[s], g][n, :]' * L[:, c, o, s, g, t]
     )
     JuMP.@expression(
         model,
-        migration_P[n in N, c in C, o in O, s in SP, g in G[o], t in T],
-        A[SP_map[s], g][n, :]' * P[:, c, o, s, g, t]
+        migration_P[n in N, c in C, o in O, s in SP, g in G, t in T],
+        get_migration(network, node_species[o])[SP_map[s], g][n, :]' * P[:, c, o, s, g, t]
     )
     JuMP.@expression(
         model,
-        migration_M[n in N, c in C, o in O, s in SM, g in G[o], t in T],
-        A[SM_map[s], g][n, :]' * M[:, c, o, s, g, t]
+        migration_M[n in N, c in C, o in O, s in SM, g in G, t in T],
+        get_migration(network, node_species[o])[SM_map[s], g][n, :]' * M[:, c, o, s, g, t]
     )
-    end 
     # CONSTRAINTS_A: Life Stages
     ###########################################
 
     #### EGGS
     JuMP.@constraint(
         model,
-        E_con_A0[n in N, c in C, o in O, s in [SE[1]], g in G[o], t in [T[1]]], # add brackets [G[o]]?
+        E_con_A0[n in N, c in C, o in O, s in [SE[1]], g in G, t in [T[1]]], # add brackets [G]?
         E[n, c, o, s, g, t] ==
         initialcond_dict[Egg][n][c][o][SE_map[s], g] + sum(
             (data[n]["scenario"][c]["organism"][o]["genetics"].likelihood[
@@ -291,7 +295,7 @@ function create_decision_model(
 
     JuMP.@constraint(
         model,
-        E_con_A1[n in N, c in C, o in O, s in [SE[1]], g in G[o], t in T[2:end]],
+        E_con_A1[n in N, c in C, o in O, s in [SE[1]], g in G, t in T[2:end]],
         E[n, c, o, s, g, t] ==
         E[n, c, o, s, g, t - 1] + sum(
             (data[n]["scenario"][c]["organism"][o]["genetics"].likelihood[
@@ -324,7 +328,7 @@ function create_decision_model(
 
     JuMP.@constraint(
         model,
-        E_con_B0[n in N, c in C, o in O, s in SE[2:end], g in G[o], t in [T[1]]],
+        E_con_B0[n in N, c in C, o in O, s in SE[2:end], g in G, t in [T[1]]],
         E[n, c, o, s, g, t] ==
         initial_condition.x[n].x[o][SE_map[s], g] +
         data[n]["scenario"][c]["organism"][o]["stage_temperature_response"][Egg][n][c][o][g][t][2] *
@@ -340,7 +344,7 @@ function create_decision_model(
 
     JuMP.@constraint(
         model,
-        E_con_B1[n in N, c in C, o in O, s in SE[2:end], g in G[o], t in T[2:end]],
+        E_con_B1[n in N, c in C, o in O, s in SE[2:end], g in G, t in T[2:end]],
         E[n, c, o, s, g, t] ==
         E[n, c, o, s, g, t - 1] +
         data[n]["scenario"][c]["organism"][o]["stage_temperature_response"][Egg][n][c][o][g][t][2] *
@@ -357,7 +361,7 @@ function create_decision_model(
     #### LARVAE
     JuMP.@constraint(
         model,
-        L_con_A0[n in N, c in C, o in O, s in [SL[1]], g in G[o], t in [T[1]]],
+        L_con_A0[n in N, c in C, o in O, s in [SL[1]], g in G, t in [T[1]]],
         L[n, c, o, s, g, t] ==
         initial_condition.x[n].x[o][SL_map[s], g] +
         data[n]["scenario"][c]["organism"][o]["stage_temperature_response"][Egg][n][c][o][g][t][2] *
@@ -373,7 +377,7 @@ function create_decision_model(
 
     JuMP.@constraint(
         model,
-        L_con_A1[n in N, c in C, o in O, s in [SL[1]], g in G[o], t in T[2:end]],
+        L_con_A1[n in N, c in C, o in O, s in [SL[1]], g in G, t in T[2:end]],
         L[n, c, o, s, g, t] ==
         L[n, c, o, s, g, t - 1] +
         data[n]["scenario"][c]["organism"][o]["stage_temperature_response"][Egg][n][c][o][g][t][2] *
@@ -389,7 +393,7 @@ function create_decision_model(
 
     JuMP.@constraint(
         model,
-        L_con_B0[n in N, c in C, o in O, s in SL[2:end], g in G[o], t in [T[1]]],
+        L_con_B0[n in N, c in C, o in O, s in SL[2:end], g in G, t in [T[1]]],
         L[n, c, o, s, g, t] ==
         initial_condition.x[n].x[o][SL_map[s], g] +
         data[n]["scenario"][c]["organism"][o]["stage_temperature_response"][Larva][n][c][o][g][t][2] *
@@ -405,7 +409,7 @@ function create_decision_model(
 
     JuMP.@constraint(
         model,
-        L_con_B1[n in N, c in C, o in O, s in SL[2:end], g in G[o], t in T[2:end]],
+        L_con_B1[n in N, c in C, o in O, s in SL[2:end], g in G, t in T[2:end]],
         L[n, c, o, s, g, t] ==
         L[n, c, o, s, g, t - 1] +
         data[n]["scenario"][c]["organism"][o]["stage_temperature_response"][Larva][n][c][o][g][t][2] *
@@ -422,7 +426,7 @@ function create_decision_model(
     #### PUPAE
     JuMP.@constraint(
         model,
-        P_con_A0[n in N, c in C, o in O, s in [SP[1]], g in G[o], t in [T[1]]],
+        P_con_A0[n in N, c in C, o in O, s in [SP[1]], g in G, t in [T[1]]],
         P[n, c, o, s, g, t] ==
         initial_condition.x[n].x[o][SP_map[s], g] +
         data[n]["scenario"][c]["organism"][o]["stage_temperature_response"][Larva][n][c][o][g][t][2] *
@@ -438,7 +442,7 @@ function create_decision_model(
 
     JuMP.@constraint(
         model,
-        P_con_A1[n in N, c in C, o in O, s in [SP[1]], g in G[o], t in T[2:end]],
+        P_con_A1[n in N, c in C, o in O, s in [SP[1]], g in G, t in T[2:end]],
         P[n, c, o, s, g, t] ==
         P[n, c, o, s, g, t - 1] +
         data[n]["scenario"][c]["organism"][o]["stage_temperature_response"][Larva][n][c][o][g][t][2] *
@@ -454,7 +458,7 @@ function create_decision_model(
 
     JuMP.@constraint(
         model,
-        P_con_B0[n in N, c in C, o in O, s in SP[2:end], g in G[o], t in [T[1]]],
+        P_con_B0[n in N, c in C, o in O, s in SP[2:end], g in G, t in [T[1]]],
         P[n, c, o, s, g, t] ==
         initial_condition.x[n].x[o][SP_map[s], g] +
         data[n]["scenario"][c]["organism"][o]["stage_temperature_response"][Pupa][n][c][o][g][t][2] *
@@ -470,7 +474,7 @@ function create_decision_model(
 
     JuMP.@constraint(
         model,
-        P_con_B1[n in N, c in C, o in O, s in SP[2:end], g in G[o], t in T[2:end]],
+        P_con_B1[n in N, c in C, o in O, s in SP[2:end], g in G, t in T[2:end]],
         P[n, c, o, s, g, t] ==
         P[n, c, o, s, g, t - 1] +
         data[n]["scenario"][c]["organism"][o]["stage_temperature_response"][Pupa][n][c][o][g][t][2] *
@@ -488,7 +492,7 @@ function create_decision_model(
     if slack_small || slack_large
         JuMP.@constraint(
             model,
-            M_con_0[n in N, c in C, o in O, s in SM, g in G[o], t in [T[1]]],
+            M_con_0[n in N, c in C, o in O, s in SM, g in G, t in [T[1]]],
             M[n, c, o, s, g, t] ==
             initial_condition.x[n].x[o][SM_map[s], g] +
             (1 - data[n]["scenario"][c]["organism"][o]["genetics"].Φ[g]) *
@@ -505,7 +509,7 @@ function create_decision_model(
     else
         JuMP.@constraint(
             model,
-            M_con_0[n in N, c in C, o in O, s in SM, g in G[o], t in [T[1]]],
+            M_con_0[n in N, c in C, o in O, s in SM, g in G, t in [T[1]]],
             M[n, c, o, s, g, t] ==
             initial_condition.x[n].x[o][SM_map[s], g] +
             (1 - data[n]["scenario"][c]["organism"][o]["genetics"].Φ[g]) *
@@ -524,7 +528,7 @@ function create_decision_model(
     if slack_large
         JuMP.@constraint(
             model,
-            M_con_1[n in N, c in C, o in O, s in SM, g in G[o], t in T[2:end]],
+            M_con_1[n in N, c in C, o in O, s in SM, g in G, t in T[2:end]],
             M[n, c, o, s, g, t] ==
             M[n, c, o, s, g, t - 1] +
             (1 - data[n]["scenario"][c]["organism"][o]["genetics"].Φ[g]) *
@@ -542,7 +546,7 @@ function create_decision_model(
     else
         JuMP.@constraint(
             model,
-            M_con_1[n in N, c in C, o in O, s in SM, g in G[o], t in T[2:end]],
+            M_con_1[n in N, c in C, o in O, s in SM, g in G, t in T[2:end]],
             M[n, c, o, s, g, t] ==
             M[n, c, o, s, g, t - 1] +
             (1 - data[n]["scenario"][c]["organism"][o]["genetics"].Φ[g]) *
@@ -562,18 +566,18 @@ function create_decision_model(
     #### MATING
     JuMP.@constraint(
         model,
-        mate_bound[n in N, c in C, o in O, g in G[o], t in T],
+        mate_bound[n in N, c in C, o in O, g in G, t in T],
         M[n, c, o, 1, g, t] * data[n]["scenario"][c]["organism"][o]["genetics"].Η[g] <=
         (sum(
             M[n, c, o, 1, i, t] * data[n]["scenario"][c]["organism"][o]["genetics"].Η[i] for
-            i in G[o]
+            i in G
         ))
     )
 
     #### FEMALES:
     JuMP.@NLconstraint(
         model,
-        F_con_0[n in N, c in C, o in O, s in SF, g in G[o], t in [T[1]]],
+        F_con_0[n in N, c in C, o in O, s in SF, g in G, t in [T[1]]],
         F[n, c, o, s, g, t] ==
         initial_condition.x[n].x[o][SF_map[s], g] +
         (
@@ -581,7 +585,7 @@ function create_decision_model(
             (
                 1e-6 + sum(
                     M[n, c, o, 1, i, t] *
-                    data[n]["scenario"][c]["organism"][o]["genetics"].Η[i] for i in G[o]
+                    data[n]["scenario"][c]["organism"][o]["genetics"].Η[i] for i in G
                 )
             )
         ) * (
@@ -593,12 +597,12 @@ function create_decision_model(
         ) -
         (1 + data[n]["scenario"][c]["organism"][o]["genetics"].Ω[g]) *
         data[n]["scenario"][c]["organism"][o]["stage_temperature_response"][Female][n][c][o][g][t][1] *
-        F[n, c, o, s, g, t] + sum(A[SF_map[s], g][n, i] * F[i, c, o, s, g, t] for i in N)
+        F[n, c, o, s, g, t] + sum(get_migration(network, node_species[o])[SF_map[s], g][n, i] * F[i, c, o, s, g, t] for i in N)
     )
 
     JuMP.@NLconstraint(
         model,
-        F_con_1[n in N, c in C, o in O, s in SF, g in G[o], t in T[2:end]],
+        F_con_1[n in N, c in C, o in O, s in SF, g in G, t in T[2:end]],
         F[n, c, o, s, g, t] ==
         F[n, c, o, s, g, t - 1] +
         (
@@ -606,7 +610,7 @@ function create_decision_model(
             (
                 1e-6 + sum(
                     M[n, c, o, 1, i, t] *
-                    data[n]["scenario"][c]["organism"][o]["genetics"].Η[i] for i in G[o]
+                    data[n]["scenario"][c]["organism"][o]["genetics"].Η[i] for i in G
                 )
             )
         ) * (
@@ -620,12 +624,11 @@ function create_decision_model(
         data[n]["scenario"][c]["organism"][o]["stage_temperature_response"][Female][n][c][o][g][t][1] *
         F[n, c, o, s, g, t] +
         control_F[n, o, s, g, t] +
-        sum(A[SF_map[s], g][n, i] * F[i, c, o, s, g, t] for i in N)
+        sum(get_migration(network, node_species[o])[SF_map[s], g][n, i] * F[i, c, o, s, g, t] for i in N)
     )
 
     # CONSTRAINTS_B: Controls
     ###########################################
-@show "I got here 616"
     for org_key in keys(organism_data["organism"])
         homozygous_modified = organism_data["organism"][org_key]["homozygous_modified"]
         wildtype = organism_data["organism"][org_key]["wildtype"]
@@ -642,7 +645,7 @@ function create_decision_model(
         )
 
     end 
-
+    
     return model
 end
 
