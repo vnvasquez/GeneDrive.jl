@@ -61,6 +61,8 @@ function create_decision_model(
     ##################
     data = _optimization_info(network, tspan)
     organism_data = data[1]["scenario"][1]
+    gene_count = organism_data["organism"][1]["gene_count"]
+
     # TODO: fix
     nE = organism_data["organism"][1]["substage_count"][Egg]
     nL = organism_data["organism"][1]["substage_count"][Larva]
@@ -81,6 +83,7 @@ function create_decision_model(
     N = 1:data["total_node_count"]
     C = 1:data["total_scenario_count"]
     O = 1:organism_data["node_organism_count"] 
+    G = 1:gene_count
 @show "organism keys include" O
     # Stage/substage sets TODO: fix
     SE = 1:nE
@@ -95,13 +98,14 @@ function create_decision_model(
     SP_map = (nE + nL + 1):(nE + nL + nP)
     SM_map = nE + nL + nP + 1
     SF_map = (nE + nL + nP + nM + 1):(nE + nL + nP + nM + nF)
-
-    # Genes 
+ 
+    #= Genes
     G = Dict()
     for org_key in keys(organism_data["organism"])
         gene_count = organism_data["organism"][org_key]["gene_count"]
         G[org_key] = 1:gene_count
     end 
+    =#
 
     # Add sets to model object TODO: fix
     model.obj_dict[:Sets] = Dict(
@@ -134,7 +138,7 @@ function create_decision_model(
         end
     end
     =# 
-    G = 1:3
+    # G = 1:3
     # DECLARE VARIABLES_1: Life Stages
     ###########################################
     #JuMP.@variable(model, E[N, C, o in O, SE, g in G[o], T] >= 0) 
@@ -230,7 +234,7 @@ function create_decision_model(
         )
        # end 
     end
-@show "I got here 218"
+
     # EXPRESSIONS: Migration
     ###########################################
    # @show [G for o in O]
