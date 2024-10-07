@@ -21,9 +21,10 @@ import DataFrames
 # Files
 #####################
 # TODO: Random.seed!(123)
-include("organisms.jl")
+
 include("life_stages.jl")
 include("genetics.jl")
+include("organisms.jl")
 include("definitions.jl") # Hard coded values of type const, keep at top definition
 
 
