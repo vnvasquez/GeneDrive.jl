@@ -24,15 +24,13 @@ import DataFrames
 
 
 include("genetics.jl")
-include("organisms.jl")
-
-
 
 
 include("temperature.jl")
 include("temperature_responses.jl")
 
 include("life_stages.jl") 
+include("organisms.jl")
 include("definitions.jl")  
 
 include("spatial_structure.jl")
