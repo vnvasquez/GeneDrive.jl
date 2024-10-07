@@ -21,6 +21,7 @@ import DataFrames
 # Files
 #####################
 # TODO: Random.seed!(123)
+include("definitions.jl") # Hard coded values of type const, keep at top definition
 include("temperature.jl")
 include("temperature_responses.jl")
 
@@ -32,7 +33,7 @@ include("spatial_structure.jl")
 include("exogenous_change.jl")
 
 include("accessors.jl")
-include("definitions.jl")
+
 
 include("initialize.jl")
 include("population_dynamics.jl")
