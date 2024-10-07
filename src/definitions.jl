@@ -40,11 +40,3 @@ const MALE_FEMALE_RELEASE_FRACTION = 0.5
 
 
 
-
-
-const genetics_key_map = Constants(Dict(
-    :key1 => "value1",
-    :key2 => "value2"
-))
-
-end
