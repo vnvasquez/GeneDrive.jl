@@ -228,26 +228,20 @@ function init_node!(node::Node)
 
         u0_first_guess_perstage = vcat(E0, L0, P0, M0, F0)
         u0[index_organism] = u0_first_guess_perstage
-    end
-
-    u0_first_guess_collectedstages = RecursiveArrayTools.ArrayPartition(u0...)
-
-    for (index_organism, key_species) in enumerate(keys(node.organisms))
-        genetics = get_genetics(node, key_species)
-        gene_index = findfirst(isodd, genetics.all_wildtypes)
 
         KL, γL = init_density_dependence!(
             node,
             key_species,
-            u0_first_guess_collectedstages,
+            u0_first_guess_perstage,
             gene_index,
             inputs,
             t,
         )
-
         densitydep0[index_organism] = (KL=KL, γL=γL)
         update_density_parameter(node, key_species, Larva; new_param_value=KL)
     end
+
+    u0_first_guess_collectedstages = RecursiveArrayTools.ArrayPartition(u0...)
 
     eq_pop = NLsolve.nlsolve(
         (du, u) -> population_model_node(du, u, (node, inputs), 0),

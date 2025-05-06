@@ -26,9 +26,13 @@ function _optimization_info(network::Network, tspan::Tuple)
             optinfo_dict[ix]["scenario"][cx]["temperature"] = temperature_vals
             optinfo_dict[ix]["scenario"][cx]["probability"] = prob
 
+            unique_organisms = Set{Type{<:Species}}() 
             for (jx, organism) in enumerate(get_organisms(node))
+                if organism ∉ unique_organisms  
+                    push!(unique_organisms, organism) 
+                    optinfo_dict["network_total_organism_count"] = length(unique_organisms)
+                end
                 species_count = count_organisms(node)
-                optinfo_dict["network_total_organism_count"] += species_count
                 optinfo_dict[ix]["scenario"][cx]["node_organism_count"] = species_count
 
                 optinfo_dict[ix]["scenario"][cx]["organism"][jx] = Dict()
@@ -156,7 +160,7 @@ function _add_constraint(
                 #@info "made binary for node $n and time $t"
                 JuMP.set_binary(release_location[n, t])
             end
-            for o in O, s in SM, g in G
+            for o in O, s in SM, g in G[o]
                 max_v = g == homozygous_modified ? max_per_timestep : 0.0
                 min_v = g == homozygous_modified ? min_per_timestep : 0.0
                 #@info "max limit used in $s, $g is $max_v"
@@ -174,7 +178,7 @@ function _add_constraint(
         else
             #@info "fixed to 0.0 node $n and time $t"
             JuMP.fix(release_location[n, t], 0.0; force=true)
-            for o in O, s in SM, g in G
+            for o in O, s in SM, g in G[o]
                 CONTAINER_control_limit_schedule_upper_M[n, o, s, g, t] =
                     JuMP.@constraint(model, control_M[n, o, s, g, t] <= 0)
                 CONTAINER_control_limit_schedule_lower_M[n, o, s, g, t] =
@@ -231,7 +235,7 @@ function _add_constraint(
                 #@info "made FEMALES binary for node $n and time $t"
                 JuMP.set_binary(release_location[n, t])
             end
-            for o in O, s in SF, g in G
+            for o in O, s in SF, g in G[o]
                 max_v = g == homozygous_modified ? max_per_timestep : 0.0
                 min_v = g == homozygous_modified ? min_per_timestep : 0.0
                 #@info "max limit used in $o, $s, $g is FEMALES = $max_v"
@@ -249,7 +253,7 @@ function _add_constraint(
         else
             #@info "fixed FEMALES to 0.0 node $n and time $t"
             JuMP.fix(release_location[n, t], 0.0; force=true)
-            for o in O, s in SF, g in G
+            for o in O, s in SF, g in G[o]
                 CONTAINER_control_limit_schedule_upper_F[n, o, s, g, t] =
                     JuMP.@constraint(model, control_F[n, o, g, s, t] <= 0)
                 CONTAINER_control_limit_schedule_lower_F[n, o, s, g, t] =
@@ -367,7 +371,7 @@ function _add_constraint(
                 JuMP.set_binary(release_location[n, t])
             end
 
-            for o in O, g in G
+            for o in O, g in G[o]
                 max_v = g == homozygous_modified ? max_per_timestep : 0.0
                 min_v = g == homozygous_modified ? min_per_timestep : 0.0
 
@@ -411,7 +415,7 @@ function _add_constraint(
             end
         else
             JuMP.fix(release_location[n, t], 0.0; force=true)
-            for o in O, g in G
+            for o in O, g in G[o]
                 for s in SF
                     #@info "fixed FEMALES to 0.0 in node $n, time $t"
                     CONTAINER_control_limit_schedule_upper_F[n, o, s, g, t] =
@@ -457,11 +461,13 @@ function _populate_constraints_dict(
     strategy,
     life_stage::Type{<:LifeStage},
 )
-    for tx in
-        (strategy.release_start_time):(strategy.release_time_interval):(strategy.release_end_time)
-        releaseconstraints_dict[node_number]["org_con"][1]["stage_con"][life_stage][strategy.release_this_gene_index][tx] =
-            strategy.release_size_max_per_timestep
-    end
+    for org_number in keys(releaseconstraints_dict[node_number]["org_con"]) 
+        for tx in
+            (strategy.release_start_time):(strategy.release_time_interval):(strategy.release_end_time)
+            releaseconstraints_dict[node_number]["org_con"][org_number]["stage_con"][life_stage][strategy.release_this_gene_index][tx] =
+                strategy.release_size_max_per_timestep
+        end
+    end 
     return
 end
 
@@ -494,12 +500,14 @@ function _populate_constraints_dict(
 )
     range =
         (strategy.release_start_time):(strategy.release_time_interval):(strategy.release_end_time)
-    for tx in range
-        releaseconstraints_dict[node_number]["org_con"][1]["stage_con"][Male][strategy.release_this_gene_index][tx] =
-            strategy.release_size_max_per_timestep * MALE_FEMALE_RELEASE_FRACTION
-        releaseconstraints_dict[node_number]["org_con"][1]["stage_con"][Female][strategy.release_this_gene_index][tx] =
-            strategy.release_size_max_per_timestep * MALE_FEMALE_RELEASE_FRACTION
-    end
+        for org_number in keys(releaseconstraints_dict[node_number]["org_con"]) 
+            for tx in range
+                releaseconstraints_dict[node_number]["org_con"][org_number]["stage_con"][Male][strategy.release_this_gene_index][tx] =
+                    strategy.release_size_max_per_timestep * MALE_FEMALE_RELEASE_FRACTION
+                releaseconstraints_dict[node_number]["org_con"][org_number]["stage_con"][Female][strategy.release_this_gene_index][tx] =
+                    strategy.release_size_max_per_timestep * MALE_FEMALE_RELEASE_FRACTION
+            end
+        end
 end
 
 function _calculate_release_constraints(
@@ -510,7 +518,7 @@ function _calculate_release_constraints(
     do_binary::Bool,
     model::JuMP.Model,
     optinfo_dict::Dict,
-    node_strategy::Dict{Int64, ReleaseStrategy},
+    node_strategy,#::Union{Dict, DataStructures.OrderedDict},#DataStructures.OrderedDict, #Dict,#{Int64, ReleaseStrategy},
 )
 
     # Create empty constraints dict
@@ -538,49 +546,54 @@ function _calculate_release_constraints(
 
     # Checks
     ####################
-    for (node_number, strategy) in node_strategy
-        if strategy.release_this_gene_index === nothing
-            @info "Please define the index of the genotype to be released."
+    #for (node_number, strategy) in node_strategy
+    for (node_number, node_strategies) in pairs(node_strategy)
+        for (org_number, strategy) in node_strategies
+            if strategy.release_this_gene_index === nothing
+                @info "Please define the index of the genotype to be released."
+            end
+
+            if strategy.release_this_life_stage === nothing
+                @info "Please define the lifestage of the organism to be released."
+            end
+
+            if strategy.release_location_force !== nothing && do_binary == false
+                @warn "Release locations cannot be specified because `do_binary` is set to $(do_binary)."
+            end
+
+            if strategy.release_end_time !== nothing && strategy.release_end_time > tspan[2]
+                @warn "Release end time specified in node $(node_number) occurs outside the time horizon (tspan = $(tspan))."
+            end
+
+            if strategy.release_size_min_per_timestep >= strategy.release_size_max_per_timestep
+                @warn "Release size minimum per timestep specified in node $(node_number) is greater than or equal to release size maximum per timestep."
+            end
+#=
+            if all(
+                isequal(
+                    node_strategy[node_number].release_max_over_timehorizon,
+                    strategy.release_max_over_timehorizon,
+                ),
+            ) == false
+                @warn "Entries for the `ReleaseStrategy` field `release_max_over_timehorizon` do not match; this field should be equivalent for all nodes in the network."
+            end
+=#
+            strategy.release_start_time === nothing ? (strategy.release_start_time = tspan[1]) :
+            strategy.release_start_time
+            strategy.release_end_time === nothing ? (strategy.release_end_time = tspan[2]) :
+            strategy.release_end_time
+
+            # Fill release dict
+            ####################
+            _populate_constraints_dict(
+                releaseconstraints_dict,
+                node_number,
+                strategy, 
+                strategy.release_this_life_stage
+                #node_strategy[node_number],
+                #node_strategy[node_number].release_this_life_stage,
+            )
         end
-
-        if strategy.release_this_life_stage === nothing
-            @info "Please define the lifestage of the organism to be released."
-        end
-
-        if strategy.release_location_force !== nothing && do_binary == false
-            @warn "Release locations cannot be specified because `do_binary` is set to $(do_binary)."
-        end
-
-        if strategy.release_end_time !== nothing && strategy.release_end_time > tspan[2]
-            @warn "Release end time specified in node $(node_number) occurs outside the time horizon (tspan = $(tspan))."
-        end
-
-        if strategy.release_size_min_per_timestep >= strategy.release_size_max_per_timestep
-            @warn "Release size minimum per timestep specified in node $(node_number) is greater than or equal to release size maximum per timestep."
-        end
-
-        if all(
-            isequal(
-                node_strategy[node_number].release_max_over_timehorizon,
-                strategy.release_max_over_timehorizon,
-            ),
-        ) == false
-            @warn "Entries for the `ReleaseStrategy` field `release_max_over_timehorizon` do not match; this field should be equivalent for all nodes in the network."
-        end
-
-        strategy.release_start_time === nothing ? (strategy.release_start_time = tspan[1]) :
-        strategy.release_start_time
-        strategy.release_end_time === nothing ? (strategy.release_end_time = tspan[2]) :
-        strategy.release_end_time
-
-        # Fill release dict
-        ####################
-        _populate_constraints_dict(
-            releaseconstraints_dict,
-            node_number,
-            node_strategy[node_number],
-            node_strategy[node_number].release_this_life_stage,
-        )
     end
 
     # Include release dict
@@ -589,17 +602,22 @@ function _calculate_release_constraints(
 
     # Add constraints to model
     ####################
-    for (node_number, strategy) in enumerate(node_strategy)
+    #for (node_number, strategy) in enumerate(node_strategy)
+    for (node_number, node_strategies) in pairs(node_strategy)
+        for (org_number, strategy) in node_strategies
         _add_constraint(
             model,
             do_binary::Bool,
             optinfo_dict,
             node_number,
-            node_strategy[node_number].release_this_life_stage,
-            node_strategy[node_number],
+            strategy.release_this_life_stage,
+            strategy,
+            #node_strategy[node_number].release_this_life_stage,
+            #node_strategy[node_number],
             homozygous_modified,
             wildtype,
         )
+        end 
     end
 
     return optinfo_dict

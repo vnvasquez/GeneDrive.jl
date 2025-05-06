@@ -19,15 +19,15 @@ function _create_default_solvers(do_binary::Bool)
 end
 
 """
-    create_decision_model(network::Network, tspan; node_strategy::Dict, species::Type{<:Species}=AedesAegypti,do_binary::Bool=false, optimizer=nothing)
+    create_decision_model(network::Network, tspan; node_strategy::DataStructures.OrderedDict, species::Type{<:Species}=AedesAegypti,do_binary::Bool=false, optimizer=nothing)
 
 Build mathematical program. Problem created as an NLP (do_binary=false) or MINLP (do_binary=true).
 """
 function create_decision_model(
     network::Network,
     tspan;
-    node_strategy::Dict,
-    species::Type{<:Species}=AedesAegypti,
+    node_strategy,#::Union{Dict, DataStructures.OrderedDict},#DataStructures.OrderedDict, #Dict,
+    node_species, #::Type{<:Species}=AedesAegypti,
     do_binary::Bool=false,
     optimizer=nothing,
     slack_small=false,
@@ -61,15 +61,14 @@ function create_decision_model(
     ##################
     data = _optimization_info(network, tspan)
     organism_data = data[1]["scenario"][1]
+    gene_count = organism_data["organism"][1]["gene_count"]
+
     # TODO: fix
     nE = organism_data["organism"][1]["substage_count"][Egg]
     nL = organism_data["organism"][1]["substage_count"][Larva]
     nP = organism_data["organism"][1]["substage_count"][Pupa]
     nM = organism_data["organism"][1]["substage_count"][Male]
     nF = organism_data["organism"][1]["substage_count"][Female]
-    gene_count = organism_data["organism"][1]["gene_count"]
-    homozygous_modified = organism_data["organism"][1]["homozygous_modified"]
-    wildtype = organism_data["organism"][1]["wildtype"]
 
     # TODO: fix
     densE = organism_data["organism"][1]["stage_density"][Egg]
@@ -84,7 +83,8 @@ function create_decision_model(
     N = 1:data["total_node_count"]
     C = 1:data["total_scenario_count"]
     O = 1:organism_data["node_organism_count"] 
-
+    G = 1:gene_count
+@show "organism keys include" O
     # Stage/substage sets TODO: fix
     SE = 1:nE
     SL = 1:nL
@@ -98,9 +98,14 @@ function create_decision_model(
     SP_map = (nE + nL + 1):(nE + nL + nP)
     SM_map = nE + nL + nP + 1
     SF_map = (nE + nL + nP + nM + 1):(nE + nL + nP + nM + nF)
-
-    # Genes TODO: fix
-    G = 1:gene_count
+ 
+    #= Genes
+    G = Dict()
+    for org_key in keys(organism_data["organism"])
+        gene_count = organism_data["organism"][org_key]["gene_count"]
+        G[org_key] = 1:gene_count
+    end 
+    =#
 
     # Add sets to model object TODO: fix
     model.obj_dict[:Sets] = Dict(
@@ -126,10 +131,19 @@ function create_decision_model(
             node[cx] = data[node_number]["scenario"][cx]["probability"]
         end
     end
-
+  #=
+    for n in N, o in O, s in SE, t in T
+        for g in G
+            JuMP.set_start_value(E[n, o ,s,g, t], ini_cond[....])
+        end
+    end
+    =# 
+    # G = 1:3
     # DECLARE VARIABLES_1: Life Stages
     ###########################################
-    JuMP.@variable(model, E[N, C, O, SE, G, T] >= 0)
+    #JuMP.@variable(model, E[N, C, o in O, SE, g in G[o], T] >= 0) 
+    JuMP.@variable(model, E[N, C, O, SE, G, T] >= 0) # maybe?
+    #error()
     JuMP.@variable(model, L[N, C, O, SL, G, T] >= 0)
     JuMP.@variable(model, P[N, C, O, SP, G, T] >= 0)
     JuMP.@variable(model, M[N, C, O, SM, G, T] >= 0)
@@ -179,8 +193,10 @@ function create_decision_model(
     for (ix, node_name) in enumerate(N)
         for (cx, scenario) in enumerate(C)
             for (jx, organism) in enumerate(O)
+                @show organism
                 initialcond_dict[Egg][node_name][scenario][organism] =
                     initial_condition.x[ix].x[jx][SE, :]
+                    @show initial_condition.x[ix].x[jx][SE, :]
                 initialcond_dict[Larva][node_name][scenario][organism] =
                     initial_condition.x[ix].x[jx][(nE + 1):(nL + nE), :]
                 initialcond_dict[Pupa][node_name][scenario][organism] =
@@ -192,9 +208,12 @@ function create_decision_model(
             end
         end
     end
-    for node_name in N, scenario in C, organism in O, t in T
+    for node_name in N, scenario in C, organism in O, t in T #G[o]?
+       # for genotype in G#[organism]
+
         JuMP.set_start_value.(
-            E[node_name, scenario, organism, :, :, t].data,
+            E[node_name, scenario, organism, :, :, t].data, # no longer broadcasting over matrix, rather dict -> have to write as a loop (for x, set_start_value()) because now sparse 
+            # make genes a matrix not a dict 
             initialcond_dict[Egg][node_name][scenario][organism],
         )
         JuMP.set_start_value.(
@@ -213,39 +232,41 @@ function create_decision_model(
             F[node_name, scenario, organism, :, :, t].data,
             initialcond_dict[Female][node_name][scenario][organism],
         )
+       # end 
     end
 
     # EXPRESSIONS: Migration
     ###########################################
-    A = get_migration(network, species)
+   # @show [G for o in O]
+    #for species in node_species 
+    # = get_migration(network, node_species)
     JuMP.@expression(
         model,
-        migration_E[n in N, c in C, o in O, s in SE, g in G, t in T],
-        A[SE_map[s], g][n, :]' * E[:, c, o, s, g, t]
+        migration_E[n in N, c in C, o in O, s in SE, g in G, t in T], # add  or brackets [G]?
+        get_migration(network, node_species[o])[SE_map[s], g][n, :]' * E[:, c, o, s, g, t]
     )
     JuMP.@expression(
         model,
         migration_L[n in N, c in C, o in O, s in SL, g in G, t in T],
-        A[SL_map[s], g][n, :]' * L[:, c, o, s, g, t]
+        get_migration(network, node_species[o])[SL_map[s], g][n, :]' * L[:, c, o, s, g, t]
     )
     JuMP.@expression(
         model,
         migration_P[n in N, c in C, o in O, s in SP, g in G, t in T],
-        A[SP_map[s], g][n, :]' * P[:, c, o, s, g, t]
+        get_migration(network, node_species[o])[SP_map[s], g][n, :]' * P[:, c, o, s, g, t]
     )
     JuMP.@expression(
         model,
         migration_M[n in N, c in C, o in O, s in SM, g in G, t in T],
-        A[SM_map[s], g][n, :]' * M[:, c, o, s, g, t]
+        get_migration(network, node_species[o])[SM_map[s], g][n, :]' * M[:, c, o, s, g, t]
     )
-
     # CONSTRAINTS_A: Life Stages
     ###########################################
 
     #### EGGS
     JuMP.@constraint(
         model,
-        E_con_A0[n in N, c in C, o in O, s in [SE[1]], g in G, t in [T[1]]],
+        E_con_A0[n in N, c in C, o in O, s in [SE[1]], g in G, t in [T[1]]], # add brackets [G]?
         E[n, c, o, s, g, t] ==
         initialcond_dict[Egg][n][c][o][SE_map[s], g] + sum(
             (data[n]["scenario"][c]["organism"][o]["genetics"].likelihood[
@@ -580,7 +601,7 @@ function create_decision_model(
         ) -
         (1 + data[n]["scenario"][c]["organism"][o]["genetics"].Ω[g]) *
         data[n]["scenario"][c]["organism"][o]["stage_temperature_response"][Female][n][c][o][g][t][1] *
-        F[n, c, o, s, g, t] + sum(A[SF_map[s], g][n, i] * F[i, c, o, s, g, t] for i in N)
+        F[n, c, o, s, g, t] + sum(get_migration(network, node_species[o])[SF_map[s], g][n, i] * F[i, c, o, s, g, t] for i in N)
     )
 
     JuMP.@NLconstraint(
@@ -607,27 +628,33 @@ function create_decision_model(
         data[n]["scenario"][c]["organism"][o]["stage_temperature_response"][Female][n][c][o][g][t][1] *
         F[n, c, o, s, g, t] +
         control_F[n, o, s, g, t] +
-        sum(A[SF_map[s], g][n, i] * F[i, c, o, s, g, t] for i in N)
+        sum(get_migration(network, node_species[o])[SF_map[s], g][n, i] * F[i, c, o, s, g, t] for i in N)
     )
 
     # CONSTRAINTS_B: Controls
     ###########################################
-    _calculate_release_constraints(
-        network,
-        tspan,
-        homozygous_modified,
-        wildtype,
-        do_binary,
-        model,
-        data,
-        node_strategy,
-    )
+    for org_key in keys(organism_data["organism"])
+        homozygous_modified = organism_data["organism"][org_key]["homozygous_modified"]
+        wildtype = organism_data["organism"][org_key]["wildtype"]
 
+        _calculate_release_constraints(
+            network,
+            tspan,
+            homozygous_modified,
+            wildtype,
+            do_binary,
+            model,
+            data,
+            node_strategy,
+        )
+
+    end 
+    
     return model
 end
 
 """
-    create_decision_model(node::Node, tspan; node_strategy::Dict, species::Type{<:Species}=AedesAegypti,do_binary::Bool=false, optimizer=nothing)
+    create_decision_model(node::Node, tspan; node_strategy::DataStructures.OrderedDict, species::Type{<:Species}=AedesAegypti,do_binary::Bool=false, optimizer=nothing)
 
 Build mathematical program. Problem created as an NLP (do_binary=false) or MINLP (do_binary=true). NB: `Node` is recreated as a `Network` object internally; this does not change the problem but is relevant for data exploration as it adds one index layer to the formatted results.
 """

@@ -103,6 +103,27 @@ function make_organisms(
 end
 
 """
+    make_organisms(species::Vector,genetics::Vector,stages::Vector)
+
+Return `Organism` object.
+"""
+function make_organisms(
+    species::Vector,
+    genetics::Vector,
+    stages::Vector,
+)
+    @assert length(species) == length(genetics) == length(stages)
+    organisms = DataStructures.OrderedDict{Type{<:Species}, Organism}()
+
+    for i in 1:length(species)
+        organism = Organism{species[i]}(genetics[i], stages[i])
+        organisms[species[i]] = organism
+    end
+
+    return organisms
+end
+
+"""
     get_organisms(node::Node)
 
 Return vector of species populating `Node`.
