@@ -15,11 +15,11 @@
 
 ## Installation and usage 
 
-`GeneDrive.jl` will work with Julia [version 1.8 and above](https://julialang.org/downloads/). Add the package with:
+`GeneDrive.jl` will work with Julia [version 1.11 and above](https://julialang.org/downloads/). Add the package with:
 
 ```julia
 julia> 
-(v1.9) pkg> add GeneDrive
+(v1.11) pkg> add GeneDrive
 ```
 
 Begin using the package with: 
