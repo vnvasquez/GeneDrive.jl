@@ -30,13 +30,15 @@
         release_this_gene_index=test_release_gene,
         release_this_life_stage=Male,
     )
-    test_strategy = Dict(1 => test_constraints)
+    #test_strategy = Dict(1 => test_constraints)
+    test_strategy = [1 => test_constraints]
+    test_node_strategy = NodeStrategy(1, test_strategy)
 
     test_prob = create_decision_model(
         test_node,
         test_short_tspan;
-        node_strategy=test_strategy,
-        node_species=test_species,
+        node_strategy=test_node_strategy,
+        node_species=[test_species], # now requires vector
         optimizer=i,
     )
 
@@ -54,13 +56,15 @@
         release_this_gene_index=test_release_gene,
         release_this_life_stage=Female,
     )
-    test_strategy = Dict(1 => test_constraints)
+    #test_strategy = Dict(1 => test_constraints)
+    test_strategy = [1 => test_constraints]
+    test_node_strategy = NodeStrategy(1, test_strategy)
 
     test_prob = create_decision_model(
         test_node,
         test_short_tspan;
-        node_strategy=test_strategy,
-        node_species=test_species,
+        node_strategy=test_node_strategy,
+        node_species=[test_species],    # now requires vector
         slack_small=true,
     )
 
@@ -78,13 +82,15 @@
         release_this_gene_index=test_release_gene,
         release_this_life_stage=(Male, Female),
     )
-    test_strategy = Dict(1 => test_constraints)
+    #test_strategy = Dict(1 => test_constraints)
+    test_strategy = [1 => test_constraints]
+    test_node_strategy = NodeStrategy(1, test_strategy)
 
     test_prob = create_decision_model(
         test_node,
         test_short_tspan;
-        node_strategy=test_strategy,
-        node_species=test_species,
+        node_strategy=test_node_strategy,
+        node_species=[test_species],
         optimizer=i,
         slack_large=true,
     )

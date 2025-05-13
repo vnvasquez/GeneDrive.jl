@@ -121,6 +121,19 @@ Base.@kwdef mutable struct ReleaseStrategy
     release_max_over_timehorizon::Union{Int64, Float64} = 9e9
 end
 
+"""
+    NodeStrategy(node_number, strategy_vector::Vector)
+
+Return dictionary containing constraint data (`ReleaseStrategy`) per organism for each node. 
+"""
+function NodeStrategy(node_number, release_strategy_vector::Vector)
+    node_strategy = DataStructures.OrderedDict()
+    for i in 1:length(release_strategy_vector)
+        node_strategy[node_number] = release_strategy_vector
+    end
+    return node_strategy 
+end
+
 function _add_constraint(
     model::JuMP.Model,
     do_binary::Bool,

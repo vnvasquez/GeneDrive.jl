@@ -101,6 +101,7 @@ export Male
 
 export Network
 export Node
+export NodeStrategy
 
 export NoDensity
 export NoResponse
