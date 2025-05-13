@@ -84,7 +84,7 @@ function create_decision_model(
     C = 1:data["total_scenario_count"]
     O = 1:organism_data["node_organism_count"] 
     G = 1:gene_count
-@show "organism keys include" O
+
     # Stage/substage sets TODO: fix
     SE = 1:nE
     SL = 1:nL
@@ -193,10 +193,8 @@ function create_decision_model(
     for (ix, node_name) in enumerate(N)
         for (cx, scenario) in enumerate(C)
             for (jx, organism) in enumerate(O)
-                @show organism
                 initialcond_dict[Egg][node_name][scenario][organism] =
                     initial_condition.x[ix].x[jx][SE, :]
-                    @show initial_condition.x[ix].x[jx][SE, :]
                 initialcond_dict[Larva][node_name][scenario][organism] =
                     initial_condition.x[ix].x[jx][(nE + 1):(nL + nE), :]
                 initialcond_dict[Pupa][node_name][scenario][organism] =

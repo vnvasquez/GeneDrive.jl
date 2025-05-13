@@ -95,7 +95,7 @@ end
 
     end
 
-Data defining the operational constraints for each node.
+Data defining the operational constraints for each organism.
 
 # Arguments
 

@@ -36,7 +36,7 @@
         test_node,
         test_short_tspan;
         node_strategy=test_strategy,
-        species=test_species,
+        node_species=test_species,
         optimizer=i,
     )
 
@@ -60,7 +60,7 @@
         test_node,
         test_short_tspan;
         node_strategy=test_strategy,
-        species=test_species,
+        node_species=test_species,
         slack_small=true,
     )
 
@@ -84,7 +84,7 @@
         test_node,
         test_short_tspan;
         node_strategy=test_strategy,
-        species=test_species,
+        node_species=test_species,
         optimizer=i,
         slack_large=true,
     )

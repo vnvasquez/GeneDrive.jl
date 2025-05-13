@@ -933,7 +933,6 @@ function format_decision_model_results(sol)
                             df[!, col_symbol] =
                                 sum(JuMP.value.(var_val[n, o, :, g, :]).data, dims=1)[1, :]
                             key_symbol = Symbol("node_$(n)_organism_$(o)_$(var_key)")
-                            @show key_symbol
                             results_dict[key_symbol] = df
                         end
                     end
