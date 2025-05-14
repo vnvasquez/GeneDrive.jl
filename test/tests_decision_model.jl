@@ -7,7 +7,7 @@
 
     ## Constraints: M
     test_species = AnophelesGambiae
-    test_anoph = update_population_size(stages_abiodun(), 500)
+    test_anoph = update_population_size!(stages_abiodun(), 500)
     test_mendelian = make_organisms(test_species, genetics_mendelian(), test_anoph)
     test_short_timeseries = TimeSeriesTemperature([
         27.0,

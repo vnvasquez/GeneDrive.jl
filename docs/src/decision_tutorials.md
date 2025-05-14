@@ -17,7 +17,7 @@ using GeneDrive
 species = AedesAegypti
 genetics = genetics_ridl()
 enviro_response = stages_rossi()
-update_population_size(enviro_response, 500)
+update_population_size!(enviro_response, 500)
 organisms = make_organisms(species, genetics, enviro_response)
 temperature = example_temperature_timeseries
 coordinates3 = (16.9203, 145.7710)

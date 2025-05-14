@@ -159,21 +159,21 @@ function count_organisms(network::Network, node::Symbol)
 end
 
 """
-    update_organism(node::Node, new_species)
+    update_organism!(node::Node, new_species)
 
 Update the species populating `Node`.
 """
-function update_organism(node::Node, new_species)
+function update_organism!(node::Node, new_species)
     node.organisms = new_species
     return node
 end
 
 """
-    update_organism(network::Network, node::Symbol, new_species)
+    update_organism!(network::Network, node::Symbol, new_species)
 
 Update the species populating the specified `Node` of `Network`.
 """
-function update_organism(network::Network, node::Symbol, new_species)
+function update_organism!(network::Network, node::Symbol, new_species)
     network.nodes[node].organisms = new_species
     return network
 end
@@ -272,91 +272,91 @@ function count_substages(stages_dict)
 end
 
 """
-    update_population_size(stages::DataStructures, Stage}, new_popsize::Int64)
+    update_population_size!(stages::DataStructures, Stage}, new_popsize::Int64)
 
 Return updated population size. Note: `new_popsize` argument refers specifically to the Female population; if e.g. new_popsize = 500, the full adult population (Females and Males) will be 500*2.
 """
-function update_population_size(stages::DataStructures.OrderedDict, new_popsize::Int64)
+function update_population_size!(stages::DataStructures.OrderedDict, new_popsize::Int64)
     stages[Female].N0 = new_popsize
     return stages
 end
 
 """
-    update_egg_mortality(stages::DataStructures.OrderedDict, vital_rate::Float64)
+    update_egg_mortality!(stages::DataStructures.OrderedDict, vital_rate::Float64)
 
 Return updated mortality for `Egg` stage. Note: Exclusively applicable to `NoResponse` temperature type.
 """
-function update_egg_mortality(stages::DataStructures.OrderedDict, vital_rate::Float64)
+function update_egg_mortality!(stages::DataStructures.OrderedDict, vital_rate::Float64)
     new_stages = deepcopy(stages)
     return new_stages[Egg].μ_temperature_response = NoResponse(vital_rate)
 end
 
 """
-    update_egg_duration(stages::DataStructures.OrderedDict, vital_rate::Float64)
+    update_egg_duration!(stages::DataStructures.OrderedDict, vital_rate::Float64)
 
 Return updated duration for `Egg` stage. Note: Exclusively applicable to `NoResponse` temperature type.
 """
-function update_egg_duration(stages::DataStructures.OrderedDict, vital_rate::Float64)
+function update_egg_duration!(stages::DataStructures.OrderedDict, vital_rate::Float64)
     new_stages = deepcopy(stages)
     return new_stages[Egg].q_temperature_response = NoResponse(vital_rate)
 end
 
 """
-    update_larva_mortality(stages::DataStructures.OrderedDict, vital_rate::Float64)
+    update_larva_mortality!(stages::DataStructures.OrderedDict, vital_rate::Float64)
 
 Return updated mortality for `Larva` stage. Note: Exclusively applicable to `NoResponse` temperature type.
 """
-function update_larva_mortality(stages::DataStructures.OrderedDict, vital_rate::Float64)
+function update_larva_mortality!(stages::DataStructures.OrderedDict, vital_rate::Float64)
     new_stages = deepcopy(stages)
     return new_stages[Larva].μ_temperature_response = NoResponse(vital_rate)
 end
 
 """
-    update_larva_duration(stages::DataStructures.OrderedDict, vital_rate::Float64)
+    update_larva_duration!(stages::DataStructures.OrderedDict, vital_rate::Float64)
 
 Return updated duration for `Larva` stage. Note: Exclusively applicable to `NoResponse` temperature type.
 """
-function update_larva_duration(stages::DataStructures.OrderedDict, vital_rate::Float64)
+function update_larva_duration!(stages::DataStructures.OrderedDict, vital_rate::Float64)
     new_stages = deepcopy(stages)
     return new_stages[Larva].q_temperature_response = NoResponse(vital_rate)
 end
 
 """
-    update_pupa_mortality(stages::DataStructures.OrderedDict, vital_rate::Float64)
+    update_pupa_mortality!(stages::DataStructures.OrderedDict, vital_rate::Float64)
 
 Return updated mortality for `Pupa` stage. Note: Exclusively applicable to `NoResponse` temperature type.
 """
-function update_pupa_mortality(stages::DataStructures.OrderedDict, vital_rate::Float64)
+function update_pupa_mortality!(stages::DataStructures.OrderedDict, vital_rate::Float64)
     new_stages = deepcopy(stages)
     return new_stages[Pupa].μ_temperature_response = NoResponse(vital_rate)
 end
 
 """
-    update_pupa_duration(stages::DataStructures.OrderedDict, vital_rate::Float64)
+    update_pupa_duration!(stages::DataStructures.OrderedDict, vital_rate::Float64)
 
 Return updated duration for `Pupa` stage. Note: Exclusively applicable to `NoResponse` temperature type.
 """
-function update_pupa_duration(stages::DataStructures.OrderedDict, vital_rate::Float64)
+function update_pupa_duration!(stages::DataStructures.OrderedDict, vital_rate::Float64)
     new_stages = deepcopy(stages)
     return new_stages[Pupa].q_temperature_response = NoResponse(vital_rate)
 end
 
 """
-    update_female_mortality(stages::DataStructures.OrderedDict, vital_rate::Float64)
+    update_female_mortality!(stages::DataStructures.OrderedDict, vital_rate::Float64)
 
 Return updated mortality for `Female` stage. Note: Exclusively applicable to `NoResponse` temperature type.
 """
-function update_female_mortality(stages::DataStructures.OrderedDict, vital_rate::Float64)
+function update_female_mortality!(stages::DataStructures.OrderedDict, vital_rate::Float64)
     new_stages = deepcopy(stages)
     return new_stages[Female].μ_temperature_response = NoResponse(vital_rate)
 end
 
 """
-    update_male_mortality(stages::DataStructures.OrderedDict, vital_rate::Float64)
+    update_male_mortality!(stages::DataStructures.OrderedDict, vital_rate::Float64)
 
 Return updated mortality for `Male` stage. Note: Exclusively applicable to `NoResponse` temperature type.
 """
-function update_male_mortality(stages::DataStructures.OrderedDict, vital_rate::Float64)
+function update_male_mortality!(stages::DataStructures.OrderedDict, vital_rate::Float64)
     new_stages = deepcopy(stages)
     return new_stages[Male].μ_temperature_response = NoResponse(vital_rate)
 end
@@ -375,11 +375,11 @@ function get_duration(node::Node, species::Type{<:Species}, life_stage::Type{<:L
 end
 
 """
-    update_duration(node::Node, species::Type{<:Species}, life_stage::Type{<:LifeStage}, new_q)
+    update_duration!(node::Node, species::Type{<:Species}, life_stage::Type{<:LifeStage}, new_q)
 
 Update the temperature-sensitive duration (`q_temperature_response`) for the `LifeStage` of `Species` in `Node.`
 """
-function update_duration(
+function update_duration!(
     node::Node,
     species::Type{<:Species},
     life_stage::Type{<:LifeStage},
@@ -403,11 +403,11 @@ function get_mortality(node::Node, species::Type{<:Species}, life_stage::Type{<:
 end
 
 """
-    update_mortality(node::Node, species::Type{<:Species}, life_stage::Type{<:LifeStage}, new_μ)
+    update_mortality!(node::Node, species::Type{<:Species}, life_stage::Type{<:LifeStage}, new_μ)
 
 Update the temperature-sensitive mortality (`μ_temperature_response`) for the `LifeStage` of `Species` in `Node.`
 """
-function update_mortality(
+function update_mortality!(
     node::Node,
     species::Type{<:Species},
     life_stage::Type{<:LifeStage},
@@ -431,11 +431,11 @@ function get_density(node::Node, species::Type{<:Species}, life_stage::Type{<:Li
 end
 
 """
-    update_density_parameter(node::Node, species::Type{<:Species}, ::Type{T}; new_param_value::Float64) where T <: LifeStage
+    update_density_parameter!(node::Node, species::Type{<:Species}, ::Type{T}; new_param_value::Float64) where T <: LifeStage
 
 Update the parameterization of the density dependence model for `LifeStage` of `Species` in `Node`.
 """
-function update_density_parameter(
+function update_density_parameter!(
     node::Node,
     species::Type{<:Species},
     ::Type{T};
@@ -447,11 +447,11 @@ function update_density_parameter(
 end
 
 """
-    update_density_model(node::Node, species::Type{<:Species}, ::Type{T}; new_density_model::Density) where T <: LifeStage
+    update_density_model!(node::Node, species::Type{<:Species}, ::Type{T}; new_density_model::Density) where T <: LifeStage
 
 Update the functional form of the density dependence model for `LifeStage` of `Species` in `Node`.
 """
-function update_density_model(
+function update_density_model!(
     node::Node,
     species::Type{<:Species},
     ::Type{T};
@@ -516,21 +516,21 @@ function get_genetics(network::Network, node::Symbol, species::Type{<:Species})
 end
 
 """
-    update_genetics(node::Node, species::Type{<:Species}, new_genetics)
+    update_genetics!(node::Node, species::Type{<:Species}, new_genetics)
 
 Update `Genetics` data for `Species` in `Node`.
 """
-function update_genetics(node::Node, species::Type{<:Species}, new_genetics)
+function update_genetics!(node::Node, species::Type{<:Species}, new_genetics)
     node.organisms[species].gene_data = new_genetics
     return node
 end
 
 """
-    update_genetics_Ω(node::Node, species::Type{<:Species}, new_omega::Array{Float64,1})
+    update_genetics_Ω!(node::Node, species::Type{<:Species}, new_omega::Array{Float64,1})
 
 Update `Ω` data in `Genetics` for `Species` in `Node`.
 """
-function update_genetics_Ω(
+function update_genetics_Ω!(
     node::Node,
     species::Type{<:Species},
     new_omega::Array{Float64, 1},
@@ -540,21 +540,21 @@ function update_genetics_Ω(
 end
 
 """
-    update_genetics_Ω(gene_data, new_omega::Array{Float64,1})
+    update_genetics_Ω!(gene_data, new_omega::Array{Float64,1})
 
 Update `Ω` data in `Genetics`. Helper function.
 """
-function update_genetics_Ω(gene_data, new_omega::Array{Float64, 1})
+function update_genetics_Ω!(gene_data, new_omega::Array{Float64, 1})
     gene_data.Ω = new_omega
     return gene_data
 end
 
 """
-    update_genetics_Β(node::Node, species::Type{<:Species}, new_beta::Array{Float64,1})
+    update_genetics_Β!(node::Node, species::Type{<:Species}, new_beta::Array{Float64,1})
 
 Update `Β` data in `Genetics` for `Species` in `Node`.
 """
-function update_genetics_Β(
+function update_genetics_Β!(
     node::Node,
     species::Type{<:Species},
     new_beta::Array{Float64, 1},
@@ -564,31 +564,31 @@ function update_genetics_Β(
 end
 
 """
-    update_genetics_Η(node::Node, species::Type{<:Species}, new_eta::Array{Float64,1})
+    update_genetics_Η!(node::Node, species::Type{<:Species}, new_eta::Array{Float64,1})
 
 Update `Η` data in `Genetics` for `Species` in `Node`.
 """
-function update_genetics_Η(node::Node, species::Type{<:Species}, new_eta::Array{Float64, 1})
+function update_genetics_Η!(node::Node, species::Type{<:Species}, new_eta::Array{Float64, 1})
     node.organisms[species].gene_data.Η = new_eta
     return node
 end
 
 """
-    update_genetics_Η(gene_data, new_eta::Array{Float64,1})
+    update_genetics_Η!(gene_data, new_eta::Array{Float64,1})
 
 Update `Η` data in `Genetics`. Helper function.
 """
-function update_genetics_Η(gene_data, new_eta::Array{Float64, 1})
+function update_genetics_Η!(gene_data, new_eta::Array{Float64, 1})
     gene_data.Η = new_eta
     return gene_data
 end
 
 """
-    update_genetics_S(node::Node, species::Type{<:Species}, new_sigma::Array{Float64,1})
+    update_genetics_S!(node::Node, species::Type{<:Species}, new_sigma::Array{Float64,1})
 
 Update `S` data in `Genetics` for `Species` in `Node`.
 """
-function update_genetics_S(
+function update_genetics_S!(
     node::Node,
     species::Type{<:Species},
     new_sigma::Array{Float64, 1},
@@ -683,11 +683,11 @@ function get_migration(network::Network, species::Type{<:Species})
 end
 
 """
-    update_migration(network::Network, species::Type{<:Species}, new_migration)
+    update_migration!(network::Network, species::Type{<:Species}, new_migration)
 
 Update the migration characterizing each genotype and `Lifestage` for `Species` in `Network`.
 """
-function update_migration(network::Network, species::Type{<:Species}, new_migration)
+function update_migration!(network::Network, species::Type{<:Species}, new_migration)
     network.migration[species] = new_migration
     return network
 end

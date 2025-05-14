@@ -271,31 +271,31 @@ export solve_scenarios_dynamic_model
 export temperature_effect
 
 export update_density!
-export update_density_model
-export update_density_parameter
-export update_duration
+export update_density_model!
+export update_density_parameter!
+export update_duration!
 
-export update_egg_duration
-export update_egg_mortality
-export update_female_mortality
+export update_egg_duration!
+export update_egg_mortality!
+export update_female_mortality!
 
-export update_genetics
-export update_genetics_Β
-export update_genetics_Η
-export update_genetics_Ω
-export update_genetics_S
+export update_genetics!
+export update_genetics_Β!
+export update_genetics_Η!
+export update_genetics_Ω!
+export update_genetics_S!
 
-export update_larva_duration
-export update_larva_mortality
+export update_larva_duration!
+export update_larva_mortality!
 
-export update_male_mortality
-export update_migration
-export update_mortality
-export update_organism
+export update_male_mortality!
+export update_migration!
+export update_mortality!
+export update_organism!
 
-export update_population_size
-export update_pupa_duration
-export update_pupa_mortality
+export update_population_size!
+export update_pupa_duration!
+export update_pupa_mortality!
 
 export update_temperature!
 

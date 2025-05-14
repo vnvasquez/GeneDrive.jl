@@ -5,7 +5,7 @@
     test_tspan = (1, 365)
 
     # Temperature: Timeseries, Genetics: Mendelian, Species: AnophelesGambiae, Releases: no, Shocks: no, Network: no
-    test_anoph = update_population_size(stages_abiodun(), 500)
+    test_anoph = update_population_size!(stages_abiodun(), 500)
     test_mendelian = make_organisms(AnophelesGambiae, genetics_mendelian(), test_anoph)
     test_short_timeseries = TimeSeriesTemperature([
         27.0,
@@ -26,7 +26,7 @@
     @test test_sol.retcode == SciMLBase.ReturnCode.Success
 
     ### Temperature: Sinusoid, Genetics: RIDL, Species: Aedes, Releases: yes, Shocks: yes, Network: no
-    test_aedes = update_population_size(stages_rossi(), 500)
+    test_aedes = update_population_size!(stages_rossi(), 500)
     test_ridl = make_organisms(AedesAegypti, genetics_ridl(), test_aedes)
     test_node = Node(:TestNode, test_ridl, example_temperature_sinusoidal, (1.0, 1.0))
     test_wild_gene = get_wildtype(test_node, AedesAegypti)
@@ -48,7 +48,7 @@
     @test test_sol.retcode == SciMLBase.ReturnCode.Success
 
     ## Temperature: Constant, Genetics: HGD, Species: Aedes, Releases: no, Shocks: no, Network: no
-    test_aedes = update_population_size(stages_rossi(), 500)
+    test_aedes = update_population_size!(stages_rossi(), 500)
     test_hgd = make_organisms(AedesAegypti, genetics_mcr(), test_aedes)
     test_node = Node(:TestNode, test_hgd, example_temperature_constant, (1.0, 1.0))
     test_sol = solve_dynamic_model(test_node, test_solver, test_tspan)
@@ -56,7 +56,7 @@
     @test test_sol.retcode == SciMLBase.ReturnCode.Success
 
     ## Temperature: Constant, Genetics: Wolbachia, Species: Aedes, Releases: no, Shocks: no, Network: yes
-    test_aedes = update_population_size(stages_rossi(), 500)
+    test_aedes = update_population_size!(stages_rossi(), 500)
     test_wolb = make_organisms(AedesAegypti, genetics_wolbachia(), test_aedes)
     test_node = Node(:TestNode, test_wolb, example_temperature_constant, (1.0, 1.0))
     test_node2 = Node(:TestNode2, test_wolb, example_temperature_constant, (2.0, 2.0))

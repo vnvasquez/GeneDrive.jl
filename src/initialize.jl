@@ -238,7 +238,7 @@ function init_node!(node::Node)
             t,
         )
         densitydep0[index_organism] = (KL=KL, γL=γL)
-        update_density_parameter(node, key_species, Larva; new_param_value=KL)
+        update_density_parameter!(node, key_species, Larva; new_param_value=KL)
     end
 
     u0_first_guess_collectedstages = RecursiveArrayTools.ArrayPartition(u0...)

@@ -18,7 +18,7 @@ using Pkg
 species = AedesAegypti
 genetics = genetics_mendelian()
 enviro_response = stages_rossi()
-update_population_size(enviro_response, 500)
+update_population_size!(enviro_response, 500)
 organisms = make_organisms(species, genetics, enviro_response)
 temperature = example_temperature_timeseries
 coordinates2 = (17.0966, 145.7747)
