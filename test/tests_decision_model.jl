@@ -30,7 +30,6 @@
         release_this_gene_index=test_release_gene,
         release_this_life_stage=Male,
     )
-    #test_strategy = Dict(1 => test_constraints)
     test_strategy = [1 => test_constraints]
     test_node_strategy = NodeStrategy(1, test_strategy)
 
@@ -56,7 +55,6 @@
         release_this_gene_index=test_release_gene,
         release_this_life_stage=Female,
     )
-    #test_strategy = Dict(1 => test_constraints)
     test_strategy = [1 => test_constraints]
     test_node_strategy = NodeStrategy(1, test_strategy)
 
@@ -82,7 +80,6 @@
         release_this_gene_index=test_release_gene,
         release_this_life_stage=(Male, Female),
     )
-    #test_strategy = Dict(1 => test_constraints)
     test_strategy = [1 => test_constraints]
     test_node_strategy = NodeStrategy(1, test_strategy)
 

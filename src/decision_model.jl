@@ -22,12 +22,23 @@ end
     create_decision_model(network::Network, tspan; node_strategy::DataStructures.OrderedDict, species::Type{<:Species}=AedesAegypti,do_binary::Bool=false, optimizer=nothing)
 
 Build mathematical program. Problem created as an NLP (do_binary=false) or MINLP (do_binary=true).
+
+# Arguments
+
+  - `network`: Data for one or more interconnected spatial nodes.
+  - `tspan`: Time horizon of the problem, defined in days.
+  - `node_strategy`: Operational constraints specific to organism types within each node. 
+  - `node_species`: Species present in the node, defined as a vector. 
+  - `do_binary`: Boolean indicating whether the problem is formulated as a MINLP (true) or NLP (false); defaults to false.
+  - `optimizer`: Optimization solver to be used.
+  - `slack_small`: Boolean flag to enable small slack variables within selected constraints. These introduce minor constraint relaxations with corresponding penalties in the objective function. Defaults to false.
+  - `slack_large`: Boolean flag to enable large slack variables for constraints where greater flexibility may be required to preserve model feasibility. Defaults to false.
 """
 function create_decision_model(
     network::Network,
     tspan;
-    node_strategy,#::Union{Dict, DataStructures.OrderedDict},#DataStructures.OrderedDict, #Dict,
-    node_species, #::Type{<:Species}=AedesAegypti,
+    node_strategy,
+    node_species, 
     do_binary::Bool=false,
     optimizer=nothing,
     slack_small=false,

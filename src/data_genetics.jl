@@ -13,6 +13,11 @@ drives_mendelian = [
     Drive(aa, mend3, 1.0, ones(3, 3), 0.5, 1.0, 1.0, 0.0, 63.0, 1.0, 1, 0),
 ]
 
+"""
+    genetics_mendelian()
+
+Return Mendelian inheritance. 
+"""
 genetics_mendelian() = Genetics(Mendelian, drives_mendelian)
 
 ########################################
@@ -29,6 +34,11 @@ drives_ridl = [ # NB: Midrange estimates for ω and η
     Drive(RR, ridl3, 1.0, ones(3, 3), 0.5, 0.0, 0.0, 0.18, 63.0, 0.031, 0, 1),
 ]
 
+"""
+    genetics_ridl()
+
+Return Release of Insects carrying a Dominant Lethal gene (RIDL) inheritance. 
+"""
 genetics_ridl() = Genetics(RIDL, drives_ridl)
 
 ########################################
@@ -46,6 +56,11 @@ drives_wolbachia = [ # NB: Midrange estimate for ω
     Drive(ww, wolb2, 1.0, tau2_wolb, 0.5, 1.0, 1.0, 0.0, 63.0, 1.0, 1, 0),
 ]
 
+"""
+    genetics_wolbachia()
+
+Return Wolbachia inheritance. 
+"""
 genetics_wolbachia() = Genetics(Wolbachia, drives_wolbachia)
 
 ########################################
@@ -110,4 +125,10 @@ drives_mcr = [ # NB: ∉ costs
     Drive(RR, mcr6, 1.0, ones(6, 6), 0.5, 1.0, 1.0, 0.0, 63.0, 1.0, 0, 0),
 ]
 
+
+"""
+    genetics_mcr()
+
+Return Mutagenic Chain Reaction (MCR) inheritance. 
+"""
 genetics_mcr() = Genetics(MCR, drives_mcr)

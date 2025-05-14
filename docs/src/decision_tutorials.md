@@ -28,15 +28,24 @@ tspan = (1,365);
 
 ```@example decision_example
 # Define constraints using desired fields (re-use `release_genotype`)
-node3_strategy = ReleaseStrategy(release_this_gene_index = release_genotype,
-    release_this_life_stage = Male, release_start_time = 7,
-    release_size_max_per_timestep = 1000)
+example3 = ReleaseStrategy(
+    release_this_gene_index = release_genotype,
+    release_this_life_stage = Male, 
+    release_start_time = 7,
+    release_size_max_per_timestep = 1000
+); 
 
 # Assign constraints to dict of nodes
-mystrategy = Dict(1 => node3_strategy)
+my_org_strat = [1 => example3]
+my_node_strat = NodeStrategy(1, my_org_strat)
 
 # Build the optimization problem (re-use `node3`, `tspan`)
-prob = create_decision_model(node3, tspan; node_strategy = mystrategy);
+prob = create_decision_model(
+    node3, 
+    tspan; 
+    node_strategy = my_node_strat
+    node_species = [species]
+);
 ```
 
 To solve the decision model as an optimization, a goal (objective) must be supplied. However, even in the absence of an objective function we can derive useful information: without an objective, the solution method auto-selected by `GeneDrive.jl` acts as a nonlinear solver and allows us to compare the behavior of our dynamic and decision models.

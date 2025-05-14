@@ -1,9 +1,25 @@
 ########################################
 #          Density Dependence          #
 ########################################
+"""
+    dens_lin()
 
+Return linear density dependence.  
+"""
 dens_lin() = Density(LinearDensity, 1.0);
+
+"""
+    dens_log()
+
+Return logarithmic density dependence.  
+"""
 dens_log() = Density(LogisticDensity, 1.0);
+
+"""
+    dens_none()
+
+Return no density dependence.  
+"""
 dens_none() = Density(NoDensity, 1.0);
 
 ########################################
@@ -34,6 +50,11 @@ function instantiate_stages_rossi()
     )
 end
 
+"""
+    stages_rossi()
+
+Return life stage-specific temperature response formulations derived from Rossi et al 2014.   
+"""
 stages_rossi() = instantiate_stages_rossi();
 
 # El Moustaid et al 2019
@@ -79,6 +100,11 @@ function instantiate_stages_moustaid()
     )
 end
 
+"""
+    stages_moustaid()
+
+Return life stage-specific temperature response formulations derived from El Moustaid et al 2019.  
+"""
 stages_moustaid() = instantiate_stages_moustaid();
 
 ########################################
@@ -148,6 +174,11 @@ function instantiate_stages_abiodun()
     )
 end
 
+"""
+    stages_abiodun()
+
+Return life stage-specific temperature response formulations derived from Abiodun et al 2016.
+"""
 stages_abiodun() = instantiate_stages_abiodun();
 
 ########################################
@@ -166,4 +197,9 @@ function instantiate_stages_noresponse()
     )
 end
 
+"""
+    stages_noresponse()
+
+Return life stage-specific formulations with no temperature response. 
+"""
 stages_noresponse() = instantiate_stages_noresponse()

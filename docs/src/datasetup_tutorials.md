@@ -13,7 +13,7 @@ Once the information for an experiment has been organized using the data model, 
 * Call [Ordinary Differential Equation (ODE) solution methods](@ref dynamic_model) on our data.
 * Call [optimization solution methods](@ref decision_model) on our data. 
 
-The code below shows how to construct an example study population using data that is included with the package. 
+The code below shows how to construct an example study population using data that is included within the `GeneDrive.jl` package. 
 
 ```@example data_example
 using GeneDrive
@@ -57,7 +57,7 @@ node2 = Node(:Gordonsvale, organisms, temperature, coordinates2);
 network = Network(:Queensland, node1, node2);
 
 # Specify that adult males and females of all genotypes move 
-migration_data = Dict( # node1 <-> node2
+migration_data = Dict(          # node1 <-> node2
     ("Male", "AA") => Dict((:YorkeysKnob, :Gordonsvale) => 0.02,
                            (:Gordonsvale, :YorkeysKnob) => 0.02),
     ("Male", "Aa") => Dict((:YorkeysKnob, :Gordonsvale) => 0.02,
