@@ -1,6 +1,18 @@
 ########################################
 #         Solve Dynamic Model          #
 ########################################
+function make_combined_callback(callbacks)
+    condition_all(u, t, integrator) = any(cb.condition(u, t, integrator) for cb in callbacks)
+    function affect_all!(integrator)
+        for cb in callbacks
+            if cb.condition(integrator.u, integrator.t, integrator)
+                cb.affect!(integrator)
+            end
+        end
+    end
+    return diffeq.DiscreteCallback(condition_all, affect_all!)
+end
+
 """
     solve_dynamic_model(node::Node, algorithm, tspan)
 
@@ -25,7 +37,9 @@ function solve_dynamic_model(node::Node, algorithm, tspan)
             push!(tstops, temp.times...)
             push!(callbacks, temp.set.discrete_callbacks...)
         end
-        collected_callback_set = diffeq.CallbackSet((), tuple(callbacks...))
+        cb_combined = make_combined_callback(callbacks)
+        collected_callback_set = diffeq.CallbackSet(cb_combined)
+
 
     elseif isa(node.temperature, ScenarioTemperature) # && selected_scenario !== nothing
         tempseries = [
@@ -40,10 +54,11 @@ function solve_dynamic_model(node::Node, algorithm, tspan)
             push!(tstops, temp.times...)
             push!(callbacks, temp.set.discrete_callbacks...)
         end
-        collected_callback_set = diffeq.CallbackSet((), tuple(callbacks...))
-
+        cb_combined = make_combined_callback(callbacks)
+        collected_callback_set = diffeq.CallbackSet(cb_combined)
     else
-        collected_callback_set = diffeq.CallbackSet((), tuple(callbacks...))
+        cb_combined = make_combined_callback(callbacks)
+        collected_callback_set = diffeq.CallbackSet(cb_combined)
     end
 
     inputs = ExogenousInputs(node)
@@ -94,7 +109,9 @@ function solve_dynamic_model(
             push!(tstops, temp.times...)
             push!(callbacks, temp.set.discrete_callbacks...)
         end
-        collected_callback_set = diffeq.CallbackSet((), tuple(callbacks...))
+        cb_combined = make_combined_callback(callbacks)
+        collected_callback_set = diffeq.CallbackSet(cb_combined)
+
 
     elseif isa(node.temperature, ScenarioTemperature) # && selected_scenario !== nothing
         tempseries = [
@@ -113,14 +130,17 @@ function solve_dynamic_model(
             push!(tstops, temp.times...)
             push!(callbacks, temp.set.discrete_callbacks...)
         end
-        collected_callback_set = diffeq.CallbackSet((), tuple(callbacks...))
+        cb_combined = make_combined_callback(callbacks)
+        collected_callback_set = diffeq.CallbackSet(cb_combined)
+
 
     else
         for release in releases
             push!(tstops, release.times...)
             push!(callbacks, release.callbacks...)
         end
-        collected_callback_set = diffeq.CallbackSet((), tuple(callbacks...))
+        cb_combined = make_combined_callback(callbacks)
+        collected_callback_set = diffeq.CallbackSet(cb_combined)
     end
     inputs = ExogenousInputs(node)
 
@@ -174,14 +194,17 @@ function solve_dynamic_model(node::Node, shocks::TemperatureShockData, algorithm
             push!(tstops, temp.times...)
             push!(callbacks, temp.set.discrete_callbacks...)
         end
-        collected_callback_set = diffeq.CallbackSet((), tuple(callbacks...))
+        cb_combined = make_combined_callback(callbacks)
+        collected_callback_set = diffeq.CallbackSet(cb_combined)
     else
         for times in shocks.times
             push!(tstops, times...)
         end
         push!(callbacks, shocks.set.discrete_callbacks...)
     end
-    collected_callback_set = diffeq.CallbackSet((), tuple(callbacks...))
+    cb_combined = make_combined_callback(callbacks)
+    collected_callback_set = diffeq.CallbackSet(cb_combined)
+
     inputs = ExogenousInputs(node)
     u0, dens = init_node!(node)
     @info(
@@ -242,7 +265,9 @@ function solve_dynamic_model(
             push!(tstops, release.times...)
             push!(callbacks, release.callbacks...)
         end
-        collected_callback_set = diffeq.CallbackSet((), tuple(callbacks...))
+        cb_combined = make_combined_callback(callbacks)
+        collected_callback_set = diffeq.CallbackSet(cb_combined)
+
     else
         for release in releases
             push!(tstops, release.times...)
@@ -252,7 +277,8 @@ function solve_dynamic_model(
             push!(tstops, times...)
         end
         push!(callbacks, shocks.set.discrete_callbacks...)
-        collected_callback_set = diffeq.CallbackSet((), tuple(callbacks...))
+        cb_combined = make_combined_callback(callbacks)
+        collected_callback_set = diffeq.CallbackSet(cb_combined)
     end
     inputs = ExogenousInputs(node)
     u0, dens = init_node!(node)
@@ -300,7 +326,8 @@ function solve_dynamic_model(network::Network, algorithm, tspan)
                 push!(tstops, temp.times...)
                 push!(callbacks, temp.set.discrete_callbacks...)
             end
-            collected_callback_set = diffeq.CallbackSet((), tuple(callbacks...))
+            cb_combined = make_combined_callback(callbacks)
+            collected_callback_set = diffeq.CallbackSet(cb_combined)
 
         elseif isa(node.temperature, ScenarioTemperature)
             tempseries = [
@@ -314,10 +341,11 @@ function solve_dynamic_model(network::Network, algorithm, tspan)
                 push!(tstops, temp.times...)
                 push!(callbacks, temp.set.discrete_callbacks...)
             end
-            collected_callback_set = diffeq.CallbackSet((), tuple(callbacks...))
-
+            cb_combined = make_combined_callback(callbacks)
+            collected_callback_set = diffeq.CallbackSet(cb_combined)
         else
-            collected_callback_set = diffeq.CallbackSet((), tuple(callbacks...))
+            cb_combined = make_combined_callback(callbacks)
+            collected_callback_set = diffeq.CallbackSet(cb_combined)
         end
     end
     inputs = ExogenousInputs(network)
@@ -377,7 +405,8 @@ function solve_dynamic_model(
                 push!(tstops, release.times...)
                 push!(callbacks, release.callbacks...)
             end
-            collected_callback_set = diffeq.CallbackSet((), tuple(callbacks...))
+            cb_combined = make_combined_callback(callbacks)
+            collected_callback_set = diffeq.CallbackSet(cb_combined)                
 
         elseif isa(node.temperature, ScenarioTemperature)
             tempseries = [
@@ -395,14 +424,16 @@ function solve_dynamic_model(
                 push!(tstops, release.times...)
                 push!(callbacks, release.callbacks...)
             end
-            collected_callback_set = diffeq.CallbackSet((), tuple(callbacks...))
+            cb_combined = make_combined_callback(callbacks)
+            collected_callback_set = diffeq.CallbackSet(cb_combined)
 
         else
             for release in releases
                 push!(tstops, release.times...)
                 push!(callbacks, release.callbacks...)
             end
-            collected_callback_set = diffeq.CallbackSet((), tuple(callbacks...))
+            cb_combined = make_combined_callback(callbacks)
+            collected_callback_set = diffeq.CallbackSet(cb_combined)
         end
     end
     inputs = ExogenousInputs(network)
@@ -469,7 +500,8 @@ function solve_dynamic_model(
                 push!(tstops, temp.times...)
                 push!(callbacks, temp.set.discrete_callbacks...)
             end
-            collected_callback_set = diffeq.CallbackSet((), tuple(callbacks...))
+            cb_combined = make_combined_callback(callbacks)
+            collected_callback_set = diffeq.CallbackSet(cb_combined)
         else
             for shock in shocks
                 for times in shock.times
@@ -477,7 +509,8 @@ function solve_dynamic_model(
                 end
                 push!(callbacks, shock.set.discrete_callbacks...)
             end
-            collected_callback_set = diffeq.CallbackSet((), tuple(callbacks...))
+            cb_combined = make_combined_callback(callbacks)
+            collected_callback_set = diffeq.CallbackSet(cb_combined)
         end
     end
     inputs = ExogenousInputs(network)
@@ -552,7 +585,8 @@ function solve_dynamic_model(
                 push!(tstops, release.times...)
                 push!(callbacks, release.callbacks...)
             end
-            collected_callback_set = diffeq.CallbackSet((), tuple(callbacks...))
+            cb_combined = make_combined_callback(callbacks)
+            collected_callback_set = diffeq.CallbackSet(cb_combined)
         else
             for shock in shocks
                 for times in shock.times
@@ -564,7 +598,8 @@ function solve_dynamic_model(
                 push!(tstops, release.times...)
                 push!(callbacks, release.callbacks...)
             end
-            collected_callback_set = diffeq.CallbackSet((), tuple(callbacks...))
+            cb_combined = make_combined_callback(callbacks)
+            collected_callback_set = diffeq.CallbackSet(cb_combined)
         end
     end
     inputs = ExogenousInputs(network)
