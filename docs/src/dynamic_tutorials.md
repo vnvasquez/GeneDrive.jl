@@ -89,5 +89,5 @@ To visualize a subset of the results, run `plot_dynamic_ridl_females(node3, sol)
 
 The output should look as follows: 
 
-![RIDL female dynamics](assets/dynamic_ridl_females.png)
+![Dynamic RIDL Plot](assets/dynamic_ridl_females.png)
 

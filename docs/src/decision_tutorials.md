@@ -56,4 +56,6 @@ sol = solve_decision_model(prob);
 # Format all results for analysis
 results = format_decision_model_results(sol);
 ```
-To visualize a subset of the results, run `plot_decision_ridl_females(sol)`. Because no objective function was specified, this output should qualitatively match those from the dynamic model when no intervention is conducted (i.e. when using the same data model, and no RIDL release object is passed to `solve_dynamic_model`).
+To visualize a subset of the results, run `plot_decision_ridl_females(sol)`. Because no objective function was specified, this output should qualitatively match those from the dynamic model when no intervention is conducted (i.e. when using the same data model, and no RIDL release object is passed to `solve_dynamic_model`). Therefore it should look as follows: 
+
+![Decision RIDL Plot](assets/decision_ridl_females.png)
