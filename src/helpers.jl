@@ -1428,8 +1428,7 @@ Return visualization of adult female population dynamics across all genotypes.
 """
 function plot_decision_mendelian_females(sol)
     results = format_decision_model_results(sol)
-
-    df = results[:node_1_organism_1_F]
+    df = results[:node_1_scenario_1_organism_1_F]
     timesteps = results[:Time]
 
     traces = PlotlyJS.GenericTrace{Dict{Symbol, Any}}[]
@@ -1507,7 +1506,7 @@ Return visualization of adult female population dynamics across all genotypes.
 function plot_decision_ridl_females(sol)
     results = format_decision_model_results(sol)
 
-    df = results[:node_1_organism_1_F]
+    df = results[:node_1_scenario_1_organism_1_F]
     timesteps = results[:Time]
 
     traces = PlotlyJS.GenericTrace{Dict{Symbol, Any}}[]
@@ -1585,7 +1584,7 @@ Return visualization of adult female population dynamics across all genotypes.
 function plot_decision_mcr_females(sol)
     results = format_decision_model_results(sol)
 
-    df = results[:node_1_organism_1_F]
+    df = results[:node_1_scenario_1_organism_1_F]
     timesteps = results[:Time]
 
     traces = PlotlyJS.GenericTrace{Dict{Symbol, Any}}[]
@@ -1707,7 +1706,7 @@ Return visualization of adult female population dynamics across all genotypes.
 function plot_decision_wolbachia_females(sol)
     results = format_decision_model_results(sol)
 
-    df = results[:node_1_organism_1_F]
+    df = results[:node_1_scenario_1_organism_1_F]
     timesteps = results[:Time]
 
     traces = PlotlyJS.GenericTrace{Dict{Symbol, Any}}[]
