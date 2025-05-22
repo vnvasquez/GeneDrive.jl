@@ -86,3 +86,8 @@ sol = solve_dynamic_model(node3, [releases_males],
 results = format_dynamic_model_results(node3, sol)
 ```
 To visualize a subset of the results, run `plot_dynamic_ridl_females(node3, sol)`.
+
+The output should look as follows: 
+
+![RIDL female dynamics](assets/dynamic_ridl_females.png)
+
