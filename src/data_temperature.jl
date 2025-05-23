@@ -2,10 +2,25 @@
 #      Example Temperature Data        #
 ########################################
 
+"""
+    example_temperature_constant
+
+Return example data formatted as `ConstantTemperature`
+"""
 example_temperature_constant = ConstantTemperature(27.0);
 
+"""
+    example_temperature_sinusoidal
+
+Return example data formatted as `SinusoidalTemperature`
+"""
 example_temperature_sinusoidal = SinusoidalTemperature(7.5, 2, 365, 21.5);
 
+"""
+    example_temperature_timeseries
+
+Return example data formatted as `TimeSeriesTemperature`
+"""
 example_temperature_timeseries = TimeSeriesTemperature([
     27.0,
     27.5,
