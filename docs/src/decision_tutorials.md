@@ -35,17 +35,18 @@ example3 = ReleaseStrategy(
     release_size_max_per_timestep = 1000
 ); 
 
-# Assign constraints to dict of nodes
-my_org_strat = [1 => example3]
-my_node_strat = NodeStrategy(1, my_org_strat)
+# Assign constraints 
+my_org_strat = [1 => example3]            
+my_node_strat = NodeStrategy(1, my_org_strat)    
+my_node_species = [species]    
 
 # Build the optimization problem (re-use `node3`, `tspan`)
 prob = create_decision_model(
     node3, 
     tspan; 
-    node_strategy = my_node_strat
-    node_species = [species]
-);
+    node_strategy = my_node_strat,
+    node_species = my_node_species
+    );
 ```
 
 To solve the decision model as an optimization, a goal (objective) must be supplied. However, even in the absence of an objective function we can derive useful information: without an objective, the solution method auto-selected by `GeneDrive.jl` acts as a nonlinear solver and allows us to compare the behavior of our dynamic and decision models.
