@@ -43,8 +43,8 @@
 
     @test JuMP.num_variables(test_prob) == 460
     @test JuMP.num_constraints(test_prob, GAE, MOI.EqualTo{Float64}) == 150
-    @test JuMP.num_constraints(test_prob, GAE, MOI.GreaterThan{Float64}) == 30
-    @test JuMP.num_constraints(test_prob, GAE, MOI.LessThan{Float64}) == 61
+    @test JuMP.num_constraints(test_prob, GAE, MOI.GreaterThan{Float64}) == 10
+    @test JuMP.num_constraints(test_prob, GAE, MOI.LessThan{Float64}) == 41
     @test JuMP.num_constraints(test_prob, GQE, MOI.EqualTo{Float64}) == 90
     @test JuMP.num_constraints(test_prob, VariableRef, MOI.EqualTo{Float64}) == 90
     @test JuMP.num_constraints(test_prob, VariableRef, MOI.GreaterThan{Float64}) == 370
@@ -68,8 +68,8 @@
 
     @test JuMP.num_variables(test_prob) == 463
     @test JuMP.num_constraints(test_prob, GAE, MOI.EqualTo{Float64}) == 150
-    @test JuMP.num_constraints(test_prob, GAE, MOI.GreaterThan{Float64}) == 90
-    @test JuMP.num_constraints(test_prob, GAE, MOI.LessThan{Float64}) == 121
+    @test JuMP.num_constraints(test_prob, GAE, MOI.GreaterThan{Float64}) == 30
+    @test JuMP.num_constraints(test_prob, GAE, MOI.LessThan{Float64}) == 61
     @test JuMP.num_constraints(test_prob, GQE, MOI.EqualTo{Float64}) == 90
     @test JuMP.num_constraints(test_prob, VariableRef, MOI.EqualTo{Float64}) == 80
     @test JuMP.num_constraints(test_prob, VariableRef, MOI.GreaterThan{Float64}) == 383
@@ -94,8 +94,8 @@
 
     @test JuMP.num_variables(test_prob) == 490
     @test JuMP.num_constraints(test_prob, GAE, MOI.EqualTo{Float64}) == 160
-    @test JuMP.num_constraints(test_prob, GAE, MOI.GreaterThan{Float64}) == 120
-    @test JuMP.num_constraints(test_prob, GAE, MOI.LessThan{Float64}) == 152
+    @test JuMP.num_constraints(test_prob, GAE, MOI.GreaterThan{Float64}) == 40
+    @test JuMP.num_constraints(test_prob, GAE, MOI.LessThan{Float64}) == 72
     @test JuMP.num_constraints(test_prob, GQE, MOI.EqualTo{Float64}) == 90
     @test JuMP.num_constraints(test_prob, VariableRef, MOI.EqualTo{Float64}) == 60
     @test JuMP.num_constraints(test_prob, VariableRef, MOI.GreaterThan{Float64}) == 430
