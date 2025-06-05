@@ -47,7 +47,8 @@ function create_decision_model(
     for (key_node, node) in enumerate(values(get_nodes(network)))
         if length(collect(tspan[1]:tspan[2])) !== length(node.temperature.values)
             @warn(
-                "Temperature timeseries in node $key_node does not match `tspan` length. Problem will fail or result will be incorrect."
+               # "Temperature timeseries in node $key_node does not match `tspan` length. Problem will fail or result will be incorrect."
+               "Double check that temperature timeseries in node $key_node matches `tspan` length."
             )
         end
     end
