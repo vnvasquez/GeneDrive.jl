@@ -13,7 +13,6 @@ First, we will characterize the impact of seasonal temperature fluctuations on o
 ```@setup dynamic_example
 using GeneDrive
 using OrdinaryDiffEq
-using PlotlyJS
 using Pkg
 species = AedesAegypti
 genetics = genetics_mendelian()
@@ -38,7 +37,7 @@ sol = solve_dynamic_model(node2, solver, tspan);
 # Format all results for analysis
 results = format_dynamic_model_results(node2, sol)
 ```
-To visualize a subset of the results, run `plot_dynamic_mendelian_females(node2, sol)`. For the `AedesAegypti` species modelled in this example, we are particularly interested in the dynamics of adult females because female mosquitoes are the vectors of disease.
+To visualize a subset of the results, run `using PlotlyJS` followed by `plot_dynamic_mendelian_females(node2, sol)`. For the `AedesAegypti` species modelled in this example, we are particularly interested in the dynamics of adult females because female mosquitoes are the vectors of disease.
 
 Note that the solver is sourced from the robust DifferentialEquations.jl package (options [here](https://diffeq.sciml.ai/stable/solvers/ode_solve/#Full-List-of-Methods)). If that package is not already in your local environment, run the following to select your preferred solution method:
 
