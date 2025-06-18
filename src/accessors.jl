@@ -776,6 +776,24 @@ function update_temperature!(
     return node
 end
 
+"""
+    update_temperature!(node::Node, temp_type::Type{<:ScenarioTemperature}, new_temperature::ScenarioTemperature)
+
+Update the `values` of `Temperature` for `ScenarioTemperature` in `Node`.
+"""
+function update_temperature!(
+    node::Node,
+    temp_type::Type{<:ScenarioTemperature},
+    new_temperature::ScenarioTemperature
+)
+    node.temperature = ScenarioTemperature(
+        new_temperature.values,
+        new_temperature.probability;
+        selected_scenario = new_temperature.selected_scenario
+    )
+    return node
+end
+
 function _get_daily_temperature(temperature_model::SinusoidalTemperature, t)
     return temperature_model.a * cos((temperature_model.b * π / temperature_model.c) * t) +
            temperature_model.d
