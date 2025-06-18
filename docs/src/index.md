@@ -31,4 +31,4 @@ While this package is [not exclusively applicable to gene drive research](@ref e
 
 ## Citing GeneDrive.jl
 
-[Insert paper citation/bioarxiv link]
+[Insert paper citation when available]
