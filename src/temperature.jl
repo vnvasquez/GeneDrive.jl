@@ -176,11 +176,7 @@ function get_temperature_value(
     return temp_value_from_inputs
 end
 
-"""
-    initialize_temperature_model(data::ScenarioTemperature)
-
-Return first value of temperature in °C for selected scenario. Used for simulation initialization.
-"""
+# Return first value of temperature in °C for selected scenario. Used for simulation initialization.
 function initialize_temperature_model(data::ScenarioTemperature)
     sx = data.selected_scenario === nothing ? 1 : data.selected_scenario
     return data.values[sx][1]
