@@ -26,6 +26,7 @@ PlotlyJS = "f0f68f2c-4968-5e81-91da-67840de0976a"
 
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+TestItemRunner = "f8b46487-2199-4994-9208-9a1283c18c0a"
 
 [compat]
 CSV = "0.10"
@@ -48,4 +49,4 @@ DiffEqBase = "6.82.2"
 PlotlyJS = "0.18.8"
 
 [targets]
-test = ["Test"]
+test = ["Test", "TestItemRunner"]

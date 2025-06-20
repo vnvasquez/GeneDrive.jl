@@ -1,12 +1,3 @@
-using GeneDrive
-using Test
-using OrdinaryDiffEq
-using JuMP
-using Ipopt
-# import LinearAlgebra
+using TestItemRunner
 
-@testset "GeneDrive" begin
-    include("tests_temperature_response.jl")
-    include("tests_decision_model.jl")
-    include("tests_dynamic_model.jl")
-end
+@run_package_tests

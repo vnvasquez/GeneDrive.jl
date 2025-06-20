@@ -1,4 +1,5 @@
-@testset "Dynamic Model" begin
+@testitem "Dynamic Model" begin
+    using OrdinaryDiffEq
 
     # Shared
     test_solver = OrdinaryDiffEq.Tsit5()

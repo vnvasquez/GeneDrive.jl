@@ -1,4 +1,4 @@
-@testset "Temp Response Functions" begin
+@testitem "Temp Response Functions" begin
 
     # NoTemp
     test_notemp = NoResponse(0.0)

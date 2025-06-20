@@ -1,4 +1,6 @@
-@testset "Decision Model" begin
+@testitem "Decision Model" begin
+    using JuMP
+    using Ipopt
 
     # Shared
     i = JuMP.optimizer_with_attributes(Ipopt.Optimizer)
