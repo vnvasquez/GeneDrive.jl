@@ -301,6 +301,10 @@ export update_temperature!
 
 # Data
 #####################
+export dens_lin
+export dens_log
+export dens_none
+
 export example_temperature_constant
 export example_temperature_sinusoidal
 export example_temperature_timeseries

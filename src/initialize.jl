@@ -2,11 +2,6 @@
 #                                Init Population                               #
 ################################################################################
 
-"""
-    init_pupa!(node::Node, species::Type{<:Species}, gene_index::Int64, inputs, t)
-
-Return initialized `LifeStage`: Pupa.
-"""
 function init_pupa!(node::Node, species::Type{<:Species}, gene_index::Int64, inputs, t)
     node_name = get_name(node)
     ctemp = get_temperature_value(node.temperature, inputs.temperature[node_name], t)
@@ -33,11 +28,6 @@ function init_pupa!(node::Node, species::Type{<:Species}, gene_index::Int64, inp
     return P0
 end
 
-"""
-    init_egg!(node::Node, species::Type{<:Species}, gene_index::Int64, inputs, t)
-
-Return initialized `LifeStage`: Egg.
-"""
 function init_egg!(node::Node, species::Type{<:Species}, gene_index::Int64, inputs, t)
     node_name = get_name(node)
     ctemp = get_temperature_value(node.temperature, inputs.temperature[node_name], t)
@@ -62,11 +52,6 @@ function init_egg!(node::Node, species::Type{<:Species}, gene_index::Int64, inpu
     return E0
 end
 
-"""
-    init_larva!(node::Node, species::Type{<:Species}, gene_index::Int64, inputs, t)
-
-Return initialized `LifeStage`: Larva.
-"""
 function init_larva!(
     node::Node,
     species::Type{<:Species},
@@ -115,11 +100,6 @@ function init_larva!(
     return L0
 end
 
-"""
-    init_density_dependence!(node::Node, species::Type{<:Species}, eqpop, gene_index::Int64, inputs, t)
-
-Return initialized density dependence model.
-"""
 function init_density_dependence!(
     node::Node,
     species::Type{<:Species},
@@ -156,11 +136,6 @@ function init_density_dependence!(
     return density_param_KL, density_param_γL
 end
 
-"""
-    init_male!(node::Node, species::Type{<:Species}, gene_index::Int64, inputs, t)
-
-Return initialized `LifeStage`: Male.
-"""
 function init_male!(node::Node, species::Type{<:Species}, P0, gene_index::Int64, inputs, t)
     node_name = get_name(node)
     ctemp = get_temperature_value(node.temperature, inputs.temperature[node_name], t)
@@ -183,11 +158,6 @@ function init_male!(node::Node, species::Type{<:Species}, P0, gene_index::Int64,
     return M0
 end
 
-"""
-    init_female!(node::Node, species::Type{<:Species}, gene_index::Int64, inputs, t)
-
-Return initialized `LifeStage`: Female.
-"""
 function init_female!(node::Node, species::Type{<:Species}, gene_index::Int64, inputs, t)
     node_name = get_name(node)
     ctemp = get_temperature_value(node.temperature, inputs.temperature[node_name], t)
@@ -204,11 +174,6 @@ function init_female!(node::Node, species::Type{<:Species}, gene_index::Int64, i
     return F0
 end
 
-"""
-    init_node!(node::Node)
-
-Return initialized `Node`.
-"""
 function init_node!(node::Node)
     t = 0.0
     inputs = ExogenousInputs(node)
@@ -252,11 +217,6 @@ function init_node!(node::Node)
     return eqpop, densitydep0
 end
 
-"""
-    init_network!(network::Network)
-
-Return initialized `Network`.
-"""
 function init_network!(network::Network)
     n_nodes = count_nodes(network)
     u0_network = Vector{Any}(undef, n_nodes)

@@ -2,11 +2,6 @@
 #                         Population: ODE Formulation                          #
 ################################################################################
 
-"""
-    oviposit(F, likelihood, Τ, S, Β, gene_index::Int64)
-
-Return oviposited eggs (count).
-"""
 function oviposit(
     F,
     node::Node,
@@ -32,14 +27,9 @@ function oviposit(
     # TODO: add genetic parameters for new constructs
     O = likelihood[:, :, gene_index] .* Τ[:, :, gene_index] .* ΒS .* F
 
-    return sum(O)
+    return sum(O) #Return oviposited eggs (count)
 end
 
-"""
-    create_egg!(dE, E, node::Node, species::Type{<:Species}, eggsnew, gene_index::Int64, inputs::ExogenousInputs, t)
-
-Return egg state.
-"""
 function create_egg!(
     dE,
     E,
@@ -69,11 +59,6 @@ function create_egg!(
     return
 end
 
-"""
-    create_larva!(dL, L, E, node::Node, species::Type{<:Species}, gene_index::Int64, inputs, t)
-
-Returns larva state.
-"""
 function create_larva!(
     dL,
     L,
@@ -106,11 +91,6 @@ function create_larva!(
     return
 end
 
-"""
-    create_pupa!(dP, P, L, node::Node, species::Type{<:Species}, gene_index::Int64, inputs, t)
-
-Return pupa state.
-"""
 function create_pupa!(
     dP,
     P,
@@ -144,11 +124,6 @@ function create_pupa!(
     return
 end
 
-"""
-    create_male!(dM, M, P, Φ, Ξ_m, Ω, node::Node, species::Type{<:Species}, gene_index::Int64, inputs, t)
-
-Return adult male state.
-"""
 function create_male!(
     dM,
     M,
@@ -184,11 +159,6 @@ function create_male!(
     return
 end
 
-"""
-    mate(P, M, Φ, Ξ_f, Η, node::Node, species::Type{<:Species}, gene_index::Int64, inputs, t)
-
-Return outcome of mating.
-"""
 function mate(
     P,
     M,
@@ -221,11 +191,6 @@ function mate(
     return mated
 end
 
-"""
-    create_female!(dF, F, Ω, Ξ_f, node::Node, species::Type{<:Species}, matematrix::Array, gene_index::Int64, inputs::ExogenousInputs, t)
-
-Return adult female state.
-"""
 function create_female!(
     dF,
     F,

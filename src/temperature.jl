@@ -33,11 +33,7 @@ function get_temperature_value(
     return temperature_model.value + temp_value_from_inputs
 end
 
-"""
-    initialize_temperature_model(data::ConstantTemperature)
-
-Return value of temperature in °C in first time step, for simulation initialization.
-"""
+# Return value of temperature in °C in first time step, for simulation initialization.
 function initialize_temperature_model(data::ConstantTemperature)
     # time[0] = time[:]
     return data.value
@@ -86,11 +82,7 @@ function get_temperature_value(
            temp_value_from_inputs
 end
 
-"""
-    initialize_temperature_model(data::SinusoidalTemperature)
-
-Return value of temperature in °C in first time step, for simulation initialization.
-"""
+# Return value of temperature in °C in first time step, for simulation initialization.
 function initialize_temperature_model(data::SinusoidalTemperature)
     # time = 0.0
     return data.a * cos((data.b * π / data.c) * 0.0) + data.d
@@ -137,11 +129,7 @@ function get_temperature_value(
     return temp_value_from_inputs
 end
 
-"""
-    initialize_temperature_model(data::TimeSeriesTemperature)
-
-Return first value of temperature in °C. Used for simulation initialization.
-"""
+# Return first value of temperature in °C. Used for simulation initialization.
 function initialize_temperature_model(data::TimeSeriesTemperature)
     # value[1] = time[0]
     return data.values[1]
