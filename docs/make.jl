@@ -6,7 +6,7 @@ makedocs(;
     authors="Valeri Vasquez",
     repo="https://github.com/vnvasquez/GeneDrive.jl/blob/{commit}{path}#L{line}",
     sitename="GeneDrive.jl",
-    format=Documenter.HTML(; prettyurls=prettyurls = get(ENV, "CI", nothing) == "true"),
+    format=Documenter.HTML(; prettyurls=prettyurls = get(ENV, "CI", nothing) == "true", size_threshold = nothing),
     pages=[
         "Home" => "index.md",
         "Features" => "features.md",
