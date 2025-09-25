@@ -173,7 +173,8 @@ function _add_constraint(
                 #@info "made binary for node $n and time $t"
                 JuMP.set_binary(release_location[n, t])
             end
-            for o in O, s in SM, g in G[o]
+            for o in O, s in SM, g in G #G[o]
+                #@show "G[o] #1 corrected"
                 max_v = g == homozygous_modified ? max_per_timestep : 0.0
                 min_v = g == homozygous_modified ? min_per_timestep : 0.0
                 #@info "max limit used in $s, $g is $max_v"
@@ -191,7 +192,8 @@ function _add_constraint(
         else
             #@info "fixed to 0.0 node $n and time $t"
             JuMP.fix(release_location[n, t], 0.0; force=true)
-            for o in O, s in SM, g in G[o]
+            for o in O, s in SM, g in G #G[o]
+                #@show "G[o] #2 corrected"
                 CONTAINER_control_limit_schedule_upper_M[n, o, s, g, t] =
                     JuMP.@constraint(model, control_M[n, o, s, g, t] <= 0)
                 CONTAINER_control_limit_schedule_lower_M[n, o, s, g, t] =
@@ -248,7 +250,7 @@ function _add_constraint(
                 #@info "made FEMALES binary for node $n and time $t"
                 JuMP.set_binary(release_location[n, t])
             end
-            for o in O, s in SF, g in G[o]
+            for o in O, s in SF, g in G #G[o]
                 max_v = g == homozygous_modified ? max_per_timestep : 0.0
                 min_v = g == homozygous_modified ? min_per_timestep : 0.0
                 #@info "max limit used in $o, $s, $g is FEMALES = $max_v"
@@ -266,7 +268,7 @@ function _add_constraint(
         else
             #@info "fixed FEMALES to 0.0 node $n and time $t"
             JuMP.fix(release_location[n, t], 0.0; force=true)
-            for o in O, s in SF, g in G[o]
+            for o in O, s in SF, g in G #G[o]
                 CONTAINER_control_limit_schedule_upper_F[n, o, s, g, t] =
                     JuMP.@constraint(model, control_F[n, o, g, s, t] <= 0)
                 CONTAINER_control_limit_schedule_lower_F[n, o, s, g, t] =
@@ -384,7 +386,7 @@ function _add_constraint(
                 JuMP.set_binary(release_location[n, t])
             end
 
-            for o in O, g in G[o]
+            for o in O, g in G #G[o]
                 max_v = g == homozygous_modified ? max_per_timestep : 0.0
                 min_v = g == homozygous_modified ? min_per_timestep : 0.0
 
@@ -428,7 +430,7 @@ function _add_constraint(
             end
         else
             JuMP.fix(release_location[n, t], 0.0; force=true)
-            for o in O, g in G[o]
+            for o in O, g in G #G[o]
                 for s in SF
                     #@info "fixed FEMALES to 0.0 in node $n, time $t"
                     CONTAINER_control_limit_schedule_upper_F[n, o, s, g, t] =
