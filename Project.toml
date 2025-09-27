@@ -1,7 +1,7 @@
 name = "GeneDrive"
 uuid = "d9acca20-95e5-11e9-3d4c-3b57da6f4e87"
 authors = ["Valeri Vasquez"]
-version = "2.0.4"
+version = "2.0.5-DEV"
 
 [deps]
 CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
