@@ -21,18 +21,23 @@ import DataFrames
 # Files
 #####################
 # TODO: Random.seed!(123)
+
+
+include("genetics.jl")
+
+
 include("temperature.jl")
 include("temperature_responses.jl")
 
-include("life_stages.jl")
-include("genetics.jl")
+include("life_stages.jl") 
 include("organisms.jl")
+include("definitions.jl")  
 
 include("spatial_structure.jl")
 include("exogenous_change.jl")
-
 include("accessors.jl")
-include("definitions.jl")
+
+
 
 include("initialize.jl")
 include("population_dynamics.jl")
