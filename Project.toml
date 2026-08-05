@@ -45,7 +45,7 @@ Cbc = "1"
 DataFrames = "1.3.2"
 RecursiveArrayTools = "3"
 MathOptInterface = "1.1.1"
-DiffEqBase = "6.82.2"
+DiffEqBase = "6.82.2, 7.12"
 PlotlyJS = "0.18.8"
 
 [targets]
